@@ -15,7 +15,8 @@ The following instructions assumes that you are attempting to setup the project 
 2. [Setup Docker Compose](https://docs.docker.com/compose/install/)
 3. [Setup Python](https://www.python.org/downloads/)
 
-Project setup reproduction
+## Project Setup
+
 1. Create a `.gitignore` file with the contents of the .gitignore file in this repo
 2. Create a `Dockerfile` with the content of the Dockerfile in this repo
 3. Create a `docker-compose.yml` file with the content of the docker-compose.yml file in this repo
@@ -51,7 +52,8 @@ DATABASES = {
     10. `exit`
 13. Go back to the root folder with `cd ..`
 14. Sync the databases using the migrate command `python manage.py migrate`
-15. Create an administrative account for the database with `python manage.py createsuperuser`. Select your username and password.
+15. Create an administrative account for the database with `python manage.py createsuperuser`
+    1.  Choose your username and password.
 16. Test setup with `python manage.py runserver` and visit the generated link to check if setup has worked.
 
 
