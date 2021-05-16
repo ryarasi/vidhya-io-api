@@ -1,6 +1,6 @@
 ## About
 
-This project creates the API for the Vidhya.io app. This README file details everything you need to know about this project.
+This repo contains the Django-based Graphql API for the Vidhya.io app. This README file details everything you need to know about this project.
 
 ## Versions
 * Python 3.8.5
