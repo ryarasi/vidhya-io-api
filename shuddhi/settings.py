@@ -83,8 +83,8 @@ WSGI_APPLICATION = 'shuddhi.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'myproject',
-        'USER': 'myprojectuser',
+        'NAME': 'shuddhi',
+        'USER': 'shuddhiadmin',
         'PASSWORD': 'password',
         'HOST': 'localhost',
         'PORT': '',
