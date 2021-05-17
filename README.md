@@ -48,6 +48,7 @@ The following instructions assumes that you are attempting to setup the project 
 14. Create an administrative account for the database with `python manage.py createsuperuser`
     1.  Choose your username and password.
 15. Test setup with `docker-compose up` and visit `localhost:8000` to check if setup has worked.
+16. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
 
 
 ## Troubleshooting:-
