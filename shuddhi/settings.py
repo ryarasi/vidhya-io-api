@@ -40,6 +40,10 @@ INSTALLED_APPS = [
     'vidhya'
 ]
 
+GRAPHENE = {
+    'SCHEMA': 'shuddhi.schema.schema'
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -135,4 +139,6 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# This is here because we are using a custom User model
+# https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#substituting-a-custom-user-model
 AUTH_USER_MODEL = "vidhya.User"
