@@ -28,32 +28,31 @@ The following instructions assumes that you are attempting to setup the project 
 7. Create a new Django project `django_admin startproject shuddhi .`
 8.  Move into the project folder with `cd shuddhi`
 9.  Create a new app called vidhya in the shuddhi project `django-admin startapp vidhya`
-10. Update the `DATABASES` variables in `settings.py` file with the following (You must have pgadmin4 on your machine and have created a database )
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'shuddhi',
-        'USER': 'shuddhiadmin',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': '',
-    }
-}
-12. Create a postgres database and a database user with the following commands:-
-    1.  `sudo su - postgres`
-    2.  `psql`
-    3.  `CREATE DATABASE shuddhi;`
-    4.  `CREATE USER shuddhiadmin WITH PASSWORD 'password';`
-    5.  `ALTER ROLE shuddhiadmin SET client_encoding TO 'utf8';`
-    6.  `ALTER ROLE shuddhiadmin SET default_transaction_isolation TO 'read committed';`
-    7.  `ALTER ROLE shuddhiadmin SET timezone TO 'UTC';`
-    8.  `GRANT ALL PRIVILEGES ON DATABASE shuddhi TO admin`
-    9.  `\q`
-    10. `exit`
+10. Update the `DATABASES` variable in `settings.py` file with the contents of that variable from the `settings.py` file in this repo.
+12. Create a postgres database and a database user inside Docker with the following commands:-
+    1.  `docker pull postgres:alpine` to create postgres docker image. We use the alipne version because its lighter.
+    2.  `docker images` to check if it shows the newly created docker image.
+    3.  `docker run --name postgres-0 -e POSTGRES_PASSWORD=password -d -p 5432:5432 postgres:alpine` to create a docker container named postgres-0 with the docker image we just pulled.
+    4.  `docker ps` should list the newly created container.
+    5.  `docker exec -it postgres-0` to enter the container.
+    6.  `psql -U postgres` to enter psql.
+    8.  `CREATE DATABASE shuddhidb;`
+    9.  `CREATE USER shuddhiadmin WITH PASSWORD 'password';`
+    10. `ALTER ROLE shuddhiadmin SET client_encoding TO 'utf8';`
+    11. `ALTER ROLE shuddhiadmin SET default_transaction_isolation TO 'read committed';`
+    12. `ALTER ROLE shuddhiadmin SET timezone TO 'UTC';`
+    13. `GRANT ALL PRIVILEGES ON DATABASE shuddhidb TO shuddhiadmin;`
+    14. `\q`
+    15. `exit`
 13. Go back to the root folder with `cd ..`
-14. Sync the databases using the migrate command `python manage.py migrate`
-15. Create an administrative account for the database with `python manage.py createsuperuser`
+14. Create an administrative account for the database with `python manage.py createsuperuser`
     1.  Choose your username and password.
-16. Test setup with `python manage.py runserver` and visit the generated link to check if setup has worked.
+15. Test setup with `docker-compose up` and visit `localhost:8000` to check if setup has worked.
 
 
+## Troubleshooting:-
+1. If docker-compose up keeps crashing, [rebuild the container](https://vsupalov.com/docker-compose-runs-old-containers/#the-quick-workaround)
+
+## Useful Links:-
+1. [Docker & Django](https://docs.docker.com/samples/django/)
+2. [Docker & PostgreSQL](https://www.youtube.com/watch?v=aHbE3pTyG-Q)
