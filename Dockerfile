@@ -9,10 +9,10 @@ ENV PYTHONUNBUFFERED 1
 # create root directory for our project in the container
 RUN mkdir /shuddhi
 
-# Set the working directory to /vidhya_api
+# Set the working directory to /shuddhi
 WORKDIR /shuddhi
 
-# Copy the current directory contents into the container at /vidhya_api
+# Copy the current directory contents into the container at /shuddhi
 ADD . /shuddhi/
 
 # Install any needed packages specified in requirements.txt
