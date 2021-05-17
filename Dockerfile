@@ -7,13 +7,13 @@ FROM python:3.8
 ENV PYTHONUNBUFFERED 1
 
 # create root directory for our project in the container
-RUN mkdir /vidhya_api
+RUN mkdir /shuddhi
 
 # Set the working directory to /vidhya_api
-WORKDIR /vidhya_api
+WORKDIR /shuddhi
 
 # Copy the current directory contents into the container at /vidhya_api
-ADD . /vidhya_api/
+ADD . /shuddhi/
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
