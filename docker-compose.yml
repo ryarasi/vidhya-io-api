@@ -1,6 +1,13 @@
-version: "3"
+version: "3.9"
 
 services:
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    env_file:
+      - database.env
+
   web:
     build: .
     command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
@@ -9,3 +16,8 @@ services:
       - .:/shuddhi
     ports:
       - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  database-data: # named volumes can be managed easier using docker-compose
