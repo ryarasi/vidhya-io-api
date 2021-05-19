@@ -10,6 +10,8 @@ class User(AbstractUser):
     institution = models.ForeignKey('Institution', on_delete=models.PROTECT)
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
+    USERNAME_FIELD = 'username'
+    EMAIL_FIELD = 'email'
 
 
 class Institution(models.Model):
