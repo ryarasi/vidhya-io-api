@@ -5,12 +5,11 @@ from django.utils.translation import gettext_lazy as _
 
 class User(AbstractUser):
     name = models.CharField(max_length=50)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(blank=False, max_length=255, unique=True)
     avatar = models.CharField(max_length=250, blank=True, null=True)
     institution = models.ForeignKey('Institution', on_delete=models.PROTECT)
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
-    last_login = models.DateTimeField(null=True, blank=True)
 
 
 class Institution(models.Model):
