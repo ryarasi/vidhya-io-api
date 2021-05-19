@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'vidhya',
     'graphene_django',
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
-    'graphql_auth'
+    'graphql_auth',
+    'django_filters'
 ]
 
 GRAPHENE = {
@@ -64,6 +65,8 @@ AUTHENTICATION_BACKENDS = [
     'graphql_auth.backends.GraphQLAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 ROOT_URLCONF = 'shuddhi.urls'
 
