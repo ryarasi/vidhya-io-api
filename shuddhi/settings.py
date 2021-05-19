@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'vidhya',
     'graphene_django',
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig'
+    'graphql_auth'
 ]
 
 GRAPHENE = {
@@ -60,7 +61,7 @@ MIDDLEWARE = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'graphql_jwt.backends.JSONWebTokenBackend',
+    'graphql_auth.backends.GraphQLAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
