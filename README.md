@@ -45,13 +45,14 @@ The following instructions assumes that you are attempting to setup the project 
     14. `\q`
     15. `exit`
 13. Go back to the root folder with `cd ..`
-14. Create an administrative account for the database with `python manage.py createsuperuser`
-    1.  Choose your username and password.
-15. Test setup type in the following commands:-
+14. Test setup type in the following commands:-
     1.  Start the postgres docker container with `docker start shuddhi-db`
     2.  Once the postgres container is up and running, start the docker for the project with `docker-compose up`
     3.  Visit `localhost:8000` or `localhost:8000/graphql` to check if setup has worked.
-16. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
+15. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
+16. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
+    1.  Choose your username and password.
+    2.  Now you can go to `localhost:8000/admin` to log into the console
 
 
 ## Troubleshooting:-
