@@ -25,7 +25,7 @@ The following instructions assumes that you are attempting to setup the project 
 5. Activate the virtual environment
     `source venv/bin/activate`
 6. Install django, graphenedjango and psycopg2 with `pip install django graphene_django psycopg2`
-7. Create a new Django project `django_admin startproject shuddhi .`
+7. Create a new Django project `django-admin startproject shuddhi .`
 8.  Move into the project folder with `cd shuddhi`
 9.  Create a new app called vidhya in the shuddhi project `django-admin startapp vidhya`
 10. Update the `DATABASES` variable in `settings.py` file with the contents of that variable from the `settings.py` file in this repo.
@@ -57,3 +57,4 @@ The following instructions assumes that you are attempting to setup the project 
 ## Useful Links:-
 1. [Docker & Django](https://docs.docker.com/samples/django/)
 2. [Docker & PostgreSQL](https://www.youtube.com/watch?v=aHbE3pTyG-Q)
+3. [Autogenerate the requirements.txt file](https://stackoverflow.com/a/33468993/7981162)
