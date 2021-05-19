@@ -1,9 +1,10 @@
 import vidhya.schema
 import graphene
 import graphql_jwt
+from graphql_auth.schema import UserQuery, MeQuery
 
 
-class Query(vidhya.schema.Query, graphene.ObjectType):
+class Query(vidhya.schema.Query, UserQuery, MeQuery, graphene.ObjectType):
     # This class will inherit from multiple Queries
     # as we begin to add more apps to our project
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
