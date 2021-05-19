@@ -58,3 +58,4 @@ The following instructions assumes that you are attempting to setup the project 
 1. [Docker & Django](https://docs.docker.com/samples/django/)
 2. [Docker & PostgreSQL](https://www.youtube.com/watch?v=aHbE3pTyG-Q)
 3. [Autogenerate the requirements.txt file](https://stackoverflow.com/a/33468993/7981162)
+4. [Implementing authentication using JWT in Django/Graphene GraphQL API](https://www.youtube.com/watch?v=pyV2_F9wlk8)
