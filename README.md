@@ -32,9 +32,9 @@ The following instructions assumes that you are attempting to setup the project 
 12. Create a postgres database and a database user inside Docker with the following commands:-
     1.  `docker pull postgres:alpine` to create postgres docker image. We use the alipne version because its lighter.
     2.  `docker images` to check if it shows the newly created docker image.
-    3.  `docker run --name postgres-0 -e POSTGRES_PASSWORD=password -d -p 5432:5432 postgres:alpine` to create a docker container named postgres-0 with the docker image we just pulled.
+    3.  `docker run --name shuddhi-db -e POSTGRES_PASSWORD=password -d -p 5432:5432 postgres:alpine` to create a docker container named shuddhi-db with the docker image we just pulled.
     4.  `docker ps` should list the newly created container.
-    5.  `docker exec -it postgres-0` to enter the container.
+    5.  `docker exec -it shuddhi-db bash` to enter the container.
     6.  `psql -U postgres` to enter psql.
     8.  `CREATE DATABASE shuddhidb;`
     9.  `CREATE USER shuddhiadmin WITH PASSWORD 'password';`
@@ -47,12 +47,21 @@ The following instructions assumes that you are attempting to setup the project 
 13. Go back to the root folder with `cd ..`
 14. Create an administrative account for the database with `python manage.py createsuperuser`
     1.  Choose your username and password.
-15. Test setup with `docker-compose up` and visit `localhost:8000` to check if setup has worked.
+15. Test setup type in the following commands:-
+    1.  Start the postgres docker container with `docker start shuddhi-db`
+    2.  Once the postgres container is up and running, start the docker for the project with `docker-compose up`
+    3.  Visit `localhost:8000` or `localhost:8000/graphql` to check if setup has worked.
 16. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
 
 
 ## Troubleshooting:-
 1. If docker-compose up keeps crashing, [rebuild the container](https://vsupalov.com/docker-compose-runs-old-containers/#the-quick-workaround)
+   1. Use `docker-compose down && docker-compose build && docker-compose up`
+   2. or use `docker-compose rm -f && docker-compose pull && docker-compose up`
+2. If there are issues with migration conflicts, and simple solutions fail, reset the migrations with these commands:-
+   1. Delete all files inside the `migrations` folder except `__init__.py`
+   2. Delete the database file, in our case `./data`
+   3. Run `docker-compose up` 
 
 ## Useful Links:-
 1. [Docker & Django](https://docs.docker.com/samples/django/)
