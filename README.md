@@ -47,6 +47,7 @@ The following instructions assumes that you are attempting to setup the project 
 13. Go back to the root folder with `cd ..`
 14. Test setup type in the following commands:-
     1.  Start the postgres docker container with `docker start shuddhi-db`
+            1.  If this says that ports are already in use, then shut down postgres and try again `sudo service postgresql stop`
     2.  Once the postgres container is up and running, start the docker for the project with `docker-compose up`
     3.  Visit `localhost:8000` or `localhost:8000/graphql` to check if setup has worked.
 15. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
