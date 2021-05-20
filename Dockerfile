@@ -16,6 +16,5 @@ WORKDIR /shuddhi
 ADD . /shuddhi/
 
 # Install any needed packages specified in requirements.txt
-COPY requirements.txt /tmp/
-RUN pip install --requirement /tmp/requirements.txt
-COPY . /tmp/
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
