@@ -54,6 +54,11 @@ The following instructions assumes that you are attempting to setup the project 
 16. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
     1.  Choose your username and password.
     2.  Now you can go to `localhost:8000/admin` to log into the console
+17. While installing new packages follow these steps:-
+        1.  Make sure you've activated the virtual environment with `source venv/bin/activate`
+        2.  Install the package with `pip install <package_name>`
+        3.  Update the `requirements.txt` file with `pip freeze > requirements.txt`
+        4.  If the docker doesn't recognize the newly installed package, ensure that the docker container is rebuilt and try again.
 
 
 ## Troubleshooting:-
