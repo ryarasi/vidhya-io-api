@@ -23,6 +23,7 @@ class Institution(models.Model):
     phone = models.CharField(max_length=15, blank=True, null=True)
     logo = models.CharField(max_length=250, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
+    invitecode = models.CharField(max_length=10, blank=True, null=True)
 
 
 class Group(models.Model):
