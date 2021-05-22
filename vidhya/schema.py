@@ -82,6 +82,9 @@ class InstitutionInput(graphene.InputObjectType):
 class UserInput(graphene.InputObjectType):
     id = graphene.ID()
     user_id = graphene.Int(name="user", required=True)
+    name = graphene.String()
+    email = graphene.String()
+    avatar = graphene.String()
     institution_id = graphene.Int(name="institution", required=True)
     title = graphene.String()
     bio = graphene.String()
@@ -114,11 +117,12 @@ class UpdateInstitution(graphene.Mutation):
     @staticmethod
     def mutate(root, info, id, input=None):
         ok = False
-        institution_instance = Institution.objects.get(pk=id)
+        institution = Institution.objects.get(pk=id)
+        institution_instance = institution
         if institution_instance:
             ok = True
-            institution_instance.name = input.name
-            institution_instance.location = input.location
+            institution_instance.name = input.name if input.name else institution.name
+            institution_instance.location = input.location if input.location else institution.location
             institution_instance.city = input.city
             institution_instance.website = input.website
             institution_instance.phone = input.phone
@@ -160,6 +164,9 @@ class UpdateUser(graphene.Mutation):
         user_instance = User.objects.get(pk=id)
         if user_instance:
             ok = True
+            user_instance.name = input.name
+            user_instance.email = input.email
+            user_instance.avatar = input.avatar
             user_instance.institution_id = input.institution_id
             user_instance.title = input.title
             user_instance.bio = input.bio
