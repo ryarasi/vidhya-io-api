@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User, AbstractUser
 from django.utils.translation import gettext_lazy as _
+from common.utils import generate_jti
 
 
 class User(AbstractUser):
@@ -11,6 +12,16 @@ class User(AbstractUser):
         'Institution', on_delete=models.PROTECT, blank=True, null=True)
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
+    jti = models.CharField(
+        _("jwt id"),
+        max_length=64,
+        blank=False,
+        null=False,
+        editable=False,
+        default=generate_jti,
+        help_text=_(
+            "JWT tokens for the user get revoked when JWT id has regenerated."),
+    )
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 

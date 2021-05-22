@@ -1,8 +1,8 @@
 import vidhya.schema
 import graphene
-import graphql_jwt
 from graphql_auth import mutations
 from graphql_auth.schema import UserQuery, MeQuery
+from common.utils import generate_jti
 
 
 class AuthMutation(graphene.ObjectType):
@@ -20,13 +20,24 @@ class AuthMutation(graphene.ObjectType):
     refresh_token = mutations.RefreshToken.Field()
 
 
+class LogoutUser(graphene.Mutation):
+    id = graphene.ID()
+
+    @classmethod
+    def mutate(cls, root, info, **kwargs):
+        user = info.context.user
+        user.jti = generate_jti()
+        user.save()
+        return cls(id=user.id)
+
+
 class Query(vidhya.schema.Query, UserQuery, MeQuery, graphene.ObjectType):
     # This class will inherit from multiple Queries
     # as we begin to add more apps to our project
     pass
 
 
-class Mutation(vidhya.schema.Mutation, AuthMutation, graphene.ObjectType):
+class Mutation(vidhya.schema.Mutation, AuthMutation, LogoutUser, graphene.ObjectType):
     # This class will inherit from multiple Queries
     # as we begin to add more apps to our project
     pass
