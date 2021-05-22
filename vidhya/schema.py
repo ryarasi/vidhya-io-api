@@ -2,9 +2,11 @@ import graphene
 
 from graphene_django.types import DjangoObjectType, ObjectType
 from vidhya.models import User, Institution, Group
-
+from common.utils import generate_jti
 
 # Create a GraphQL type for the Institution model
+
+
 class InstitutionType(DjangoObjectType):
     class Meta:
         model = Institution
@@ -121,13 +123,13 @@ class UpdateInstitution(graphene.Mutation):
         institution_instance = institution
         if institution_instance:
             ok = True
-            institution_instance.name = input.name if input.name else institution.name
-            institution_instance.location = input.location if input.location else institution.location
-            institution_instance.city = input.city
-            institution_instance.website = input.website
-            institution_instance.phone = input.phone
-            institution_instance.logo = input.logo
-            institution_instance.bio = input.bio
+            institution_instance.name = input.name if input.name is not None else institution.name
+            institution_instance.location = input.location if input.location is not None else institution.location
+            institution_instance.city = input.city if input.city is not None else institution.city
+            institution_instance.website = input.website if input.website is not None else institution.website
+            institution_instance.phone = input.phone if input.phone is not None else institution.phone
+            institution_instance.logo = input.logo if input.logo is not None else institution.logo
+            institution_instance.bio = input.bio if input.bio is not None else institution.bio
 
             institution_instance.save()
             return UpdateInstitution(ok=ok, institution=institution_instance)
@@ -161,19 +163,30 @@ class UpdateUser(graphene.Mutation):
     @staticmethod
     def mutate(root, info, id, input=None):
         ok = False
-        user_instance = User.objects.get(pk=id)
+        user = User.objects.get(pk=id)
+        user_instance = user
         if user_instance:
             ok = True
-            user_instance.name = input.name
-            user_instance.email = input.email
-            user_instance.avatar = input.avatar
-            user_instance.institution_id = input.institution_id
-            user_instance.title = input.title
-            user_instance.bio = input.bio
+            user_instance.name = input.name if input.name is not None else user.name
+            user_instance.avatar = input.avatar if input.avatar is not None else user.avatar
+            user_instance.institution_id = input.institution_id if input.institution_id is not None else user.institution_id
+            user_instance.title = input.title if input.title is not None else user.title
+            user_instance.bio = input.bio if input.bio is not None else user.bio
 
             user_instance.save()
             return UpdateUser(ok=ok, user=user_instance)
         return UpdateUser(ok=ok, user=None)
+
+
+class LogoutUser(graphene.Mutation):
+    id = graphene.ID()
+
+    @classmethod
+    def mutate(cls, root, info, **kwargs):
+        user = info.context.user
+        user.jti = generate_jti()
+        user.save()
+        return cls(id=user.id, ok=True)
 
 
 class Mutation(graphene.ObjectType):
@@ -181,6 +194,7 @@ class Mutation(graphene.ObjectType):
     update_institution = UpdateInstitution.Field()
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
+    logout_user = LogoutUser.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
