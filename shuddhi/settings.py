@@ -80,7 +80,8 @@ GRAPHQL_JWT = {
         "graphql_auth.mutations.PasswordReset",
         "graphql_auth.mutations.ObtainJSONWebToken",
         "graphql_auth.mutations.VerifyToken",
-        "graphql_auth.mutations.RefreshToken"
+        "graphql_auth.mutations.RefreshToken",
+        "graphql_auth.mutations.RevokeToken",
     ],
     "JWT_VERIFY_EXPIRATION": True,
     "JWT_LONG_RUNNING_REFRESH_TOKEN": True
