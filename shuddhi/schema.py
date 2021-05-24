@@ -2,7 +2,6 @@ import vidhya.schema
 import graphene
 from graphql_auth import mutations
 from graphql_auth.schema import UserQuery, MeQuery
-from common.utils import generate_jti
 
 
 class AuthMutation(graphene.ObjectType):
@@ -18,6 +17,7 @@ class AuthMutation(graphene.ObjectType):
     token_auth = mutations.ObtainJSONWebToken.Field()
     verify_token = mutations.VerifyToken.Field()
     refresh_token = mutations.RefreshToken.Field()
+    revoke_token = mutations.RevokeToken.Field()
 
 
 class Query(vidhya.schema.Query, UserQuery, MeQuery, graphene.ObjectType):

@@ -2,7 +2,6 @@ import graphene
 
 from graphene_django.types import DjangoObjectType, ObjectType
 from vidhya.models import User, Institution, Group
-from common.utils import generate_jti
 
 # Create a GraphQL type for the Institution model
 
@@ -178,23 +177,11 @@ class UpdateUser(graphene.Mutation):
         return UpdateUser(ok=ok, user=None)
 
 
-class LogoutUser(graphene.Mutation):
-    id = graphene.ID()
-
-    @classmethod
-    def mutate(cls, root, info, **kwargs):
-        user = info.context.user
-        user.jti = generate_jti()
-        user.save()
-        return cls(id=user.id, ok=True)
-
-
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
-    logout_user = LogoutUser.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
