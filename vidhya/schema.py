@@ -1,5 +1,5 @@
 import graphene
-
+from graphql import GraphQLError
 from graphene_django.types import DjangoObjectType, ObjectType
 from vidhya.models import User, Institution, Group
 
@@ -9,14 +9,14 @@ from vidhya.models import User, Institution, Group
 class InstitutionType(DjangoObjectType):
     class Meta:
         model = Institution
-
+        filter_fields = ['searchField']
 # Create a GraphQL type for the User model
 
 
 class UserType(DjangoObjectType):
     class Meta:
         model = User
-        filter_fields = ['username', 'searchField']
+        filter_fields = ['searchField']
 
 # Create a GraphQL type for the Group model
 
@@ -38,7 +38,10 @@ class Query(ObjectType):
         id = kwargs.get('id')
 
         if id is not None:
-            return Institution.objects.get(pk=id)
+            institution = Institution.objects.get(pk=id)
+            if not institution:
+                raise GraphQLError('Institution not found!')
+            return institution
 
         return None
 
@@ -46,7 +49,10 @@ class Query(ObjectType):
         id = kwargs.get('id')
 
         if id is not None:
-            return User.objects.get(pk=id)
+            user = User.objects.get(pk=id)
+            if not user:
+                raise GraphQLError('User not found!')
+            return user
 
         return None
 
@@ -54,7 +60,10 @@ class Query(ObjectType):
         id = kwargs.get('id')
 
         if id is not None:
-            return Group.objects.get(pk=id)
+            group = Group.objects.get(pk=id)
+            if not group:
+                raise GraphQLError('Group not found!')
+            return group
 
         return None
 
@@ -79,6 +88,7 @@ class InstitutionInput(graphene.InputObjectType):
     phone = graphene.String()
     logo = graphene.String()
     bio = graphene.String()
+    searchField = graphene.String()
 
 
 class UserInput(graphene.InputObjectType):
@@ -103,8 +113,18 @@ class CreateInstitution(graphene.Mutation):
     @staticmethod
     def mutate(root, info, input=None):
         ok = True
+        if input.name is None:
+            raise GraphQLError('Name is a required field')
+        if input.location is None:
+            raise GraphQLError('Location is a required field')
+        if input.city is None:
+            raise GraphQLError('City is a required field')
+        searchField = input.name if input.name is not None else "" + input.location if input.location is not None else "" + \
+            input.city if input.city is not None else "" + \
+            input.website if input.website is not None else "" + \
+            input.bio if input.bio is not None else ""
         institution_instance = Institution(name=input.name, location=input.location, city=input.city,
-                                           website=input.website, phone=input.phone, logo=input.logo, bio=input.bio)
+                                           website=input.website, phone=input.phone, logo=input.logo, bio=input.bio, searchField=searchField)
         institution_instance.save()
         return CreateInstitution(ok=ok, institution=institution_instance)
 
@@ -131,6 +151,17 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.phone = input.phone if input.phone is not None else institution.phone
             institution_instance.logo = input.logo if input.logo is not None else institution.logo
             institution_instance.bio = input.bio if input.bio is not None else institution.bio
+            searchField = institution_instance.name if institution_instance.name is not None else ""
+            searchField = searchField + \
+                institution_instance.location if institution_instance.location is not None else ""
+            searchField = searchField + \
+                institution_instance.city if institution_instance.city is not None else ""
+            searchField = searchField + \
+                institution_instance.website if institution_instance.website is not None else ""
+            searchField = searchField + \
+                institution_instance.bio if institution_instance.bio is not None else ""
+
+            institution_instance.searchField = searchField
 
             institution_instance.save()
             return UpdateInstitution(ok=ok, institution=institution_instance)
@@ -147,7 +178,9 @@ class CreateUser(graphene.Mutation):
     @staticmethod
     def mutate(root, info, input=None):
         ok = True
-        searchField = input.username + input.title + input.bio
+        searchField = input.username if input.username is not None else "" + \
+            input.title if input.title is not None else "" + \
+            input.bio if input.bio is not None else ""
         user_instance = User(user_id=input.user_id, title=input.title, bio=input.bio,
                              institution_id=input.institution_id, searchField=searchField)
         user_instance.save()
@@ -174,8 +207,12 @@ class UpdateUser(graphene.Mutation):
             user_instance.institution_id = input.institution_id if input.institution_id is not None else user.institution_id
             user_instance.title = input.title if input.title is not None else user.title
             user_instance.bio = input.bio if input.bio is not None else user.bio
-            user_instance.searchField = user_instance.name + \
-                user_instance.title + user_instance.bio
+            user_instance.searchField = user_instance.searchField + \
+                user_instance.name if user_instance.name is not None else ""
+            user_instance.searchField = user_instance.searchField + \
+                user_instance.title if user_instance.title is not None else ""
+            user_instance.searchField = user_instance.searchField + \
+                user_instance.bio if user_instance.bio is not None else ""
             user_instance.save()
             return UpdateUser(ok=ok, user=user_instance)
         return UpdateUser(ok=ok, user=None)
