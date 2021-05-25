@@ -16,6 +16,7 @@ class InstitutionType(DjangoObjectType):
 class UserType(DjangoObjectType):
     class Meta:
         model = User
+        filter_fields = ['username', 'searchField']
 
 # Create a GraphQL type for the Group model
 
@@ -89,6 +90,7 @@ class UserInput(graphene.InputObjectType):
     institution_id = graphene.Int(name="institution", required=True)
     title = graphene.String()
     bio = graphene.String()
+    searchField = graphene.String()
 
 
 class CreateInstitution(graphene.Mutation):
@@ -145,8 +147,9 @@ class CreateUser(graphene.Mutation):
     @staticmethod
     def mutate(root, info, input=None):
         ok = True
+        searchField = input.username + input.title + input.bio
         user_instance = User(user_id=input.user_id, title=input.title, bio=input.bio,
-                             institution_id=input.institution_id)
+                             institution_id=input.institution_id, searchField=searchField)
         user_instance.save()
         return CreateUser(ok=ok, user=user_instance)
 
@@ -171,7 +174,8 @@ class UpdateUser(graphene.Mutation):
             user_instance.institution_id = input.institution_id if input.institution_id is not None else user.institution_id
             user_instance.title = input.title if input.title is not None else user.title
             user_instance.bio = input.bio if input.bio is not None else user.bio
-
+            user_instance.searchField = user_instance.name + \
+                user_instance.title + user_instance.bio
             user_instance.save()
             return UpdateUser(ok=ok, user=user_instance)
         return UpdateUser(ok=ok, user=None)

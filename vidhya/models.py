@@ -11,6 +11,7 @@ class User(AbstractUser):
         'Institution', on_delete=models.PROTECT, blank=True, null=True)
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
+    searchField = models.CharField(max_length=600, blank=True, null=True)
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
