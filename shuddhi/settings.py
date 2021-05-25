@@ -83,6 +83,7 @@ GRAPHQL_JWT = {
         "graphql_auth.mutations.RefreshToken",
         "graphql_auth.mutations.RevokeToken",
     ],
+    'JWT_PAYLOAD_HANDLER': 'common.utils.jwt_payload',
     "JWT_VERIFY_EXPIRATION": True,
     "JWT_LONG_RUNNING_REFRESH_TOKEN": True
 }
