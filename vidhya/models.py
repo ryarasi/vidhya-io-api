@@ -25,6 +25,7 @@ class Institution(models.Model):
     logo = models.CharField(max_length=250, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
     invitecode = models.IntegerField(blank=True, null=True)
+    searchField = models.CharField(max_length=900, blank=True, null=True)
 
 
 class Group(models.Model):
