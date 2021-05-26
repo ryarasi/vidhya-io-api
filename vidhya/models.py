@@ -12,6 +12,7 @@ class User(AbstractUser):
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
     searchField = models.CharField(max_length=600, blank=True, null=True)
+    active = models.BooleanField(default=True)
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
@@ -26,12 +27,14 @@ class Institution(models.Model):
     bio = models.CharField(max_length=300, blank=True, null=True)
     invitecode = models.IntegerField(blank=True, null=True)
     searchField = models.CharField(max_length=900, blank=True, null=True)
+    active = models.BooleanField(default=True)
 
 
 class Group(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=250)
     institution = models.ForeignKey(Institution, on_delete=models.PROTECT)
+    active = models.BooleanField(default=True)
 
     # Type Choices
     class TypeChoices(models.TextChoices):
