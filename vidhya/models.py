@@ -16,6 +16,9 @@ class User(AbstractUser):
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
+    def __str__(self):
+        return self.name
+
 
 class Institution(models.Model):
     name = models.CharField(max_length=100)
@@ -30,11 +33,15 @@ class Institution(models.Model):
     searchField = models.CharField(max_length=900, blank=True, null=True)
     active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Group(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=250)
     institution = models.ForeignKey(Institution, on_delete=models.PROTECT)
+    searchField = models.CharField(max_length=400, blank=True, null=True)
     active = models.BooleanField(default=True)
 
     # Type Choices
@@ -48,6 +55,9 @@ class Group(models.Model):
         max_length=2, choices=TypeChoices.choices, default=TypeChoices.TEAM)
     members = models.ManyToManyField(
         User, through='GroupMember', through_fields=('group', 'member'))
+
+    def __str__(self):
+        return self.name
 
 
 class GroupMember(models.Model):
@@ -64,6 +74,9 @@ class GroupMember(models.Model):
 
     role = models.CharField(
         max_length=2, choices=MemberRole.choices, default=MemberRole.MEMBER)
+
+    def __str__(self):
+        return self.name
 
 
 class File(models.Model):
