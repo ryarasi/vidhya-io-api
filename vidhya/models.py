@@ -23,7 +23,8 @@ class Institution(models.Model):
     city = models.CharField(max_length=50, blank=True, null=True)
     website = models.CharField(max_length=100, blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
-    logo = models.CharField(max_length=250, blank=True, null=True)
+    logo = models.CharField(
+        max_length=250, blank=True, null=True, default="https://i.imgur.com/hB0OXas.png")
     bio = models.CharField(max_length=300, blank=True, null=True)
     invitecode = models.IntegerField(blank=True, null=True)
     searchField = models.CharField(max_length=900, blank=True, null=True)
