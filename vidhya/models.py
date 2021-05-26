@@ -63,3 +63,10 @@ class GroupMember(models.Model):
 
     role = models.CharField(
         max_length=2, choices=MemberRole.choices, default=MemberRole.MEMBER)
+
+
+class File(models.Model):
+    file = models.FileField(blank=False, null=False)
+
+    def __str__(self):
+        return self.file.name
