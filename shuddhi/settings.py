@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'graphene_django',
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
     'graphql_auth',
+    'rest_framework',
     'django_filters'
 ]
 
@@ -174,6 +175,10 @@ STATICFILES_DIRS = (
     BASE_DIR / "static",
     '/var/www/static/',
 )
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
