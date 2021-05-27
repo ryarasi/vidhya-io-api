@@ -76,3 +76,4 @@ The following instructions assumes that you are attempting to setup the project 
 3. [Autogenerate the requirements.txt file](https://stackoverflow.com/a/33468993/7981162)
 4. [Implementing authentication using JWT in Django/Graphene GraphQL API](https://www.youtube.com/watch?v=pyV2_F9wlk8)
 5. [Connect to the postgres table in the Docker container with pgAdmin](https://stackoverflow.com/a/62749875/7981162)
+6. [How to uninstall all packages in a python project](https://stackoverflow.com/a/67379806/7981162)
