@@ -1,7 +1,9 @@
 import graphene
 from graphql import GraphQLError
 from vidhya.models import User, Institution, Group
-from .types import InstitutionType, UserType, GroupType, UserInput, InstitutionInput
+from graphene_django_extras import DjangoSerializerMutation
+from .types import InstitutionType, InstitutionModelType, UserType, UserModelType, GroupType, UserInput, InstitutionInput
+from .serializers import UserSerializer, InstitutionSerializer, GroupSerializer
 
 
 class CreateInstitution(graphene.Mutation):
@@ -80,28 +82,28 @@ class UpdateInstitution(graphene.Mutation):
         return UpdateInstitution(ok=ok, institution=None)
 
 
-class DeleteInstitution(graphene.Mutation):
-    class Meta:
-        description = "Mutation to mark an Institution as inactive"
+# class DeleteInstitution(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to mark an Institution as inactive"
 
-    class Arguments:
-        id = graphene.Int(required=True)
+#     class Arguments:
+#         id = graphene.Int(required=True)
 
-    ok = graphene.Boolean()
-    institution = graphene.Field(InstitutionType)
+#     ok = graphene.Boolean()
+#     institution = graphene.Field(InstitutionType)
 
-    @staticmethod
-    def mutate(root, info, id, input=None):
-        ok = False
-        institution = Institution.objects.get(pk=id, active=True)
-        institution_instance = institution
-        if institution_instance:
-            ok = True
-            institution_instance.active = False
+#     @staticmethod
+#     def mutate(root, info, id, input=None):
+#         ok = False
+#         institution = Institution.objects.get(pk=id, active=True)
+#         institution_instance = institution
+#         if institution_instance:
+#             ok = True
+#             institution_instance.active = False
 
-            institution_instance.save()
-            return DeleteInstitution(ok=ok, institution=institution_instance)
-        return DeleteInstitution(ok=ok, institution=None)
+#             institution_instance.save()
+#             return DeleteInstitution(ok=ok, institution=institution_instance)
+#         return DeleteInstitution(ok=ok, institution=None)
 
 
 class CreateUser(graphene.Mutation):
@@ -167,34 +169,44 @@ class UpdateUser(graphene.Mutation):
         return UpdateUser(ok=ok, user=None)
 
 
-class DeleteUser(graphene.Mutation):
+# class DeleteUser(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to mark a User as inactive"
+
+#     class Arguments:
+#         id = graphene.Int(required=True)
+
+#     ok = graphene.Boolean()
+#     user = graphene.Field(UserType)
+
+#     @staticmethod
+#     def mutate(root, info, id, input=None):
+#         ok = False
+#         user = User.objects.get(pk=id, active=True)
+#         user_instance = user
+#         if user_instance:
+#             ok = True
+#             user_instance.active = False
+
+#             user_instance.save()
+#             return UpdateUser(ok=ok, user=user_instance)
+#         return UpdateUser(ok=ok, user=None)
+
+class UserSerializerMutation(DjangoSerializerMutation):
+    """
+        DjangoSerializerMutation auto implement Create, Delete and Update functions
+    """
     class Meta:
-        description = "Mutation to mark a User as inactive"
-
-    class Arguments:
-        id = graphene.Int(required=True)
-
-    ok = graphene.Boolean()
-    user = graphene.Field(UserType)
-
-    @staticmethod
-    def mutate(root, info, id, input=None):
-        ok = False
-        user = User.objects.get(pk=id, active=True)
-        user_instance = user
-        if user_instance:
-            ok = True
-            user_instance.active = False
-
-            user_instance.save()
-            return UpdateUser(ok=ok, user=user_instance)
-        return UpdateUser(ok=ok, user=None)
+        description = " DRF serializer based Mutation for Users "
+        serializer_class = UserSerializer
 
 
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
-    delete_institution = DeleteInstitution.Field()
+    delete_institution = InstitutionModelType.DeleteField(
+        description='Description message for delete')
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
-    delete_user = DeleteUser.Field()
+    delete_user = UserModelType.DeleteField(
+        description='Description message for delete')

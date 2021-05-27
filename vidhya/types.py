@@ -1,8 +1,11 @@
 
+import graphene
 from graphene_django.types import DjangoObjectType
 from vidhya.models import User, Institution, Group
 from graphene_django_extras.paginations import LimitOffsetGraphqlPagination
-from graphene_django_extras import DjangoInputObjectType, DjangoListObjectType
+from graphene_django_extras import DjangoInputObjectType, DjangoListObjectType, DjangoSerializerType
+from .serializers import UserSerializer, InstitutionSerializer, GroupSerializer
+
 
 ##############
 # Query Types
@@ -10,22 +13,35 @@ from graphene_django_extras import DjangoInputObjectType, DjangoListObjectType
 
 
 class InstitutionType(DjangoObjectType):
+    total_count = graphene.Int()
+
+    def resolve_total_count(self, info):
+        count = Institution.objects.count()
+        return count
+
     class Meta:
         model = Institution
         description = "Type type definition for a single Institution"
+        serializer_class = InstitutionSerializer
         filter_fields = {
             "id": ("exact", ),
             "searchField": ("icontains", "iexact"),
-            "active": ("exact", )
         }
 
 
-class InstitutionListType(DjangoListObjectType):
+class InstitutionModelType(DjangoSerializerType):
+    """ With this type definition it't necessary a mutation definition for user's model """
+
     class Meta:
-        description = "Type definition for user list"
-        model = Institution
+        description = " Institution model type definition "
+        serializer_class = InstitutionSerializer
+        # ordering can be: string, tuple or list
         pagination = LimitOffsetGraphqlPagination(
-            default_limit=25, ordering="-last_login")
+            default_limit=25, ordering="-name")
+        filter_fields = {
+            "id": ("exact", ),
+            "searchField": ("icontains", "iexact"),
+        }
 
 
 class UserType(DjangoObjectType):
@@ -35,7 +51,42 @@ class UserType(DjangoObjectType):
         filter_fields = {
             "id": ("exact", ),
             "searchField": ("icontains", "iexact"),
-            "active": ("exact", )
+        }
+
+
+class UserListType(DjangoListObjectType):
+    """ With this type definition it't necessary a mutation definition for user's model """
+    total_count = graphene.Int()
+
+    def resolve_total_count(self, info):
+        count = User.objects.count()
+        return count
+
+    class Meta:
+        model = User
+        description = " User model type definition "
+        serializer_class = UserSerializer
+        # ordering can be: string, tuple or list
+        pagination = LimitOffsetGraphqlPagination(
+            default_limit=25, ordering="-last_login")
+        filter_fields = {
+            "id": ("exact", ),
+            "searchField": ("icontains", "iexact"),
+        }
+
+
+class UserModelType(DjangoSerializerType):
+    """ With this type definition it't necessary a mutation definition for user's model """
+
+    class Meta:
+        description = " User model type definition "
+        serializer_class = UserSerializer
+        # ordering can be: string, tuple or list
+        pagination = LimitOffsetGraphqlPagination(
+            default_limit=25, ordering="-last_login")
+        filter_fields = {
+            "id": ("exact", ),
+            "searchField": ("icontains", "iexact"),
         }
 
 
@@ -46,7 +97,6 @@ class GroupType(DjangoObjectType):
         filter_fields = {
             "id": ("exact", ),
             "searchField": ("icontains", "iexact"),
-            "active": ("exact", )
         }
 
 
