@@ -14,9 +14,9 @@ class InstitutionType(DjangoObjectType):
         model = Institution
         description = "Type type definition for a single Institution"
         filter_fields = {
-            "id": ("exact"),
+            "id": ("exact", ),
             "searchField": ("icontains", "iexact"),
-            "active": ("exact")
+            "active": ("exact", )
         }
 
 
@@ -33,9 +33,9 @@ class UserType(DjangoObjectType):
         model = User
         description = "Type type definition for a single User"
         filter_fields = {
-            "id": ("exact"),
+            "id": ("exact", ),
             "searchField": ("icontains", "iexact"),
-            "active": ("exact")
+            "active": ("exact", )
         }
 
 
@@ -44,9 +44,9 @@ class GroupType(DjangoObjectType):
         model = Group
         description = "Type type definition for a single Group"
         filter_fields = {
-            "id": ("exact"),
+            "id": ("exact", ),
             "searchField": ("icontains", "iexact"),
-            "active": ("exact")
+            "active": ("exact", )
         }
 
 
