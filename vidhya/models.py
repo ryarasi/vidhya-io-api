@@ -6,7 +6,8 @@ from django.utils.translation import gettext_lazy as _
 class User(AbstractUser):
     name = models.CharField(max_length=50)
     email = models.EmailField(blank=False, max_length=255, unique=True)
-    avatar = models.CharField(max_length=250, blank=True, null=True)
+    avatar = models.CharField(max_length=250, blank=True,
+                              null=True, default="https://i.imgur.com/XDZCq2b.png")
     institution = models.ForeignKey(
         'Institution', on_delete=models.PROTECT, blank=True, null=True)
     title = models.CharField(max_length=150, blank=True, null=True)
