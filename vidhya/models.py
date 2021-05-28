@@ -1,10 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User, AbstractUser
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 
 class User(AbstractUser):
-    name = models.CharField(max_length=50)
+    nick_name = models.CharField(max_length=50)
     email = models.EmailField(blank=False, max_length=255, unique=True)
     avatar = models.CharField(max_length=250, blank=True,
                               null=True, default="https://i.imgur.com/XDZCq2b.png")
@@ -13,6 +14,8 @@ class User(AbstractUser):
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
     searchField = models.CharField(max_length=600, blank=True, null=True)
+    last_active = models.DateTimeField(
+        blank=True, null=True, default=timezone.now)
     active = models.BooleanField(default=True)
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
