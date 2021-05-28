@@ -1,5 +1,5 @@
 from graphene_django.types import ObjectType
-from .types import InstitutionType, UserType, UserListType, GroupType
+from .gqTypes import InstitutionType, UserType, GroupType
 from graphene_django_extras import DjangoObjectField, DjangoFilterPaginateListField, LimitOffsetGraphqlPagination
 
 # Create a GraphQL type for the Institution model

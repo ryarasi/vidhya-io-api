@@ -1,4 +1,4 @@
-import vidhya.schema
+import vidhya.gqSchema
 import graphene
 from graphql_auth import mutations
 from graphql_auth.schema import UserQuery, MeQuery
@@ -20,13 +20,13 @@ class AuthMutation(graphene.ObjectType):
     revoke_token = mutations.RevokeToken.Field()
 
 
-class Query(vidhya.schema.Query, UserQuery, MeQuery, graphene.ObjectType):
+class Query(vidhya.gqSchema.Query, UserQuery, MeQuery, graphene.ObjectType):
     # This class will inherit from multiple Queries
     # as we begin to add more apps to our project
     pass
 
 
-class Mutation(vidhya.schema.Mutation, AuthMutation, graphene.ObjectType):
+class Mutation(vidhya.gqSchema.Mutation, AuthMutation, graphene.ObjectType):
     # This class will inherit from multiple Queries
     # as we begin to add more apps to our project
     pass
