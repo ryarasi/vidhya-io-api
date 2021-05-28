@@ -45,18 +45,7 @@ class InstitutionModelType(DjangoSerializerType):
 
 
 class UserType(DjangoObjectType):
-    class Meta:
-        model = User
-        description = "Type type definition for a single User"
-        filter_fields = {
-            "id": ("exact", ),
-            "searchField": ("icontains", "iexact"),
-        }
-
-
-class UserListType(DjangoListObjectType):
-    """ With this type definition it't necessary a mutation definition for user's model """
-    total_count = graphene.Int()
+    total_count = graphene.Int()  # shows total number of records in table
 
     def resolve_total_count(self, info):
         count = User.objects.count()
@@ -64,11 +53,7 @@ class UserListType(DjangoListObjectType):
 
     class Meta:
         model = User
-        description = " User model type definition "
-        serializer_class = UserSerializer
-        # ordering can be: string, tuple or list
-        pagination = LimitOffsetGraphqlPagination(
-            default_limit=25, ordering="-last_login")
+        description = "Type type definition for a single User"
         filter_fields = {
             "id": ("exact", ),
             "searchField": ("icontains", "iexact"),

@@ -2,7 +2,7 @@ import graphene
 from graphql import GraphQLError
 from vidhya.models import User, Institution, Group
 from graphene_django_extras import DjangoSerializerMutation
-from .types import InstitutionType, InstitutionModelType, UserType, UserModelType, GroupType, UserInput, InstitutionInput
+from .gqTypes import InstitutionType, InstitutionModelType, UserType, UserModelType, GroupType, UserInput, InstitutionInput
 from .serializers import UserSerializer, InstitutionSerializer, GroupSerializer
 
 
@@ -205,8 +205,8 @@ class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
     delete_institution = InstitutionModelType.DeleteField(
-        description='Description message for delete')
+        description='Delete Institution')
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = UserModelType.DeleteField(
-        description='Description message for delete')
+        description='Delete User')
