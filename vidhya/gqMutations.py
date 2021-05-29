@@ -233,12 +233,13 @@ class CreateGroup(graphene.Mutation):
                                institution_id=input.institution, searchField=searchField)
         group_instance.save()
 
-        group_instance.members.add(*input.members)
-
-        group_instance.admins.add(*input.admins)
+        if input.members is not None:
+            group_instance.members.add(*input.members)
+        if input.admins is not None:
+            group_instance.admins.add(*input.admins)
 
         # Adding the creator of the group as an admin
-        group_instance.admins.add(*user)
+        group_instance.admins.set([user.id])
 
         return CreateGroup(ok=ok, group=group_instance)
 
@@ -274,13 +275,15 @@ class UpdateGroup(graphene.Mutation):
 
             group_instance.save()
 
-            # Updating members list
-            group_instance.members.clear()
-            group_instance.members.add(*input.members)
+            if input.members is not None:
+                group_instance.members.clear()
+                group_instance.members.add(*input.members)
+            if input.admins is not None:
+                group_instance.admins.clear()
+                group_instance.admins.add(*input.admins)
 
-            # Updating adminss list
-            group_instance.admins.clear()
-            group_instance.admins.add(*input.admins)
+            # Adding the creator of the group as an admin
+            group_instance.admins.set([user.id])
 
             return UpdateGroup(ok=ok, group=group_instance)
         return UpdateGroup(ok=ok, group=None)
