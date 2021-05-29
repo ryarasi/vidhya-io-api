@@ -57,8 +57,18 @@ class Group(models.Model):
 
     group_type = models.CharField(
         max_length=2, choices=TypeChoices.choices, default=TypeChoices.TEAM)
+    admins = models.ManyToManyField(User, related_name="adminInGroups", through="GroupAdmin", through_fields=(
+        'group', 'admin'), blank=True)
     members = models.ManyToManyField(
-        User, through='GroupMember', through_fields=('group', 'member'))
+        User, related_name="memberInGroups", through='GroupMember', through_fields=('group', 'member'), blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class GroupAdmin(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    admin = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -68,19 +78,10 @@ class GroupMember(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     member = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    # Role Choices
-    class MemberRole(models.TextChoices):
-        ADMIN = "AD", _('Admin')
-        LEADER = "LE", _('Leader')
-        MEMBER = "ME", _('Member')
-        GUEST = "GU", _('Guest')
-    # End of Role Choices
-
-    role = models.CharField(
-        max_length=2, choices=MemberRole.choices, default=MemberRole.MEMBER)
-
     def __str__(self):
         return self.name
+
+# For file uploads
 
 
 class File(models.Model):

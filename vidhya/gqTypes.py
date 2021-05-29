@@ -85,6 +85,21 @@ class GroupType(DjangoObjectType):
         }
 
 
+class GroupModelType(DjangoSerializerType):
+    """ With this type definition it't necessary a mutation definition for group's model """
+
+    class Meta:
+        description = " Group model type definition "
+        serializer_class = GroupSerializer
+        # ordering can be: string, tuple or list
+        pagination = LimitOffsetGraphqlPagination(
+            default_limit=25, ordering="-name")
+        filter_fields = {
+            "id": ("exact", ),
+            "searchField": ("icontains", "iexact"),
+        }
+
+
 ################
 # Mutation Types
 ################
@@ -99,3 +114,9 @@ class InstitutionInput(DjangoInputObjectType):
     class Meta:
         description = " Institution InputType definition to use as input on an Arguments class on traditional Mutations "
         model = Institution
+
+
+class GroupInput(DjangoInputObjectType):
+    class Meta:
+        description = " Group InputType definition to use as input on an Arguments class on traditional Mutations "
+        model = Group

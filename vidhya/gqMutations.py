@@ -1,8 +1,8 @@
 import graphene
 from graphql import GraphQLError
-from vidhya.models import User, Institution, Group
+from vidhya.models import User, Institution, Group, GroupMember
 from graphene_django_extras import DjangoSerializerMutation
-from .gqTypes import InstitutionType, InstitutionModelType, UserType, UserModelType, GroupType, UserInput, InstitutionInput
+from .gqTypes import InstitutionType, InstitutionModelType, UserType, UserModelType, GroupType, GroupModelType, UserInput, InstitutionInput, GroupInput
 from .serializers import UserSerializer, InstitutionSerializer, GroupSerializer
 
 
@@ -201,6 +201,123 @@ class UserSerializerMutation(DjangoSerializerMutation):
         serializer_class = UserSerializer
 
 
+class CreateGroup(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to create a new Group"
+
+    class Arguments:
+        input = GroupInput(required=True)
+
+    ok = graphene.Boolean()
+    group = graphene.Field(GroupType)
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        user = info.context.user
+        if not user.is_authenticated:
+            return CreateGroup(errors='You must be logged in to do that!')
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField += input.description if input.description is not None else ""
+        searchField = searchField.lower()
+
+        group_instance = Group(name=input.name, description=input.description,
+                               institution_id=input.institution, searchField=searchField)
+        group_instance.save()
+
+        group_instance.members.add(*input.members)
+
+        group_instance.admins.add(*input.admins)
+
+        # Adding the creator of the group as an admin
+        group_instance.admins.add(*user)
+
+        return CreateGroup(ok=ok, group=group_instance)
+
+
+class UpdateGroup(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Group"
+
+    class Arguments:
+        id = graphene.Int(required=True)
+        input = GroupInput(required=True)
+
+    ok = graphene.Boolean()
+    group = graphene.Field(GroupType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        user = info.context.user
+        if not user.is_authenticated:
+            return UpdateGroup(errors='You must be logged in to do that!')
+        ok = False
+        group = Group.objects.get(pk=id)
+        group_instance = group
+        if group_instance:
+            ok = True
+            group_instance.name = input.name if input.name is not None else group.name
+            group_instance.description = input.description if input.description is not None else group.description
+            group_instance.institution_id = input.institution if input.institution is not None else group.institution_id
+
+            searchField = group_instance.name if group_instance.name is not None else ""
+            searchField += group_instance.description if group_instance.description is not None else ""
+            group_instance.searchField = searchField.lower()
+
+            group_instance.save()
+
+            # Updating members list
+            group_instance.members.clear()
+            group_instance.members.add(*input.members)
+
+            # Updating adminss list
+            group_instance.admins.clear()
+            group_instance.admins.add(*input.admins)
+
+            return UpdateGroup(ok=ok, group=group_instance)
+        return UpdateGroup(ok=ok, group=None)
+
+
+# class DeleteGroup(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to mark a Group as inactive"
+
+#     class Arguments:
+#         id = graphene.Int(required=True)
+
+#     ok = graphene.Boolean()
+#     group = graphene.Field(GroupType)
+
+#     @staticmethod
+#     def mutate(root, info, id, input=None):
+#         ok = False
+#         group = Group.objects.get(pk=id, active=True)
+#         group_instance = group
+#         if group_instance:
+#             ok = True
+#             group_instance.active = False
+
+#             group_instance.save()
+#             return UpdateGroup(ok=ok, group=group_instance)
+#         return UpdateGroup(ok=ok, group=None)
+
+class GroupSerializerMutation(DjangoSerializerMutation):
+    """
+        DjangoSerializerMutation auto implement Create, Delete and Update functions
+    """
+    class Meta:
+        description = " DRF serializer based Mutation for Groups "
+        serializer_class = GroupSerializer
+
+
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
@@ -210,3 +327,7 @@ class Mutation(graphene.ObjectType):
     update_user = UpdateUser.Field()
     delete_user = UserModelType.DeleteField(
         description='Delete User')
+    create_group = CreateGroup.Field()
+    update_group = UpdateGroup.Field()
+    delete_group = GroupModelType.DeleteField(
+        description='Delete Group')

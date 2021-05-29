@@ -7,9 +7,9 @@ from graphene_django_extras import DjangoObjectField, DjangoFilterPaginateListFi
 
 class Query(ObjectType):
     institution = DjangoObjectField(
-        InstitutionType, description='Single User query')
+        InstitutionType, description='Single Institution query')
     user = DjangoObjectField(UserType, description='Single User query')
-    group = DjangoObjectField(GroupType, description='Single User query')
+    group = DjangoObjectField(GroupType, description='Single Group query')
     institutions = DjangoFilterPaginateListField(
         InstitutionType, pagination=LimitOffsetGraphqlPagination())
     users = DjangoFilterPaginateListField(
