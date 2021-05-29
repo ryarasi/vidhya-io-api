@@ -1,10 +1,10 @@
 
 import graphene
 from graphene_django.types import DjangoObjectType
-from vidhya.models import User, Institution, Group
+from vidhya.models import User, Institution, Group, Announcement
 from graphene_django_extras.paginations import LimitOffsetGraphqlPagination
 from graphene_django_extras import DjangoInputObjectType, DjangoListObjectType, DjangoSerializerType
-from .serializers import UserSerializer, InstitutionSerializer, GroupSerializer
+from .serializers import AnnouncementSerializer, UserSerializer, InstitutionSerializer, GroupSerializer
 
 
 ##############
@@ -100,6 +100,31 @@ class GroupModelType(DjangoSerializerType):
         }
 
 
+class AnnouncementType(DjangoObjectType):
+    class Meta:
+        model = Announcement
+        description = "Type type definition for a single Announcement"
+        filter_fields = {
+            "id": ("exact", ),
+            "searchField": ("icontains", "iexact"),
+        }
+
+
+class AnnouncementModelType(DjangoSerializerType):
+    """ With this type definition it't necessary a mutation definition for group's model """
+
+    class Meta:
+        description = " Announcement model type definition "
+        serializer_class = AnnouncementSerializer
+        # ordering can be: string, tuple or list
+        pagination = LimitOffsetGraphqlPagination(
+            default_limit=25, ordering="-name")
+        filter_fields = {
+            "id": ("exact", ),
+            "searchField": ("icontains", "iexact"),
+        }
+
+
 ################
 # Mutation Types
 ################
@@ -120,3 +145,9 @@ class GroupInput(DjangoInputObjectType):
     class Meta:
         description = " Group InputType definition to use as input on an Arguments class on traditional Mutations "
         model = Group
+
+
+class AnnouncementInput(DjangoInputObjectType):
+    class Meta:
+        description = " Group InputType definition to use as input on an Arguments class on traditional Mutations "
+        model = Announcement

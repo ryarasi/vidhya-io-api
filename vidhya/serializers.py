@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import File, User, Institution, Group
+from .models import Announcement, File, User, Institution, Group
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -15,6 +15,11 @@ class InstitutionSerializer(serializers.ModelSerializer):
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
+
+
+class AnnouncementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Announcement
 
 
 class FileSerializer(serializers.ModelSerializer):

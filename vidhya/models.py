@@ -81,6 +81,29 @@ class GroupMember(models.Model):
     def __str__(self):
         return self.name
 
+
+class Announcement(models.Model):
+    title = models.CharField(max_length=80)
+    author = models.ForeignKey(User, on_delete=models.PROTECT)
+    message = models.CharField(max_length=1000)
+    institution = models.ForeignKey(Institution, on_delete=models.PROTECT)
+    groups = models.ManyToManyField(Group, through="AnnouncementGroup", through_fields=(
+        'announcement', 'group'), blank=True)
+    searchField = models.CharField(max_length=1200, blank=True, null=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
+class AnnouncementGroup(models.Model):
+    announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
 # For file uploads
 
 

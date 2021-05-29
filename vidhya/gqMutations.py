@@ -1,9 +1,9 @@
 import graphene
 from graphql import GraphQLError
-from vidhya.models import User, Institution, Group, GroupMember
+from vidhya.models import User, Institution, Group, Announcement
 from graphene_django_extras import DjangoSerializerMutation
-from .gqTypes import InstitutionType, InstitutionModelType, UserType, UserModelType, GroupType, GroupModelType, UserInput, InstitutionInput, GroupInput
-from .serializers import UserSerializer, InstitutionSerializer, GroupSerializer
+from .gqTypes import AnnouncementInput, AnnouncementModelType, AnnouncementType, InstitutionType, InstitutionModelType, UserType, UserModelType, GroupType, GroupModelType, UserInput, InstitutionInput, GroupInput
+from .serializers import AnnouncementSerializer, UserSerializer, InstitutionSerializer, GroupSerializer
 
 
 class CreateInstitution(graphene.Mutation):
@@ -18,6 +18,9 @@ class CreateInstitution(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, input=None):
+        current_user = info.context.user
+        if not current_user.is_authenticated:
+            return CreateInstitution(errors='You must be logged in to do that!')
         ok = True
         error = ""
         if input.name is None:
@@ -56,6 +59,9 @@ class UpdateInstitution(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, id, input=None):
+        current_user = info.context.user
+        if not current_user.is_authenticated:
+            return UpdateInstitution(errors='You must be logged in to do that!')
         ok = False
         institution = Institution.objects.get(pk=id)
         institution_instance = institution
@@ -118,6 +124,9 @@ class CreateUser(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, input=None):
+        current_user = info.context.user
+        if not current_user.is_authenticated:
+            return CreateUser(errors='You must be logged in to do that!')
         ok = True
         error = ""
         if input.name is None:
@@ -148,6 +157,9 @@ class UpdateUser(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, id, input=None):
+        current_user = info.context.user
+        if not current_user.is_authenticated:
+            return UpdateUser(errors='You must be logged in to do that!')
         ok = False
         user = User.objects.get(pk=id)
         user_instance = user
@@ -214,8 +226,8 @@ class CreateGroup(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, input=None):
-        user = info.context.user
-        if not user.is_authenticated:
+        current_user = info.context.user
+        if not current_user.is_authenticated:
             return CreateGroup(errors='You must be logged in to do that!')
         ok = True
         error = ""
@@ -239,7 +251,7 @@ class CreateGroup(graphene.Mutation):
             group_instance.admins.add(*input.admins)
 
         # Adding the creator of the group as an admin
-        group_instance.admins.set([user.id])
+        group_instance.admins.set([current_user.id])
 
         return CreateGroup(ok=ok, group=group_instance)
 
@@ -257,8 +269,8 @@ class UpdateGroup(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, id, input=None):
-        user = info.context.user
-        if not user.is_authenticated:
+        current_user = info.context.user
+        if not current_user.is_authenticated:
             return UpdateGroup(errors='You must be logged in to do that!')
         ok = False
         group = Group.objects.get(pk=id)
@@ -289,29 +301,6 @@ class UpdateGroup(graphene.Mutation):
         return UpdateGroup(ok=ok, group=None)
 
 
-# class DeleteGroup(graphene.Mutation):
-#     class Meta:
-#         description = "Mutation to mark a Group as inactive"
-
-#     class Arguments:
-#         id = graphene.Int(required=True)
-
-#     ok = graphene.Boolean()
-#     group = graphene.Field(GroupType)
-
-#     @staticmethod
-#     def mutate(root, info, id, input=None):
-#         ok = False
-#         group = Group.objects.get(pk=id, active=True)
-#         group_instance = group
-#         if group_instance:
-#             ok = True
-#             group_instance.active = False
-
-#             group_instance.save()
-#             return UpdateGroup(ok=ok, group=group_instance)
-#         return UpdateGroup(ok=ok, group=None)
-
 class GroupSerializerMutation(DjangoSerializerMutation):
     """
         DjangoSerializerMutation auto implement Create, Delete and Update functions
@@ -319,6 +308,96 @@ class GroupSerializerMutation(DjangoSerializerMutation):
     class Meta:
         description = " DRF serializer based Mutation for Groups "
         serializer_class = GroupSerializer
+
+
+class CreateAnnouncement(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to create a new Announcement"
+
+    class Arguments:
+        input = AnnouncementInput(required=True)
+
+    ok = graphene.Boolean()
+    announcement = graphene.Field(AnnouncementType)
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        current_user = info.context.user
+        if not current_user.is_authenticated:
+            return CreateAnnouncement(errors='You must be logged in to do that!')
+        ok = True
+        error = ""
+        if input.title is None:
+            error += "Title is a required field<br />"
+        if input.message is None:
+            error += "Message is a required field<br />"
+        if input.groups is None:
+            error += "Group(s) is a required field<br />"
+        if input.institution is None:
+            error += "Institution is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.title
+        searchField += input.message if input.message is not None else ""
+        searchField = searchField.lower()
+
+        announcement_instance = Announcement(title=input.title, author_id=current_user.id, message=input.message,
+                                             institution_id=input.institution, searchField=searchField)
+        announcement_instance.save()
+
+        if input.groups is not None:
+            announcement_instance.groups.add(*input.groups)
+
+        return CreateAnnouncement(ok=ok, announcement=announcement_instance)
+
+
+class UpdateAnnouncement(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Announcement"
+
+    class Arguments:
+        id = graphene.Int(required=True)
+        input = AnnouncementInput(required=True)
+
+    ok = graphene.Boolean()
+    announcement = graphene.Field(AnnouncementType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        current_user = info.context.user
+        if not current_user.is_authenticated:
+            return UpdateAnnouncement(errors='You must be logged in to do that!')
+        ok = False
+        announcement = Announcement.objects.get(pk=id)
+        announcement_instance = announcement
+        if announcement_instance:
+            ok = True
+            announcement_instance.title = input.title if input.title is not None else announcement.title
+            announcement_instance.author_id = input.author if input.author is not None else announcement.author
+            announcement_instance.institution_id = input.institution if input.institution is not None else announcement.institution_id
+
+            searchField = input.title
+            searchField += input.message if input.message is not None else ""
+            announcement_instance.searchField = searchField.lower()
+
+            announcement_instance.save()
+
+            if input.groups is not None:
+                announcement_instance.groups.clear()
+                announcement_instance.groups.add(*input.groups)
+
+            return UpdateAnnouncement(ok=ok, announcement=announcement_instance)
+        return UpdateAnnouncement(ok=ok, announcement=None)
+
+
+class AnnouncementSerializerMutation(DjangoSerializerMutation):
+    """
+        DjangoSerializerMutation auto implement Create, Delete and Update functions
+    """
+    class Meta:
+        description = " DRF serializer based Mutation for Announcements "
+        serializer_class = AnnouncementSerializer
 
 
 class Mutation(graphene.ObjectType):
@@ -334,3 +413,7 @@ class Mutation(graphene.ObjectType):
     update_group = UpdateGroup.Field()
     delete_group = GroupModelType.DeleteField(
         description='Delete Group')
+    create_announcement = CreateAnnouncement.Field()
+    update_announcement = UpdateAnnouncement.Field()
+    delete_announcement = AnnouncementModelType.DeleteField(
+        description='Delete Announcement')
