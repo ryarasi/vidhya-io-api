@@ -1,8 +1,8 @@
 import graphene
 from graphql import GraphQLError
 from vidhya.models import User, Institution, Group, Announcement
-from graphene_django_extras import DjangoSerializerMutation
-from .gqTypes import AnnouncementInput, AnnouncementModelType, AnnouncementType, InstitutionType, InstitutionModelType, UserType, UserModelType, GroupType, GroupModelType, UserInput, InstitutionInput, GroupInput
+from graphql_jwt.decorators import login_required
+from .gqTypes import AnnouncementType, AnnouncementType,  InstitutionType,  UserType, GroupType
 from .serializers import AnnouncementSerializer, UserSerializer, InstitutionSerializer, GroupSerializer
 
 
@@ -10,13 +10,11 @@ class CreateInstitution(graphene.Mutation):
     class Meta:
         description = "Mutation to create new a Institution"
 
-    class Arguments:
-        input = graphene.Argument(InstitutionInput)
-
     ok = graphene.Boolean()
     institution = graphene.Field(InstitutionType)
 
     @staticmethod
+    @login_required
     def mutate(root, info, input=None):
         current_user = info.context.user
         if not current_user.is_authenticated:
@@ -50,18 +48,12 @@ class UpdateInstitution(graphene.Mutation):
     class Meta:
         description = "Mutation to update an Institution"
 
-    class Arguments:
-        id = graphene.Int(required=True)
-        input = InstitutionInput(required=True)
-
     ok = graphene.Boolean()
     institution = graphene.Field(InstitutionType)
 
     @staticmethod
+    @login_required
     def mutate(root, info, id, input=None):
-        current_user = info.context.user
-        if not current_user.is_authenticated:
-            return UpdateInstitution(errors='You must be logged in to do that!')
         ok = False
         institution = Institution.objects.get(pk=id)
         institution_instance = institution
@@ -88,45 +80,40 @@ class UpdateInstitution(graphene.Mutation):
         return UpdateInstitution(ok=ok, institution=None)
 
 
-# class DeleteInstitution(graphene.Mutation):
-#     class Meta:
-#         description = "Mutation to mark an Institution as inactive"
+class DeleteInstitution(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark an Institution as inactive"
 
-#     class Arguments:
-#         id = graphene.Int(required=True)
+    class Arguments:
+        id = graphene.Int(required=True)
 
-#     ok = graphene.Boolean()
-#     institution = graphene.Field(InstitutionType)
+    ok = graphene.Boolean()
+    institution = graphene.Field(InstitutionType)
 
-#     @staticmethod
-#     def mutate(root, info, id, input=None):
-#         ok = False
-#         institution = Institution.objects.get(pk=id, active=True)
-#         institution_instance = institution
-#         if institution_instance:
-#             ok = True
-#             institution_instance.active = False
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+        institution = Institution.objects.get(pk=id, active=True)
+        institution_instance = institution
+        if institution_instance:
+            ok = True
+            institution_instance.active = False
 
-#             institution_instance.save()
-#             return DeleteInstitution(ok=ok, institution=institution_instance)
-#         return DeleteInstitution(ok=ok, institution=None)
+            institution_instance.save()
+            return DeleteInstitution(ok=ok, institution=institution_instance)
+        return DeleteInstitution(ok=ok, institution=None)
 
 
 class CreateUser(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new User"
 
-    class Arguments:
-        input = UserInput(required=True)
-
     ok = graphene.Boolean()
     user = graphene.Field(UserType)
 
     @staticmethod
+    @login_required
     def mutate(root, info, input=None):
-        current_user = info.context.user
-        if not current_user.is_authenticated:
-            return CreateUser(errors='You must be logged in to do that!')
         ok = True
         error = ""
         if input.name is None:
@@ -148,18 +135,12 @@ class UpdateUser(graphene.Mutation):
     class Meta:
         description = "Mutation to update a User"
 
-    class Arguments:
-        id = graphene.Int(required=True)
-        input = UserInput(required=True)
-
     ok = graphene.Boolean()
     user = graphene.Field(UserType)
 
     @staticmethod
+    @login_required
     def mutate(root, info, id, input=None):
-        current_user = info.context.user
-        if not current_user.is_authenticated:
-            return UpdateUser(errors='You must be logged in to do that!')
         ok = False
         user = User.objects.get(pk=id)
         user_instance = user
@@ -181,36 +162,28 @@ class UpdateUser(graphene.Mutation):
         return UpdateUser(ok=ok, user=None)
 
 
-# class DeleteUser(graphene.Mutation):
-#     class Meta:
-#         description = "Mutation to mark a User as inactive"
-
-#     class Arguments:
-#         id = graphene.Int(required=True)
-
-#     ok = graphene.Boolean()
-#     user = graphene.Field(UserType)
-
-#     @staticmethod
-#     def mutate(root, info, id, input=None):
-#         ok = False
-#         user = User.objects.get(pk=id, active=True)
-#         user_instance = user
-#         if user_instance:
-#             ok = True
-#             user_instance.active = False
-
-#             user_instance.save()
-#             return UpdateUser(ok=ok, user=user_instance)
-#         return UpdateUser(ok=ok, user=None)
-
-class UserSerializerMutation(DjangoSerializerMutation):
-    """
-        DjangoSerializerMutation auto implement Create, Delete and Update functions
-    """
+class DeleteUser(graphene.Mutation):
     class Meta:
-        description = " DRF serializer based Mutation for Users "
-        serializer_class = UserSerializer
+        description = "Mutation to mark a User as inactive"
+
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+        user = User.objects.get(pk=id, active=True)
+        user_instance = user
+        if user_instance:
+            ok = True
+            user_instance.active = False
+
+            user_instance.save()
+            return DeleteUser(ok=ok, user=user_instance)
+        return DeleteUser(ok=ok, user=None)
 
 
 class CreateGroup(graphene.Mutation):
@@ -218,18 +191,14 @@ class CreateGroup(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new Group"
 
-    class Arguments:
-        input = GroupInput(required=True)
-
     ok = graphene.Boolean()
     group = graphene.Field(GroupType)
 
     @staticmethod
+    @login_required
     def mutate(root, info, input=None):
-        current_user = info.context.user
-        if not current_user.is_authenticated:
-            return CreateGroup(errors='You must be logged in to do that!')
         ok = True
+        current_user = info.context.user
         error = ""
         if input.name is None:
             error += "Name is a required field<br />"
@@ -260,18 +229,13 @@ class UpdateGroup(graphene.Mutation):
     class Meta:
         description = "Mutation to update a Group"
 
-    class Arguments:
-        id = graphene.Int(required=True)
-        input = GroupInput(required=True)
-
     ok = graphene.Boolean()
     group = graphene.Field(GroupType)
 
     @staticmethod
+    @login_required
     def mutate(root, info, id, input=None):
         current_user = info.context.user
-        if not current_user.is_authenticated:
-            return UpdateGroup(errors='You must be logged in to do that!')
         ok = False
         group = Group.objects.get(pk=id)
         group_instance = group
@@ -295,19 +259,34 @@ class UpdateGroup(graphene.Mutation):
                 group_instance.admins.add(*input.admins)
 
             # Adding the creator of the group as an admin
-            group_instance.admins.set([user.id])
+            group_instance.admins.set([current_user.id])
 
             return UpdateGroup(ok=ok, group=group_instance)
         return UpdateGroup(ok=ok, group=None)
 
 
-class GroupSerializerMutation(DjangoSerializerMutation):
-    """
-        DjangoSerializerMutation auto implement Create, Delete and Update functions
-    """
+class DeleteGroup(graphene.Mutation):
     class Meta:
-        description = " DRF serializer based Mutation for Groups "
-        serializer_class = GroupSerializer
+        description = "Mutation to mark a Group as inactive"
+
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+    group = graphene.Field(GroupType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+        group = Group.objects.get(pk=id, active=True)
+        group_instance = group
+        if group_instance:
+            ok = True
+            group_instance.active = False
+
+            group_instance.save()
+            return DeleteGroup(ok=ok, group=group_instance)
+        return DeleteGroup(ok=ok, group=None)
 
 
 class CreateAnnouncement(graphene.Mutation):
@@ -315,17 +294,13 @@ class CreateAnnouncement(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new Announcement"
 
-    class Arguments:
-        input = AnnouncementInput(required=True)
-
     ok = graphene.Boolean()
     announcement = graphene.Field(AnnouncementType)
 
     @staticmethod
+    @login_required
     def mutate(root, info, input=None):
         current_user = info.context.user
-        if not current_user.is_authenticated:
-            return CreateAnnouncement(errors='You must be logged in to do that!')
         ok = True
         error = ""
         if input.title is None:
@@ -356,14 +331,11 @@ class UpdateAnnouncement(graphene.Mutation):
     class Meta:
         description = "Mutation to update a Announcement"
 
-    class Arguments:
-        id = graphene.Int(required=True)
-        input = AnnouncementInput(required=True)
-
     ok = graphene.Boolean()
     announcement = graphene.Field(AnnouncementType)
 
     @staticmethod
+    @login_required
     def mutate(root, info, id, input=None):
         current_user = info.context.user
         if not current_user.is_authenticated:
@@ -391,29 +363,43 @@ class UpdateAnnouncement(graphene.Mutation):
         return UpdateAnnouncement(ok=ok, announcement=None)
 
 
-class AnnouncementSerializerMutation(DjangoSerializerMutation):
-    """
-        DjangoSerializerMutation auto implement Create, Delete and Update functions
-    """
+class DeleteAnnouncement(graphene.Mutation):
     class Meta:
-        description = " DRF serializer based Mutation for Announcements "
-        serializer_class = AnnouncementSerializer
+        description = "Mutation to mark an Announcement as inactive"
+
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+    announcement = graphene.Field(AnnouncementType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+        announcement = Announcement.objects.get(pk=id, active=True)
+        announcement_instance = announcement
+        if announcement_instance:
+            ok = True
+            announcement_instance.active = False
+
+            announcement_instance.save()
+            return DeleteAnnouncement(ok=ok, announcement=announcement_instance)
+        return DeleteAnnouncement(ok=ok, announcement=None)
 
 
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
-    delete_institution = InstitutionModelType.DeleteField(
-        description='Delete Institution')
+    delete_institution = DeleteInstitution.Field()
+
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
-    delete_user = UserModelType.DeleteField(
-        description='Delete User')
+    delete_user = DeleteUser.Field()
+
     create_group = CreateGroup.Field()
     update_group = UpdateGroup.Field()
-    delete_group = GroupModelType.DeleteField(
-        description='Delete Group')
+    delete_group = DeleteGroup.Field()
+
     create_announcement = CreateAnnouncement.Field()
     update_announcement = UpdateAnnouncement.Field()
-    delete_announcement = AnnouncementModelType.DeleteField(
-        description='Delete Announcement')
+    delete_announcement = DeleteAnnouncement.Field()
