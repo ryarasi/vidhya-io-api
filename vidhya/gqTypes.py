@@ -50,3 +50,47 @@ class AnnouncementType(DjangoObjectType):
 
     class Meta:
         model = Announcement
+
+##############
+# Mutation Types
+##############
+
+
+class InstitutionInput(graphene.InputObjectType):
+    id = graphene.ID()
+    name = graphene.String()
+    location = graphene.String()
+    city = graphene.String()
+    website = graphene.String()
+    phone = graphene.String()
+    logo = graphene.String()
+    bio = graphene.String()
+
+
+class UserInput(graphene.InputObjectType):
+    id = graphene.ID()
+    nick_name = graphene.String()
+    email = graphene.String()
+    avatar = graphene.String()
+    institution_id = graphene.Int(name="institution", required=True)
+    title = graphene.String()
+    bio = graphene.String()
+
+
+class GroupInput(graphene.InputObjectType):
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    group_type = graphene.String()
+    institution_id = graphene.Int(name="institution", required=True)
+    admins = graphene.List(graphene.Int)
+    members = graphene.List(graphene.Int)
+
+
+class AnnouncementInput(graphene.InputObjectType):
+    id = graphene.ID()
+    title = graphene.String()
+    author = graphene.ID()
+    message = graphene.String()
+    institution_id = graphene.Int(name="institution", required=True)
+    groups = graphene.List(graphene.Int)

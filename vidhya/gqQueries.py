@@ -9,19 +9,19 @@ from .gqTypes import AnnouncementType, InstitutionType, UserType, GroupType
 
 
 class Query(ObjectType):
-    institution = graphene.Field(InstitutionType, id=graphene.Int())
+    institution = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.List(
         InstitutionType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
-    user = graphene.Field(UserType, id=graphene.Int())
+    user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.List(
         UserType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
-    group = graphene.Field(GroupType, id=graphene.Int())
+    group = graphene.Field(GroupType, id=graphene.ID())
     groups = graphene.List(
         GroupType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
-    announcement = graphene.Field(AnnouncementType, id=graphene.Int())
+    announcement = graphene.Field(AnnouncementType, id=graphene.ID())
     announcements = graphene.List(
         AnnouncementType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
@@ -35,7 +35,7 @@ class Query(ObjectType):
 
     @login_required
     def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Institution.objects.fitler(active=True).order_by('-id')
+        qs = Institution.objects.all().filter(active=True).order_by('-id')
 
         if searchField is not None:
             filter = (
@@ -61,7 +61,7 @@ class Query(ObjectType):
 
     @login_required
     def resolve_users(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = User.objects.fitler(active=True).order_by('-id')
+        qs = User.objects.all().filter(active=True).order_by('-id')
 
         if searchField is not None:
             filter = (
@@ -86,7 +86,7 @@ class Query(ObjectType):
 
     @login_required
     def resolve_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Group.objects.fitler(active=True).order_by('-id')
+        qs = Group.objects.all().filter(active=True).order_by('-id')
 
         if searchField is not None:
             filter = (
@@ -111,7 +111,7 @@ class Query(ObjectType):
 
     @login_required
     def resolve_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Announcement.objects.fitler(active=True).order_by('-id')
+        qs = Announcement.objects.all().filter(active=True).order_by('-id')
 
         if searchField is not None:
             filter = (

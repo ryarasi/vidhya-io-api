@@ -2,13 +2,16 @@ import graphene
 from graphql import GraphQLError
 from vidhya.models import User, Institution, Group, Announcement
 from graphql_jwt.decorators import login_required
-from .gqTypes import AnnouncementType, AnnouncementType,  InstitutionType,  UserType, GroupType
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, GroupInput, InstitutionInput,  InstitutionType, UserInput,  UserType, GroupType
 from .serializers import AnnouncementSerializer, UserSerializer, InstitutionSerializer, GroupSerializer
 
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
         description = "Mutation to create new a Institution"
+
+    class Arguments:
+        input = InstitutionInput(required=True)
 
     ok = graphene.Boolean()
     institution = graphene.Field(InstitutionType)
@@ -48,6 +51,10 @@ class UpdateInstitution(graphene.Mutation):
     class Meta:
         description = "Mutation to update an Institution"
 
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = InstitutionInput(required=True)
+
     ok = graphene.Boolean()
     institution = graphene.Field(InstitutionType)
 
@@ -55,7 +62,7 @@ class UpdateInstitution(graphene.Mutation):
     @login_required
     def mutate(root, info, id, input=None):
         ok = False
-        institution = Institution.objects.get(pk=id)
+        institution = Institution.objects.get(pk=id, active=True)
         institution_instance = institution
         if institution_instance:
             ok = True
@@ -85,7 +92,7 @@ class DeleteInstitution(graphene.Mutation):
         description = "Mutation to mark an Institution as inactive"
 
     class Arguments:
-        id = graphene.Int(required=True)
+        id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     institution = graphene.Field(InstitutionType)
@@ -107,6 +114,9 @@ class DeleteInstitution(graphene.Mutation):
 class CreateUser(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new User"
+
+    class Arguments:
+        user = UserInput(required=True)
 
     ok = graphene.Boolean()
     user = graphene.Field(UserType)
@@ -135,6 +145,10 @@ class UpdateUser(graphene.Mutation):
     class Meta:
         description = "Mutation to update a User"
 
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = UserInput(required=True)
+
     ok = graphene.Boolean()
     user = graphene.Field(UserType)
 
@@ -142,7 +156,7 @@ class UpdateUser(graphene.Mutation):
     @login_required
     def mutate(root, info, id, input=None):
         ok = False
-        user = User.objects.get(pk=id)
+        user = User.objects.get(pk=id, active=True)
         user_instance = user
         if user_instance:
             ok = True
@@ -167,7 +181,7 @@ class DeleteUser(graphene.Mutation):
         description = "Mutation to mark a User as inactive"
 
     class Arguments:
-        id = graphene.Int(required=True)
+        id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     user = graphene.Field(UserType)
@@ -191,6 +205,9 @@ class CreateGroup(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new Group"
 
+    class Arguments:
+        input = GroupInput(required=True)
+
     ok = graphene.Boolean()
     group = graphene.Field(GroupType)
 
@@ -211,7 +228,7 @@ class CreateGroup(graphene.Mutation):
         searchField = searchField.lower()
 
         group_instance = Group(name=input.name, description=input.description,
-                               institution_id=input.institution, searchField=searchField)
+                               institution_id=input.institution_id, searchField=searchField)
         group_instance.save()
 
         if input.members is not None:
@@ -229,6 +246,10 @@ class UpdateGroup(graphene.Mutation):
     class Meta:
         description = "Mutation to update a Group"
 
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = GroupInput(required=True)
+
     ok = graphene.Boolean()
     group = graphene.Field(GroupType)
 
@@ -237,13 +258,13 @@ class UpdateGroup(graphene.Mutation):
     def mutate(root, info, id, input=None):
         current_user = info.context.user
         ok = False
-        group = Group.objects.get(pk=id)
+        group = Group.objects.get(pk=id, active=True)
         group_instance = group
         if group_instance:
             ok = True
             group_instance.name = input.name if input.name is not None else group.name
             group_instance.description = input.description if input.description is not None else group.description
-            group_instance.institution_id = input.institution if input.institution is not None else group.institution_id
+            group_instance.institution_id = input.institution_id if input.institution_id is not None else group.institution_id
 
             searchField = group_instance.name if group_instance.name is not None else ""
             searchField += group_instance.description if group_instance.description is not None else ""
@@ -270,7 +291,7 @@ class DeleteGroup(graphene.Mutation):
         description = "Mutation to mark a Group as inactive"
 
     class Arguments:
-        id = graphene.Int(required=True)
+        id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     group = graphene.Field(GroupType)
@@ -294,6 +315,9 @@ class CreateAnnouncement(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new Announcement"
 
+    class Arguments:
+        input = AnnouncementInput(required=True)
+
     ok = graphene.Boolean()
     announcement = graphene.Field(AnnouncementType)
 
@@ -309,7 +333,7 @@ class CreateAnnouncement(graphene.Mutation):
             error += "Message is a required field<br />"
         if input.groups is None:
             error += "Group(s) is a required field<br />"
-        if input.institution is None:
+        if input.institution_id is None:
             error += "Institution is a required field<br />"
         if len(error) > 0:
             raise GraphQLError(error)
@@ -318,7 +342,7 @@ class CreateAnnouncement(graphene.Mutation):
         searchField = searchField.lower()
 
         announcement_instance = Announcement(title=input.title, author_id=current_user.id, message=input.message,
-                                             institution_id=input.institution, searchField=searchField)
+                                             institution_id=input.institution_id, searchField=searchField)
         announcement_instance.save()
 
         if input.groups is not None:
@@ -331,6 +355,10 @@ class UpdateAnnouncement(graphene.Mutation):
     class Meta:
         description = "Mutation to update a Announcement"
 
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = AnnouncementInput(required=True)
+
     ok = graphene.Boolean()
     announcement = graphene.Field(AnnouncementType)
 
@@ -341,13 +369,13 @@ class UpdateAnnouncement(graphene.Mutation):
         if not current_user.is_authenticated:
             return UpdateAnnouncement(errors='You must be logged in to do that!')
         ok = False
-        announcement = Announcement.objects.get(pk=id)
+        announcement = Announcement.objects.get(pk=id, active=True)
         announcement_instance = announcement
         if announcement_instance:
             ok = True
             announcement_instance.title = input.title if input.title is not None else announcement.title
             announcement_instance.author_id = input.author if input.author is not None else announcement.author
-            announcement_instance.institution_id = input.institution if input.institution is not None else announcement.institution_id
+            announcement_instance.institution_id = input.institution_id if input.institution_id is not None else announcement.institution_id
 
             searchField = input.title
             searchField += input.message if input.message is not None else ""
@@ -368,7 +396,7 @@ class DeleteAnnouncement(graphene.Mutation):
         description = "Mutation to mark an Announcement as inactive"
 
     class Arguments:
-        id = graphene.Int(required=True)
+        id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     announcement = graphene.Field(AnnouncementType)
