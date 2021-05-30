@@ -27,76 +27,101 @@ class Query(ObjectType):
 
     @login_required
     def resolve_institution(root, info, id, **kwargs):
-        return Institution.objects.get(pk=id)
+        institution_instance = Institution.objects.get(pk=id, active=True)
+        if institution_instance is not None:
+            return institution_instance
+        else:
+            return None
 
     @login_required
-    def resolve_institutions(root, info, searchField, limit, offset, **kwargs):
-        qs = Institution.objects.all().order_by('-id')
+    def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Institution.objects.fitler(active=True).order_by('-id')
 
-        if searchField:
+        if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField)
             )
             qs = qs.filter(filter)
-        if limit:
-            qs = qs[:limit]
-        if offset:
+
+        if offset is not None:
             qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
         return qs
 
     @login_required
     def resolve_user(root, info, id, **kwargs):
-        return User.objects.get(pk=id)
+        user_instance = User.objects.get(pk=id, active=True)
+        if user_instance is not None:
+            return user_instance
+        else:
+            return None
 
     @login_required
-    def resolve_users(root, info, searchField, limit, offset, **kwargs):
-        qs = User.objects.all().order_by('-id')
+    def resolve_users(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = User.objects.fitler(active=True).order_by('-id')
 
-        if searchField:
+        if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField)
             )
             qs = qs.filter(filter)
-        if limit:
-            qs = qs[:limit]
-        if offset:
+
+        if offset is not None:
             qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
         return qs
 
     @login_required
     def resolve_group(root, info, id, **kwargs):
-        return Group.objects.get(pk=id)
+        group_instance = Group.objects.get(pk=id, active=True)
+        if group_instance is not None:
+            return group_instance
+        else:
+            return None
 
     @login_required
-    def resolve_groups(root, info, searchField, limit, offset, **kwargs):
-        qs = Group.objects.all().order_by('-id')
+    def resolve_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Group.objects.fitler(active=True).order_by('-id')
 
-        if searchField:
+        if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField)
             )
             qs = qs.filter(filter)
-        if limit:
-            qs = qs[:limit]
-        if offset:
+
+        if offset is not None:
             qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
         return qs
 
     @login_required
     def resolve_announcement(root, info, id, **kwargs):
-        return Announcement.objects.get(pk=id)
+        announcement_instance = Announcement.objects.get(pk=id)
+        if announcement_instance is not None:
+            return announcement_instance
+        else:
+            return None
 
     @login_required
-    def resolve_announcements(root, info, searchField, limit, offset, **kwargs):
-        qs = Announcement.objects.all().order_by('-id')
+    def resolve_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Announcement.objects.fitler(active=True).order_by('-id')
 
-        if searchField:
+        if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField)
             )
             qs = qs.filter(filter)
-        if limit:
-            qs = qs[:limit]
-        if offset:
+
+        if offset is not None:
             qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
         return qs
