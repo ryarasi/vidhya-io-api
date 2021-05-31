@@ -19,9 +19,6 @@ class CreateInstitution(graphene.Mutation):
     @staticmethod
     @login_required
     def mutate(root, info, input=None):
-        current_user = info.context.user
-        if not current_user.is_authenticated:
-            return CreateInstitution(errors='You must be logged in to do that!')
         ok = True
         error = ""
         if input.name is None:
@@ -214,8 +211,8 @@ class CreateGroup(graphene.Mutation):
     @staticmethod
     @login_required
     def mutate(root, info, input=None):
-        ok = True
         current_user = info.context.user
+        ok = True
         error = ""
         if input.name is None:
             error += "Name is a required field<br />"
@@ -331,9 +328,11 @@ class CreateAnnouncement(graphene.Mutation):
         error = ""
         if input.title is None:
             error += "Title is a required field<br />"
+        if input.author_id is None:
+            error += "Author is a required field<br />"
         if input.message is None:
             error += "Message is a required field<br />"
-        if input.groups is None:
+        if input.group_ids is None:
             error += "Group(s) is a required field<br />"
         if input.institution_id is None:
             error += "Institution is a required field<br />"
@@ -343,12 +342,12 @@ class CreateAnnouncement(graphene.Mutation):
         searchField += input.message if input.message is not None else ""
         searchField = searchField.lower()
 
-        announcement_instance = Announcement(title=input.title, author_id=current_user.id, message=input.message,
+        announcement_instance = Announcement(title=input.title, author_id=input.author_id, message=input.message,
                                              institution_id=input.institution_id, searchField=searchField)
         announcement_instance.save()
 
         if input.groups is not None:
-            announcement_instance.groups.add(*input.groups)
+            announcement_instance.groups.add(*input.group_ids)
 
         return CreateAnnouncement(ok=ok, announcement=announcement_instance)
 
@@ -367,9 +366,6 @@ class UpdateAnnouncement(graphene.Mutation):
     @staticmethod
     @login_required
     def mutate(root, info, id, input=None):
-        current_user = info.context.user
-        if not current_user.is_authenticated:
-            return UpdateAnnouncement(errors='You must be logged in to do that!')
         ok = False
         announcement = Announcement.objects.get(pk=id, active=True)
         announcement_instance = announcement
@@ -385,9 +381,9 @@ class UpdateAnnouncement(graphene.Mutation):
 
             announcement_instance.save()
 
-            if input.groups is not None:
+            if input.group_ids is not None:
                 announcement_instance.groups.clear()
-                announcement_instance.groups.add(*input.groups)
+                announcement_instance.groups.add(*input.group_ids)
 
             return UpdateAnnouncement(ok=ok, announcement=announcement_instance)
         return UpdateAnnouncement(ok=ok, announcement=None)
