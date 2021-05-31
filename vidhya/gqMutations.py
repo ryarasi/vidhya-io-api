@@ -1,8 +1,8 @@
 import graphene
 from graphql import GraphQLError
-from vidhya.models import User, Institution, Group, Announcement
+from vidhya.models import User, Institution, Group, Announcement, Course, Assignment
 from graphql_jwt.decorators import login_required
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, GroupInput, InstitutionInput,  InstitutionType, UserInput,  UserType, GroupType
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput,  UserType, GroupType
 from .serializers import AnnouncementSerializer, UserSerializer, InstitutionSerializer, GroupSerializer
 
 
@@ -221,6 +221,8 @@ class CreateGroup(graphene.Mutation):
             error += "Name is a required field<br />"
         if input.description is None:
             error += "Description is a required field<br />"
+        if input.institution_id is None:
+            error += "institution is a required field<br />"
         if len(error) > 0:
             raise GraphQLError(error)
         searchField = input.name
@@ -415,6 +417,199 @@ class DeleteAnnouncement(graphene.Mutation):
         return DeleteAnnouncement(ok=ok, announcement=None)
 
 
+class CreateCourse(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to create a new Course"
+
+    class Arguments:
+        input = CourseInput(required=True)
+
+    ok = graphene.Boolean()
+    course = graphene.Field(CourseType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        ok = True
+        error = ""
+        if input.title is None:
+            error += "Title is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if input.instructor_id is None:
+            error += "Instructor is a required field<br />"
+        if input.institution_ids is None:
+            error += "Institution(s) is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.title
+        searchField += input.description if input.description is not None else ""
+        searchField = searchField.lower()
+
+        course_instance = Course(title=input.title, description=input.description,
+                                 instructor_id=input.instructor_id, searchField=searchField)
+        course_instance.save()
+
+        if input.institution_ids is not None:
+            course_instance.institutions.add(*input.institution_ids)
+
+        return CreateCourse(ok=ok, course=course_instance)
+
+
+class UpdateCourse(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Course"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = CourseInput(required=True)
+
+    ok = graphene.Boolean()
+    course = graphene.Field(CourseType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id, input=None):
+        ok = False
+        course = Course.objects.get(pk=id, active=True)
+        course_instance = course
+        if course_instance:
+            ok = True
+            course_instance.title = input.title if input.title is not None else course.title
+            course_instance.description = input.description if input.description is not None else course.description
+            course_instance.instructor_id = input.instructor_id if input.instructor_id is not None else course.instructor_id
+
+            searchField = input.title
+            searchField += input.description if input.description is not None else ""
+            course_instance.searchField = searchField.lower()
+
+            course_instance.save()
+
+            if input.institution_ids is not None:
+                course_instance.institutions.clear()
+                course_instance.institutions.add(*input.institution_ids)
+
+            return UpdateCourse(ok=ok, course=course_instance)
+        return UpdateCourse(ok=ok, course=None)
+
+
+class DeleteCourse(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark an Course as inactive"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    course = graphene.Field(CourseType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+        course = Course.objects.get(pk=id, active=True)
+        course_instance = course
+        if course_instance:
+            ok = True
+            course_instance.active = False
+
+            course_instance.save()
+            return DeleteCourse(ok=ok, course=course_instance)
+        return DeleteCourse(ok=ok, course=None)
+
+
+class CreateAssignment(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to create a new Assignment"
+
+    class Arguments:
+        input = AssignmentInput(required=True)
+
+    ok = graphene.Boolean()
+    assignment = graphene.Field(AssignmentType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        ok = True
+        error = ""
+        if input.title is None:
+            error += "Title is a required field<br />"
+        if input.instructions is None:
+            error += "Instructions is a required field<br />"
+        if input.course_id is None:
+            error += "Course is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.title
+        searchField += input.instructions if input.instructions is not None else ""
+        searchField = searchField.lower()
+
+        assignment_instance = Assignment(title=input.title, instructions=input.instructions,
+                                         course_id=input.course_id, searchField=searchField)
+        assignment_instance.save()
+
+        return CreateAssignment(ok=ok, assignment=assignment_instance)
+
+
+class UpdateAssignment(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Assignment"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = AssignmentInput(required=True)
+
+    ok = graphene.Boolean()
+    assignment = graphene.Field(AssignmentType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id, input=None):
+        ok = False
+        assignment = Assignment.objects.get(pk=id, active=True)
+        assignment_instance = assignment
+        if assignment_instance:
+            ok = True
+            assignment_instance.title = input.title if input.title is not None else assignment.title
+            assignment_instance.instructions = input.instructions if input.instructions is not None else assignment.instructions
+            assignment_instance.course_id = input.course_id if input.course_id is not None else assignment.course_id
+
+            searchField = input.title
+            searchField += input.instructions if input.instructions is not None else ""
+            assignment_instance.searchField = searchField.lower()
+
+            assignment_instance.save()
+
+            return UpdateAssignment(ok=ok, assignment=assignment_instance)
+        return UpdateAssignment(ok=ok, assignment=None)
+
+
+class DeleteAssignment(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark an Assignment as inactive"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    assignment = graphene.Field(AssignmentType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+        assignment = Assignment.objects.get(pk=id, active=True)
+        assignment_instance = assignment
+        if assignment_instance:
+            ok = True
+            assignment_instance.active = False
+
+            assignment_instance.save()
+            return DeleteAssignment(ok=ok, assignment=assignment_instance)
+        return DeleteAssignment(ok=ok, assignment=None)
+
+
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
@@ -431,3 +626,11 @@ class Mutation(graphene.ObjectType):
     create_announcement = CreateAnnouncement.Field()
     update_announcement = UpdateAnnouncement.Field()
     delete_announcement = DeleteAnnouncement.Field()
+
+    create_course = CreateCourse.Field()
+    update_course = UpdateCourse.Field()
+    delete_course = DeleteCourse.Field()
+
+    create_assignment = CreateAssignment.Field()
+    update_assignment = UpdateAssignment.Field()
+    delete_assignment = DeleteAssignment.Field()

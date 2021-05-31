@@ -1,6 +1,6 @@
 import graphene
 from graphene_django.types import DjangoObjectType
-from vidhya.models import User, Institution, Group, Announcement
+from vidhya.models import User, Institution, Group, Announcement, Course, Assignment
 
 
 ##############
@@ -12,7 +12,7 @@ class InstitutionType(DjangoObjectType):
     total_count = graphene.Int()
 
     def resolve_total_count(self, info):
-        count = Institution.objects.count()
+        count = Institution.objects.all().filter(active=True).count()
         return count
 
     class Meta:
@@ -23,7 +23,7 @@ class UserType(DjangoObjectType):
     total_count = graphene.Int()
 
     def resolve_total_count(self, info):
-        count = User.objects.count()
+        count = User.objects.all().filter(active=True).count()
         return count
 
     class Meta:
@@ -34,7 +34,7 @@ class GroupType(DjangoObjectType):
     total_count = graphene.Int()
 
     def resolve_total_count(self, info):
-        count = Group.objects.count()
+        count = Group.objects.all().filter(active=True).count()
         return count
 
     class Meta:
@@ -45,11 +45,33 @@ class AnnouncementType(DjangoObjectType):
     total_count = graphene.Int()
 
     def resolve_total_count(self, info):
-        count = Announcement.objects.count()
+        count = Announcement.objects.all().filter(active=True).count()
         return count
 
     class Meta:
         model = Announcement
+
+
+class CourseType(DjangoObjectType):
+    total_count = graphene.Int()
+
+    def resolve_total_count(self, info):
+        count = Course.objects.all().filter(active=True).count()
+        return count
+
+    class Meta:
+        model = Course
+
+
+class AssignmentType(DjangoObjectType):
+    total_count = graphene.Int()
+
+    def resolve_total_count(self, info):
+        count = Assignment.objects.all().filter(active=True).count()
+        return count
+
+    class Meta:
+        model = Assignment
 
 ##############
 # Mutation Types
@@ -58,9 +80,9 @@ class AnnouncementType(DjangoObjectType):
 
 class InstitutionInput(graphene.InputObjectType):
     id = graphene.ID()
-    name = graphene.String()
-    location = graphene.String()
-    city = graphene.String()
+    name = graphene.String(required=True)
+    location = graphene.String(required=True)
+    city = graphene.String(required=True)
     website = graphene.String()
     phone = graphene.String()
     logo = graphene.String()
@@ -72,25 +94,41 @@ class UserInput(graphene.InputObjectType):
     nick_name = graphene.String()
     email = graphene.String()
     avatar = graphene.String()
-    institution_id = graphene.Int(name="institution", required=True)
+    institution_id = graphene.Int(name="institution")
     title = graphene.String()
     bio = graphene.String()
 
 
 class GroupInput(graphene.InputObjectType):
     id = graphene.ID()
-    name = graphene.String()
-    description = graphene.String()
-    group_type = graphene.String()
+    name = graphene.String(required=True)
+    description = graphene.String(required=True)
+    group_type = graphene.String(required=True)
     institution_id = graphene.Int(name="institution", required=True)
-    admins = graphene.List(graphene.Int)
-    members = graphene.List(graphene.Int)
+    admin_ids = graphene.List(graphene.Int, name="admins", required=True)
+    member_ids = graphene.List(graphene.Int, name="member_ids", )
 
 
 class AnnouncementInput(graphene.InputObjectType):
     id = graphene.ID()
-    title = graphene.String()
-    author = graphene.ID()
-    message = graphene.String()
+    title = graphene.String(required=True)
+    author_id = graphene.ID(name="author", required=True)
+    message = graphene.String(required=True)
     institution_id = graphene.Int(name="institution", required=True)
-    groups = graphene.List(graphene.Int)
+    groups = graphene.List(graphene.Int, required=True)
+
+
+class CourseInput(graphene.InputObjectType):
+    id = graphene.ID()
+    title = graphene.String(required=True)
+    description = graphene.String(required=True)
+    instructor_id = graphene.ID(required=True)
+    institution_ids = graphene.List(
+        graphene.ID, name="institutions", required=True)
+
+
+class AssignmentInput(graphene.InputObjectType):
+    id = graphene.ID()
+    title = graphene.String(required=True)
+    instructions = graphene.String(required=True)
+    course_id = graphene.ID(name="course", required=True)

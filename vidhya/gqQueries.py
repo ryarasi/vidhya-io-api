@@ -2,9 +2,9 @@
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required
-from vidhya.models import Institution, User, Group, Announcement
+from vidhya.models import Institution, User, Group, Announcement, Course, Assignment
 from django.db.models import Q
-from .gqTypes import AnnouncementType, InstitutionType, UserType, GroupType
+from .gqTypes import AnnouncementType, AssignmentType, CourseType, InstitutionType, UserType, GroupType
 # Create a GraphQL type for the Institution model
 
 
@@ -24,6 +24,14 @@ class Query(ObjectType):
     announcement = graphene.Field(AnnouncementType, id=graphene.ID())
     announcements = graphene.List(
         AnnouncementType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    course = graphene.Field(CourseType, id=graphene.ID())
+    courses = graphene.List(
+        CourseType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    assignment = graphene.Field(AssignmentType, id=graphene.ID())
+    assignments = graphene.List(
+        AssignmentType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     @login_required
     def resolve_institution(root, info, id, **kwargs):
@@ -124,4 +132,56 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+        return qs
+
+    @login_required
+    def resolve_course(root, info, id, **kwargs):
+        course_instance = Course.objects.get(pk=id, active=True)
+        if course_instance is not None:
+            return course_instance
+        else:
+            return None
+
+    @login_required
+    def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Course.objects.all().filter(active=True).order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        return qs
+
+    @login_required
+    def resolve_assignment(root, info, id, **kwargs):
+        assignment_instance = Assignment.objects.get(pk=id, active=True)
+        if assignment_instance is not None:
+            return assignment_instance
+        else:
+            return None
+
+    @login_required
+    def resolve_assignments(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Assignment.objects.all().filter(active=True).order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
         return qs

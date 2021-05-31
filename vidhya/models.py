@@ -104,9 +104,39 @@ class AnnouncementGroup(models.Model):
         return self.name
 
 
+class Course(models.Model):
+    title = models.CharField(max_length=80)
+    description = models.CharField(max_length=500)
+    instructor = models.ForeignKey(User, on_delete=models.PROTECT)
+    institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
+        'course', 'institution'), blank=True)
+    searchField = models.CharField(max_length=1200, blank=True, null=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
+class CourseInstitution(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
+class Assignment(models.Model):
+    title = models.CharField(max_length=80)
+    instructions = models.CharField(max_length=1000)
+    course = models.ForeignKey(Course, on_delete=models.PROTECT)
+    searchField = models.CharField(max_length=1200, blank=True, null=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
 # For file uploads
-
-
 class File(models.Model):
     file = models.FileField(blank=False, null=False)
 
