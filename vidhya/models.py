@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User, AbstractUser
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.core.validators import MinLengthValidator
+from common.utils import random_number_with_N_digits
 
 
 class User(AbstractUser):
@@ -13,6 +15,17 @@ class User(AbstractUser):
         'Institution', on_delete=models.PROTECT, blank=True, null=True)
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
+
+    class StatusChoices(models.TextChoices):
+        PENDINIG = "PE", _('PENDIING')
+        APPROVED = "AP", _('APPROVED')
+        SUSPENDED = "SU", _('SUSPENDED')
+    # End of Type Choices
+
+    membership_status = models.CharField(
+        max_length=2, choices=StatusChoices.choices, default=StatusChoices.PENDINIG)
+    invitecode = models.CharField(max_length=10, validators=[
+                                  MinLengthValidator(10)], blank=True, null=True)
     searchField = models.CharField(max_length=600, blank=True, null=True)
     last_active = models.DateTimeField(
         blank=True, null=True, default=timezone.now)
@@ -33,7 +46,8 @@ class Institution(models.Model):
     logo = models.CharField(
         max_length=250, blank=True, null=True, default="https://i.imgur.com/hB0OXas.png")
     bio = models.CharField(max_length=300, blank=True, null=True)
-    invitecode = models.IntegerField(blank=True, null=True)
+    invitecode = models.CharField(
+        max_length=10, validators=[MinLengthValidator(10)], unique=True, default=random_number_with_N_digits(10))
     searchField = models.CharField(max_length=900, blank=True, null=True)
     active = models.BooleanField(default=True)
 

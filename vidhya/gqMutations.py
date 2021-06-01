@@ -31,6 +31,7 @@ class CreateInstitution(graphene.Mutation):
             error += "City is a required field<br />"
         if len(error) > 0:
             raise GraphQLError(error)
+
         searchField = input.name
         searchField += input.location if input.location is not None else ""
         searchField += input.city if input.city is not None else ""
@@ -138,12 +139,62 @@ class CreateUser(graphene.Mutation):
         return CreateUser(ok=ok, user=user_instance)
 
 
+class VerifyInvitecode(graphene.Mutation):
+    class Meta:
+        descriptioin = "Mutation to add the invitecode that the user used to register"
+
+    class Arguments:
+        invitecode = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, invitecode, input=None):
+        ok = False
+        institution = Institution.objects.get(
+            invitecode=invitecode, active=True)
+        if institution:
+            ok = True
+            return VerifyInvitecode(ok=ok)
+        else:
+            return VerifyInvitecode(ok=ok)
+
+
+class AddInvitecode(graphene.Mutation):
+    class Meta:
+        descriptioin = "Mutation to add the invitecode that the user used to register"
+
+    class Arguments:
+        invitecode = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, invitecode, input=None):
+        ok = False
+        institution = Institution.objects.get(
+            invitecode=invitecode, active=True)
+        institution_instance = institution
+        if institution_instance is None:
+            raise GraphQLError(
+                "You've provided an invalid invitation code. Please check and try again.")
+        current_user = info.context.user
+        if current_user.is_authenticated:
+            user_instance = User.objects.get(id=current_user.id, active=True)
+            if user_instance and institution_instance:
+                ok = True
+                user_instance.invitecode = invitecode
+                user_instance.save()
+            return AddInvitecode(ok=ok,)
+        return AddInvitecode(ok=ok,)
+
+
 class UpdateUser(graphene.Mutation):
     class Meta:
         description = "Mutation to update a User"
 
     class Arguments:
-        id = graphene.ID(required=True)
         input = UserInput(required=True)
 
     ok = graphene.Boolean()
@@ -151,19 +202,22 @@ class UpdateUser(graphene.Mutation):
 
     @staticmethod
     @login_required
-    def mutate(root, info, id, input=None):
+    def mutate(root, info, input=None):
         ok = False
-        user = User.objects.get(pk=id, active=True)
+        current_user = info.context.user
+        user = User.objects.get(pk=current_user.id, active=True)
         user_instance = user
         if user_instance:
             ok = True
-            user_instance.name = input.name if input.name is not None else user.name
+            user_instance.first_name = input.first_name if input.first_name is not None else user.first_name
+            user_instance.last_name = input.last_name if input.last_name is not None else user.last_name
             user_instance.avatar = input.avatar if input.avatar is not None else user.avatar
             user_instance.institution_id = input.institution_id if input.institution_id is not None else user.institution_id
             user_instance.title = input.title if input.title is not None else user.title
             user_instance.bio = input.bio if input.bio is not None else user.bio
 
-            searchField = user_instance.name if user_instance.name is not None else ""
+            searchField = user_instance.first_name if user_instance.first_name is not None else ""
+            searchField += user_instance.last_name if user_instance.last_name is not None else ""
             searchField += user_instance.title if user_instance.title is not None else ""
             searchField += user_instance.bio if user_instance.bio is not None else ""
             user_instance.searchField = searchField.lower()
@@ -611,6 +665,8 @@ class Mutation(graphene.ObjectType):
     update_institution = UpdateInstitution.Field()
     delete_institution = DeleteInstitution.Field()
 
+    add_invitecode = AddInvitecode.Field()
+    verify_invitecode = VerifyInvitecode.Field()
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()

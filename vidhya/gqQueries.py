@@ -4,11 +4,14 @@ from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required
 from vidhya.models import Institution, User, Group, Announcement, Course, Assignment
 from django.db.models import Q
+from graphql import GraphQLError
 from .gqTypes import AnnouncementType, AssignmentType, CourseType, InstitutionType, UserType, GroupType
 # Create a GraphQL type for the Institution model
 
 
 class Query(ObjectType):
+    institution_by_invitecode = graphene.Field(
+        InstitutionType, invitecode=graphene.String())
     institution = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.List(
         InstitutionType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
@@ -32,6 +35,15 @@ class Query(ObjectType):
     assignment = graphene.Field(AssignmentType, id=graphene.ID())
     assignments = graphene.List(
         AssignmentType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    @login_required
+    def resolve_institution_by_invitecode(root, info, invitecode, **kwargs):
+        institution_instance = Institution.objects.get(
+            invitecode=invitecode, active=True)
+        if institution_instance is not None:
+            return institution_instance
+        else:
+            return None
 
     @login_required
     def resolve_institution(root, info, id, **kwargs):

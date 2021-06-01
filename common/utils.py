@@ -1,8 +1,9 @@
 from calendar import timegm
 from datetime import datetime
 from .settings import jwt_settings
-from vidhya.models import User
 from django.utils import timezone
+from random import randint
+from django.contrib.auth import get_user_model
 
 # This is used to add the userId as sub to the JWT payload
 
@@ -41,8 +42,15 @@ class UpdateLastActivityMiddleware(object):
 
     def __call__(self, request):
         if request.user.is_authenticated:
-            User.objects.filter(pk=request.user.id) \
-                        .update(last_active=timezone.now())
+            User = get_user_model()
+            User.objects.filter(pk=request.user.id).update(
+                last_active=timezone.now())
         response = self.get_response(request)
 
         return response
+
+
+def random_number_with_N_digits(n):
+    range_start = 10**(n-1)
+    range_end = (10**n)-1
+    return randint(range_start, range_end)

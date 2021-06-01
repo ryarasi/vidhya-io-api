@@ -7,7 +7,6 @@ from vidhya.models import User, Institution, Group, Announcement, Course, Assign
 # Query Types
 ##############
 
-
 class InstitutionType(DjangoObjectType):
     total_count = graphene.Int()
 
@@ -91,6 +90,8 @@ class InstitutionInput(graphene.InputObjectType):
 
 class UserInput(graphene.InputObjectType):
     id = graphene.ID()
+    first_name = graphene.String()
+    last_name = graphene.String()
     nick_name = graphene.String()
     email = graphene.String()
     avatar = graphene.String()
