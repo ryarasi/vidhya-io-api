@@ -17,13 +17,14 @@ class User(AbstractUser):
     bio = models.CharField(max_length=300, blank=True, null=True)
 
     class StatusChoices(models.TextChoices):
+        UNINITIALIZED = 'UI', _('UNINITIALIZED')
         PENDINIG = "PE", _('PENDIING')
         APPROVED = "AP", _('APPROVED')
         SUSPENDED = "SU", _('SUSPENDED')
     # End of Type Choices
 
     membership_status = models.CharField(
-        max_length=2, choices=StatusChoices.choices, default=StatusChoices.PENDINIG)
+        max_length=2, choices=StatusChoices.choices, default=StatusChoices.UNINITIALIZED)
     invitecode = models.CharField(max_length=10, validators=[
                                   MinLengthValidator(10)], blank=True, null=True)
     searchField = models.CharField(max_length=600, blank=True, null=True)
