@@ -166,12 +166,12 @@ class AddInvitecode(graphene.Mutation):
 
     class Arguments:
         invitecode = graphene.String(required=True)
+        email = graphene.String(required=True)
 
     ok = graphene.Boolean()
 
     @staticmethod
-    @login_required
-    def mutate(root, info, invitecode, input=None):
+    def mutate(root, info, invitecode, email, input=None):
         ok = False
         institution = Institution.objects.get(
             invitecode=invitecode, active=True)
@@ -179,14 +179,12 @@ class AddInvitecode(graphene.Mutation):
         if institution_instance is None:
             raise GraphQLError(
                 "You've provided an invalid invitation code. Please check and try again.")
-        current_user = info.context.user
-        if current_user.is_authenticated:
-            user_instance = User.objects.get(id=current_user.id, active=True)
-            if user_instance and institution_instance:
-                ok = True
-                user_instance.invitecode = invitecode
-                user_instance.save()
-            return AddInvitecode(ok=ok,)
+        user_instance = User.objects.get(email=email, active=True)
+        if user_instance and institution_instance:
+            ok = True
+            user_instance.invitecode = invitecode
+            user_instance.save()
+        return AddInvitecode(ok=ok,)
         return AddInvitecode(ok=ok,)
 
 
@@ -215,6 +213,12 @@ class UpdateUser(graphene.Mutation):
             user_instance.institution_id = input.institution_id if input.institution_id is not None else user.institution_id
             user_instance.title = input.title if input.title is not None else user.title
             user_instance.bio = input.bio if input.bio is not None else user.bio
+
+            # Updatiing the membership status to Pending if the user is currently Uninitialized and
+            # they provide first name, last name and institution to set up their profile
+            if user_instance.membership_status == 'UI':
+                if len(user_instance.first_name) > 0 and len(user_instance.last_name) > 0 and user_instance.institution_id is not None:
+                    user_instance.membership_status = 'PE'
 
             searchField = user_instance.first_name if user_instance.first_name is not None else ""
             searchField += user_instance.last_name if user_instance.last_name is not None else ""
