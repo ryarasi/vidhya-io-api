@@ -73,6 +73,10 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+GRAPHQL_AUTH = {
+    "ALLOW_LOGIN_NOT_VERIFIED": False
+}
+
 GRAPHQL_JWT = {
     "JWT_ALLOW_ANY_CLASSES": [
         "graphql_auth.mutations.Register",
