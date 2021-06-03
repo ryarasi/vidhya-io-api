@@ -3,7 +3,6 @@ from graphql import GraphQLError
 from vidhya.models import User, Institution, Group, Announcement, Course, Assignment
 from graphql_jwt.decorators import login_required
 from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput,  UserType, GroupType
-from .serializers import AnnouncementSerializer, UserSerializer, InstitutionSerializer, GroupSerializer
 
 
 class CreateInstitution(graphene.Mutation):
