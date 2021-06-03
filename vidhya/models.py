@@ -47,8 +47,12 @@ class Institution(models.Model):
     logo = models.CharField(
         max_length=250, blank=True, null=True, default="https://i.imgur.com/hB0OXas.png")
     bio = models.CharField(max_length=300, blank=True, null=True)
-    invitecode = models.CharField(
-        max_length=10, validators=[MinLengthValidator(10)], unique=True, default=random_number_with_N_digits(10))
+
+    def generate_invitecode():
+        return random_number_with_N_digits(10)
+
+    invitecode = models.CharField(max_length=10, validators=[
+                                  MinLengthValidator(10)], unique=True, default=generate_invitecode)
     searchField = models.CharField(max_length=900, blank=True, null=True)
     active = models.BooleanField(default=True)
 
