@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User, AbstractUser
+from django.db.models.fields.json import JSONField
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.validators import MinLengthValidator
@@ -13,6 +14,8 @@ class User(AbstractUser):
                               null=True, default="https://i.imgur.com/XDZCq2b.png")
     institution = models.ForeignKey(
         'Institution', on_delete=models.PROTECT, blank=True, null=True)
+    role = models.ForeignKey(
+        'UserRole', on_delete=models.PROTECT, blanck=True, null=True)
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
 
@@ -33,6 +36,15 @@ class User(AbstractUser):
     active = models.BooleanField(default=True)
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
+
+    def __str__(self):
+        return self.name
+
+
+class UserRole(models.Model):
+    name = models.CharField(max_length=50)
+    # priority = models.IntegerField()
+    permissions = models.JSONField(null=True, Blank=True)
 
     def __str__(self):
         return self.name
@@ -118,6 +130,7 @@ class Announcement(models.Model):
 class AnnouncementGroup(models.Model):
     announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    seenBy = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -153,6 +166,44 @@ class Assignment(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Chat(models.Model):
+    name = models.CharField(max_length=100)
+    group = models.ForeignKey(
+        Group, on_delete=models.PROTECT, blank=True, null=True)
+    admins = models.ManyToManyField(User, related_name="adminInChats", through="ChatAdmin", through_fields=(
+        'chat', 'admin'), blank=True)
+    members = models.ManyToManyField(User, related_name="privateChats",
+                                     through="ChatMember", through_fields={'chat', 'member'}, blank=True)
+    created = models.DateTimeField(
+        blank=True, null=True)
+    active = models.BooleanField(default=True)
+
+
+class ChatAdmin(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    admin = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
+class ChatMember(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    member = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
+class ChatMessage(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.PROTECT)
+    message = models.CharField(max_length=1000)
+    author = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    sentOn = models.DateTimeField(blank=True, null=True)
+    seenBy = models.ForeignKey(
+        User, on_delete=models.PROTECT, blank=True, null=True)
 
 
 # For file uploads
