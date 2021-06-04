@@ -1,8 +1,8 @@
 import graphene
 from graphql import GraphQLError
-from vidhya.models import User, Institution, Group, Announcement, Course, Assignment
+from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Assignment, Chat, ChatMessage
 from graphql_jwt.decorators import login_required
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput,  UserType, GroupType
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType
 
 
 class CreateInstitution(graphene.Mutation):
@@ -138,6 +138,93 @@ class CreateUser(graphene.Mutation):
         return CreateUser(ok=ok, user=user_instance)
 
 
+class CreateUserRole(graphene.Mutation):
+    class Meta:
+        description = "Mutation to create a new User Role"
+
+    class Arguments:
+        user_role = UserRoleInput(required=True)
+
+    ok = graphene.Boolean()
+    user_role = graphene.Field(UserRoleType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if input.permissions is None:
+            error += "permissions is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField += input.description if input.description is not None else ""
+        searchField = searchField.lower()
+
+        user_role_instance = User(name=input.name, description=input.description,
+                                  permissions=input.permissions, searchField=searchField)
+        user_role_instance.save()
+        return CreateUser(ok=ok, user_role=user_role_instance)
+
+
+class UpdateUserRole(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a User"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = UserRoleInput(required=True)
+
+    ok = graphene.Boolean()
+    user_role = graphene.Field(UserRoleType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        ok = False
+        user_role_instance = UserRole.objects.get(pk=input.id, active=True)
+        if user_role_instance:
+            ok = True
+            user_role_instance.first_name = input.first_name if input.first_name is not None else user.first_name
+            user_role_instance.last_name = input.last_name if input.last_name is not None else user.last_name
+            user_role_instance.avatar = input.avatar if input.avatar is not None else user.avatar
+
+            searchField = input.name
+            searchField += input.description if input.description is not None else ""
+            searchField = searchField.lower()
+
+            user_role_instance.save()
+            return UpdateUserRole(ok=ok, user_role=user_role_instance)
+        return UpdateUserRole(ok=ok, user_role=None)
+
+
+class DeleteUserRole(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark a User Role as inactive"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    user_role = graphene.Field(UserRoleType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+        user_role_instance = UserRole.objects.get(pk=id, active=True)
+        if user_role_instance:
+            ok = True
+            user_role_instance.active = False
+
+            user_role_instance.save()
+            return DeleteUserRole(ok=ok, user=user_role_instance)
+        return DeleteUserRole(ok=ok, user_role=None)
+
+
 class VerifyInvitecode(graphene.Mutation):
     class Meta:
         descriptioin = "Mutation to add the invitecode that the user used to register"
@@ -210,6 +297,7 @@ class UpdateUser(graphene.Mutation):
             user_instance.last_name = input.last_name if input.last_name is not None else user.last_name
             user_instance.avatar = input.avatar if input.avatar is not None else user.avatar
             user_instance.institution_id = input.institution_id if input.institution_id is not None else user.institution_id
+            user_instance.role_id = input.role_id if input.role_id is not None else user.role_id
             user_instance.title = input.title if input.title is not None else user.title
             user_instance.bio = input.bio if input.bio is not None else user.bio
 
@@ -670,9 +758,14 @@ class Mutation(graphene.ObjectType):
 
     add_invitecode = AddInvitecode.Field()
     verify_invitecode = VerifyInvitecode.Field()
+
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
+
+    create_user_role = CreateUserRole.Field()
+    update_user_role = UpdateUserRole.Field()
+    delete_user_role = DeleteUserRole.Field()
 
     create_group = CreateGroup.Field()
     update_group = UpdateGroup.Field()

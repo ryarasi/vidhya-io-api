@@ -2,10 +2,10 @@
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required
-from vidhya.models import Institution, User, Group, Announcement, Course, Assignment
+from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, Assignment
 from django.db.models import Q
 from graphql import GraphQLError
-from .gqTypes import AnnouncementType, AssignmentType, CourseType, InstitutionType, UserType, GroupType
+from .gqTypes import AnnouncementType, AssignmentType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 # Create a GraphQL type for the Institution model
 
 
@@ -19,6 +19,10 @@ class Query(ObjectType):
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.List(
         UserType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    user_role = graphene.Field(UserRoleType, id=graphene.ID())
+    user_roles = graphene.List(
+        UserRoleType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     group = graphene.Field(GroupType, id=graphene.ID())
     groups = graphene.List(
@@ -82,6 +86,31 @@ class Query(ObjectType):
     @login_required
     def resolve_users(root, info, searchField=None, limit=None, offset=None, **kwargs):
         qs = User.objects.all().filter(active=True).order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+        return qs
+
+    @login_required
+    def resolve_user_role(root, info, id, **kwargs):
+        user_role_instance = UserRole.objects.get(pk=id, active=True)
+        if user_role_instance is not None:
+            return user_role_instance
+        else:
+            return None
+
+    @login_required
+    def resolve_user_roles(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = UserRole.objects.all().filter(active=True).order_by('-id')
 
         if searchField is not None:
             filter = (

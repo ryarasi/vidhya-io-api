@@ -15,7 +15,7 @@ class User(AbstractUser):
     institution = models.ForeignKey(
         'Institution', on_delete=models.PROTECT, blank=True, null=True)
     role = models.ForeignKey(
-        'UserRole', on_delete=models.PROTECT, blanck=True, null=True)
+        'UserRole', on_delete=models.PROTECT, blank=True, null=True)
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
 
@@ -42,9 +42,10 @@ class User(AbstractUser):
 
 
 class UserRole(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50,)
+    description = models.CharField(max_length=500,)
     # priority = models.IntegerField()
-    permissions = models.JSONField(null=True, Blank=True)
+    permissions = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -76,8 +77,9 @@ class Group(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=250)
     institution = models.ForeignKey(Institution, on_delete=models.PROTECT)
+    chat = models.ForeignKey(
+        'Chat', on_delete=models.PROTECT, blank=True, null=True)
     searchField = models.CharField(max_length=400, blank=True, null=True)
-    active = models.BooleanField(default=True)
 
     # Type Choices
     class TypeChoices(models.TextChoices):
@@ -92,6 +94,7 @@ class Group(models.Model):
         'group', 'admin'), blank=True)
     members = models.ManyToManyField(
         User, related_name="memberInGroups", through='GroupMember', through_fields=('group', 'member'), blank=True)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -115,12 +118,17 @@ class GroupMember(models.Model):
 
 class Announcement(models.Model):
     title = models.CharField(max_length=80)
-    author = models.ForeignKey(User, on_delete=models.PROTECT)
+    author = models.ForeignKey(
+        User, related_name="announcementAuthor", on_delete=models.PROTECT)
     message = models.CharField(max_length=1000)
     institution = models.ForeignKey(Institution, on_delete=models.PROTECT)
     groups = models.ManyToManyField(Group, through="AnnouncementGroup", through_fields=(
         'announcement', 'group'), blank=True)
     searchField = models.CharField(max_length=1200, blank=True, null=True)
+    created = models.DateTimeField(
+        blank=True, null=True)
+    seenBy = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="announcementSeenBy", blank=True, null=True)
     active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -130,7 +138,6 @@ class Announcement(models.Model):
 class AnnouncementGroup(models.Model):
     announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    seenBy = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -170,12 +177,11 @@ class Assignment(models.Model):
 
 class Chat(models.Model):
     name = models.CharField(max_length=100)
-    group = models.ForeignKey(
-        Group, on_delete=models.PROTECT, blank=True, null=True)
+
     admins = models.ManyToManyField(User, related_name="adminInChats", through="ChatAdmin", through_fields=(
         'chat', 'admin'), blank=True)
     members = models.ManyToManyField(User, related_name="privateChats",
-                                     through="ChatMember", through_fields={'chat', 'member'}, blank=True)
+                                     through="ChatMember", through_fields=('chat', 'member'), blank=True)
     created = models.DateTimeField(
         blank=True, null=True)
     active = models.BooleanField(default=True)
@@ -200,10 +206,11 @@ class ChatMember(models.Model):
 class ChatMessage(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.PROTECT)
     message = models.CharField(max_length=1000)
-    author = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-    sentOn = models.DateTimeField(blank=True, null=True)
+    author = models.ForeignKey(
+        User, related_name="chatAuthor", on_delete=models.DO_NOTHING)
+    created = models.DateTimeField(blank=True, null=True)
     seenBy = models.ForeignKey(
-        User, on_delete=models.PROTECT, blank=True, null=True)
+        User, related_name="chatSeenBy", on_delete=models.PROTECT, blank=True, null=True)
 
 
 # For file uploads
