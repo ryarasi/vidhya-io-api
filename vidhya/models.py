@@ -8,7 +8,6 @@ from common.utils import random_number_with_N_digits
 
 
 class User(AbstractUser):
-    nick_name = models.CharField(max_length=50)
     email = models.EmailField(blank=False, max_length=255, unique=True)
     avatar = models.CharField(max_length=250, blank=True,
                               null=True, default="https://i.imgur.com/XDZCq2b.png")
@@ -45,7 +44,11 @@ class UserRole(models.Model):
     name = models.CharField(max_length=50,)
     description = models.CharField(max_length=500,)
     # priority = models.IntegerField()
-    permissions = JSONField()
+
+    def default_permissions():
+        return {}
+    permissions = JSONField(default=default_permissions)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
