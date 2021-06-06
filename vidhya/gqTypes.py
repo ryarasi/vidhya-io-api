@@ -1,4 +1,5 @@
 import graphene
+from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Assignment, Chat, ChatMessage
 
@@ -138,7 +139,7 @@ class UserRoleInput(graphene.InputObjectType):
     id = graphene.ID()
     name = graphene.String(required=True)
     description = graphene.String(required=True)
-    permissions = graphene.JSONString(required=True)
+    permissions = generic.GenericScalar()
 
 
 class GroupInput(graphene.InputObjectType):
@@ -188,6 +189,6 @@ class ChatInput(graphene.InputObjectType):
 class ChatMessageInput(graphene.InputObjectType):
     id = graphene.ID()
     chat_id = graphene.ID(name="chat", required=True)
-    message = graphene.CharField(required=True)
+    message = graphene.String(required=True)
     author_id = graphene.ID(name="author", required=True)
     created = graphene.DateTime()

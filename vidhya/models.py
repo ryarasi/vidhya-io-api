@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User, AbstractUser
-from django.db.models.fields.json import JSONField
+from django.contrib.postgres.fields import JSONField
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.validators import MinLengthValidator
@@ -45,7 +45,7 @@ class UserRole(models.Model):
     name = models.CharField(max_length=50,)
     description = models.CharField(max_length=500,)
     # priority = models.IntegerField()
-    permissions = models.JSONField(null=True, blank=True)
+    permissions = JSONField()
 
     def __str__(self):
         return self.name
