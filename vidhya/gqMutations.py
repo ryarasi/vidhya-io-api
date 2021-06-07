@@ -143,7 +143,7 @@ class CreateUserRole(graphene.Mutation):
         description = "Mutation to create a new User Role"
 
     class Arguments:
-        user_role = UserRoleInput(required=True)
+        input = UserRoleInput(required=True)
 
     ok = graphene.Boolean()
     user_role = graphene.Field(UserRoleType)
@@ -165,10 +165,10 @@ class CreateUserRole(graphene.Mutation):
         searchField += input.description if input.description is not None else ""
         searchField = searchField.lower()
 
-        user_role_instance = User(name=input.name, description=input.description,
-                                  permissions=input.permissions, searchField=searchField)
+        user_role_instance = UserRole(name=input.name, description=input.description,
+                                      permissions=input.permissions, searchField=searchField)
         user_role_instance.save()
-        return CreateUser(ok=ok, user_role=user_role_instance)
+        return CreateUserRole(ok=ok, user_role=user_role_instance)
 
 
 class UpdateUserRole(graphene.Mutation):
@@ -184,14 +184,14 @@ class UpdateUserRole(graphene.Mutation):
 
     @staticmethod
     @login_required
-    def mutate(root, info, input=None):
+    def mutate(root, info, id, input=None):
         ok = False
-        user_role_instance = UserRole.objects.get(pk=input.id, active=True)
+        user_role_instance = UserRole.objects.get(pk=id, active=True)
         if user_role_instance:
             ok = True
-            user_role_instance.first_name = input.first_name if input.first_name is not None else user.first_name
-            user_role_instance.last_name = input.last_name if input.last_name is not None else user.last_name
-            user_role_instance.avatar = input.avatar if input.avatar is not None else user.avatar
+            user_role_instance.name = input.name if input.name is not None else user_role_instance.name
+            user_role_instance.description = input.description if input.description is not None else user_role_instance.description
+            user_role_instance.permissions = input.permissions if input.permissions is not None else user_role_instance.permissions
 
             searchField = input.name
             searchField += input.description if input.description is not None else ""
@@ -221,7 +221,7 @@ class DeleteUserRole(graphene.Mutation):
             user_role_instance.active = False
 
             user_role_instance.save()
-            return DeleteUserRole(ok=ok, user=user_role_instance)
+            return DeleteUserRole(ok=ok, user_role=user_role_instance)
         return DeleteUserRole(ok=ok, user_role=None)
 
 

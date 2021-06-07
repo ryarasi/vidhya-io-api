@@ -48,6 +48,7 @@ class UserRole(models.Model):
     def default_permissions():
         return {}
     permissions = JSONField(default=default_permissions)
+    searchField = models.CharField(max_length=600, blank=True, null=True)
     active = models.BooleanField(default=True)
 
     def __str__(self):
