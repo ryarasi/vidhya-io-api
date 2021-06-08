@@ -2,7 +2,7 @@ import graphene
 from graphql import GraphQLError
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Assignment, Chat, ChatMessage
 from graphql_jwt.decorators import login_required
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, ChatType, ChatInput, ChatMessageType, ChatMessageInput
 
 
 class CreateInstitution(graphene.Mutation):
@@ -751,6 +751,214 @@ class DeleteAssignment(graphene.Mutation):
         return DeleteAssignment(ok=ok, assignment=None)
 
 
+class CreateChat(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to create a new Chat"
+
+    class Arguments:
+        input = ChatInput(required=True)
+
+    ok = graphene.Boolean()
+    chat = graphene.Field(ChatType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        current_user = info.context.user
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField = searchField.lower()
+
+        chat_instance = Chat(name=input.name,
+                             searchField=searchField)
+        chat_instance.save()
+
+        if input.member_ids is not None:
+            chat_instance.members.clear()
+            chat_instance.members.add(*input.member_ids)
+
+        if input.admin_ids is not None:
+            chat_instance.admins.clear()
+            chat_instance.admins.add(*input.admin_ids)
+
+        # Adding the creator of the group as an admin
+        chat_instance.admins.set([current_user.id])
+
+        return CreateChat(ok=ok, chat=chat_instance)
+
+
+class UpdateChat(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Chat"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = ChatInput(required=True)
+
+    ok = graphene.Boolean()
+    chat = graphene.Field(ChatType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id, input=None):
+        ok = False
+        chat = Chat.objects.get(pk=id, active=True)
+        chat_instance = chat
+        if chat_instance:
+            ok = True
+            chat_instance.name = input.name if input.name is not None else chat.name
+
+            searchField = input.name
+            chat_instance.searchField = searchField.lower()
+
+            chat_instance.save()
+
+            if input.member_ids is not None:
+                chat_instance.members.clear()
+                chat_instance.members.add(*input.member_ids)
+
+            if input.admin_ids is not None:
+                chat_instance.admins.clear()
+                chat_instance.admins.add(*input.admin_ids)
+
+            return UpdateChat(ok=ok, chat=chat_instance)
+        return UpdateChat(ok=ok, chat=None)
+
+
+class DeleteChat(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark an Chat as inactive"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    chat = graphene.Field(ChatType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+        chat = Chat.objects.get(pk=id, active=True)
+        chat_instance = chat
+        if chat_instance:
+            ok = True
+            chat_instance.active = False
+
+            chat_instance.save()
+            return DeleteChat(ok=ok, chat=chat_instance)
+        return DeleteChat(ok=ok, chat=None)
+
+
+class CreateChatMessage(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to create a new ChatMessage"
+
+    class Arguments:
+        input = ChatMessageInput(required=True)
+
+    ok = graphene.Boolean()
+    chat_message = graphene.Field(ChatMessageType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        current_user = info.context.user
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField = searchField.lower()
+
+        chat_message_instance = ChatMessage(name=input.name,
+                                            searchField=searchField)
+        chat_message_instance.save()
+
+        if input.member_ids is not None:
+            chat_message_instance.members.clear()
+            chat_message_instance.members.add(*input.member_ids)
+
+        if input.admin_ids is not None:
+            chat_message_instance.admins.clear()
+            chat_message_instance.admins.add(*input.admin_ids)
+
+        # Adding the creator of the group as an admin
+        chat_message_instance.admins.set([current_user.id])
+
+        return CreateChatMessage(ok=ok, chat_message=chat_message_instance)
+
+
+class UpdateChatMessage(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a ChatMessage"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = ChatMessageInput(required=True)
+
+    ok = graphene.Boolean()
+    chat_message = graphene.Field(ChatMessageType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id, input=None):
+        ok = False
+        chat_message = ChatMessage.objects.get(pk=id, active=True)
+        chat_message_instance = chat_message
+        if chat_message_instance:
+            ok = True
+            chat_message_instance.name = input.name if input.name is not None else chat_message.name
+
+            searchField = input.name
+            chat_message_instance.searchField = searchField.lower()
+
+            chat_message_instance.save()
+
+            if input.member_ids is not None:
+                chat_message_instance.members.clear()
+                chat_message_instance.members.add(*input.member_ids)
+
+            if input.admin_ids is not None:
+                chat_message_instance.admins.clear()
+                chat_message_instance.admins.add(*input.admin_ids)
+
+            return UpdateChatMessage(ok=ok, chat_message=chat_message_instance)
+        return UpdateChatMessage(ok=ok, chat_message=None)
+
+
+class DeleteChatMessage(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark an ChatMessage as inactive"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    chat_message = graphene.Field(ChatMessageType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+        chat_message = ChatMessage.objects.get(pk=id, active=True)
+        chat_message_instance = chat_message
+        if chat_message_instance:
+            ok = True
+            chat_message_instance.active = False
+
+            chat_message_instance.save()
+            return DeleteChatMessage(ok=ok, chat_message=chat_message_instance)
+        return DeleteChatMessage(ok=ok, chat_message=None)
+
+
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
@@ -782,3 +990,11 @@ class Mutation(graphene.ObjectType):
     create_assignment = CreateAssignment.Field()
     update_assignment = UpdateAssignment.Field()
     delete_assignment = DeleteAssignment.Field()
+
+    create_chat = CreateChat.Field()
+    update_chat = UpdateChat.Field()
+    delete_chat = DeleteChat.Field()
+
+    create_chat_message = CreateChatMessage.Field()
+    update_chat_message = UpdateChatMessage.Field()
+    delete_chat_message = DeleteChatMessage.Field()

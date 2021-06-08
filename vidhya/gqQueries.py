@@ -2,10 +2,10 @@
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required
-from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, Assignment
+from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, Assignment, Chat, ChatMessage
 from django.db.models import Q
 from graphql import GraphQLError
-from .gqTypes import AnnouncementType, AssignmentType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from .gqTypes import AnnouncementType, AssignmentType, ChatMessageType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 # Create a GraphQL type for the Institution model
 
 
@@ -39,6 +39,14 @@ class Query(ObjectType):
     assignment = graphene.Field(AssignmentType, id=graphene.ID())
     assignments = graphene.List(
         AssignmentType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    chat = graphene.Field(ChatType, id=graphene.ID())
+    chats = graphene.List(
+        ChatType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    chat_message = graphene.Field(ChatMessageType, id=graphene.ID())
+    chat_messages = graphene.List(ChatMessageType, searchField=graphene.String(
+    ), limit=graphene.Int(), offset=graphene.Int())
 
     @login_required
     def resolve_institution_by_invitecode(root, info, invitecode, **kwargs):
@@ -212,6 +220,58 @@ class Query(ObjectType):
     @login_required
     def resolve_assignments(root, info, searchField=None, limit=None, offset=None, **kwargs):
         qs = Assignment.objects.all().filter(active=True).order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        return qs
+
+    @login_required
+    def resolve_chat(root, info, id, **kwargs):
+        chat_instance = Chat.objects.get(pk=id, active=True)
+        if chat_instance is not None:
+            return chat_instance
+        else:
+            return None
+
+    @login_required
+    def resolve_chats(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Chat.objects.all().filter(active=True).order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        return qs
+
+    @login_required
+    def resolve_chat_message(root, info, id, **kwargs):
+        chat_message_instance = ChatMessage.objects.get(pk=id, active=True)
+        if chat_message_instance is not None:
+            return chat_message_instance
+        else:
+            return None
+
+    @login_required
+    def resolve_chat_messages(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = ChatMessage.objects.all().filter(active=True).order_by('-id')
 
         if searchField is not None:
             filter = (
