@@ -33,6 +33,9 @@ class User(AbstractUser):
     last_active = models.DateTimeField(
         blank=True, null=True, default=timezone.now)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
@@ -50,6 +53,8 @@ class UserRole(models.Model):
     permissions = JSONField(default=default_permissions)
     searchField = models.CharField(max_length=600, blank=True, null=True)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -72,6 +77,8 @@ class Institution(models.Model):
                                   MinLengthValidator(10)], unique=True, default=generate_invitecode)
     searchField = models.CharField(max_length=900, blank=True, null=True)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -99,6 +106,8 @@ class Group(models.Model):
     members = models.ManyToManyField(
         User, related_name="memberInGroups", through='GroupMember', through_fields=('group', 'member'), blank=True)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -129,11 +138,12 @@ class Announcement(models.Model):
     groups = models.ManyToManyField(Group, through="AnnouncementGroup", through_fields=(
         'announcement', 'group'), blank=True)
     searchField = models.CharField(max_length=1200, blank=True, null=True)
-    created = models.DateTimeField(
-        blank=True, null=True)
+
     seenBy = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="announcementSeenBy", blank=True, null=True)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -155,6 +165,8 @@ class Course(models.Model):
         'course', 'institution'), blank=True)
     searchField = models.CharField(max_length=1200, blank=True, null=True)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -174,6 +186,8 @@ class Assignment(models.Model):
     course = models.ForeignKey(Course, on_delete=models.PROTECT)
     searchField = models.CharField(max_length=1200, blank=True, null=True)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -186,9 +200,9 @@ class Chat(models.Model):
         'chat', 'admin'), blank=True)
     members = models.ManyToManyField(User, related_name="privateChats",
                                      through="ChatMember", through_fields=('chat', 'member'), blank=True)
-    created = models.DateTimeField(
-        blank=True, null=True)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class ChatAdmin(models.Model):
@@ -212,12 +226,14 @@ class ChatMessage(models.Model):
     message = models.CharField(max_length=1000)
     author = models.ForeignKey(
         User, related_name="chatAuthor", on_delete=models.DO_NOTHING)
-    created = models.DateTimeField(blank=True, null=True)
     seenBy = models.ForeignKey(
         User, related_name="chatSeenBy", on_delete=models.PROTECT, blank=True, null=True)
-
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 # For file uploads
+
+
 class File(models.Model):
     file = models.FileField(blank=False, null=False)
 
