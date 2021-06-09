@@ -194,7 +194,7 @@ class Assignment(models.Model):
 
 
 class Chat(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, blank=True, null=True)
 
     admins = models.ManyToManyField(User, related_name="adminInChats", through="ChatAdmin", through_fields=(
         'chat', 'admin'), blank=True)

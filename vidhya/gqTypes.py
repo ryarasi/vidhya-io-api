@@ -180,7 +180,7 @@ class AssignmentInput(graphene.InputObjectType):
 
 class ChatInput(graphene.InputObjectType):
     id = graphene.ID()
-    name = graphene.String(required=True)
+    name = graphene.String()
     admin_ids = graphene.List(graphene.ID, name="admins", required=True)
     member_ids = graphene.List(graphene.ID, name="members", required=True)
     created = graphene.DateTime()

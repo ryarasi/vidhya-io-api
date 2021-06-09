@@ -793,6 +793,42 @@ class CreateChat(graphene.Mutation):
         return CreateChat(ok=ok, chat=chat_instance)
 
 
+class ChatWithMember(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to get into a Chat"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    chat = graphene.Field(ChatType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id):
+        ok = True
+        current_user = info.context.user
+        member = User.objects.get(pk=id)
+        if member is None:
+            return ChatWithMember(ok=False, chat=None)
+        if Chat.objects.filter(
+                members__in=[current_user.id, member.id]).exists():
+            chat_members = Chat.objects.filter(
+                members__in=[current_user.id, member.id])
+            existing_chat_instance = Chat.objects.get(
+                pk=chat_members[0].id)
+            if existing_chat_instance is not None:
+                return ChatWithMember(ok=ok, chat=existing_chat_instance)
+
+        chat_instance = Chat()
+        chat_instance.save()
+
+        # Adding the creator of the chat and the member
+        chat_instance.members.set([current_user.id, id])
+        return ChatWithMember(ok=ok, chat=chat_instance)
+
+
 class UpdateChat(graphene.Mutation):
     class Meta:
         description = "Mutation to update a Chat"
@@ -994,6 +1030,7 @@ class Mutation(graphene.ObjectType):
     create_chat = CreateChat.Field()
     update_chat = UpdateChat.Field()
     delete_chat = DeleteChat.Field()
+    chat_with_member = ChatWithMember.Field()
 
     create_chat_message = CreateChatMessage.Field()
     update_chat_message = UpdateChatMessage.Field()

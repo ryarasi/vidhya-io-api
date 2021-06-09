@@ -47,6 +47,8 @@ class Query(ObjectType):
     chat_message = graphene.Field(ChatMessageType, id=graphene.ID())
     chat_messages = graphene.List(ChatMessageType, searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
+    chat_members = graphene.List(
+        UserType, query=graphene.String())
 
     @login_required
     def resolve_institution_by_invitecode(root, info, invitecode, **kwargs):
@@ -258,6 +260,18 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+
+        return qs
+
+    @login_required
+    def resolve_chat_members(root, info, query=None, **kwargs):
+        qs = User.objects.all().filter(active=True).order_by('-id')
+
+        if query is not None:
+            filter = (
+                Q(searchField__icontains=query)
+            )
+            qs = qs.filter(filter)
 
         return qs
 
