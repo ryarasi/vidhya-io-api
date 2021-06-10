@@ -897,38 +897,21 @@ class CreateChatMessage(graphene.Mutation):
         description = "Mutation to create a new ChatMessage"
 
     class Arguments:
-        input = ChatMessageInput(required=True)
+        chat = graphene.ID(required=True)
+        message = graphene.String(required=True)
+        author = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     chat_message = graphene.Field(ChatMessageType)
 
     @staticmethod
     @login_required
-    def mutate(root, info, input=None):
-        current_user = info.context.user
+    def mutate(root, info, chat, message, author):
+        author_instance = User.objects.get(pk=author)
         ok = True
-        error = ""
-        if input.name is None:
-            error += "Name is a required field<br />"
-        if len(error) > 0:
-            raise GraphQLError(error)
-        searchField = input.name
-        searchField = searchField.lower()
-
-        chat_message_instance = ChatMessage(name=input.name,
-                                            searchField=searchField)
+        chat_message_instance = ChatMessage(
+            chat_id=chat, message=message, author=author_instance)
         chat_message_instance.save()
-
-        if input.member_ids is not None:
-            chat_message_instance.members.clear()
-            chat_message_instance.members.add(*input.member_ids)
-
-        if input.admin_ids is not None:
-            chat_message_instance.admins.clear()
-            chat_message_instance.admins.add(*input.admin_ids)
-
-        # Adding the creator of the group as an admin
-        chat_message_instance.admins.set([current_user.id])
 
         return CreateChatMessage(ok=ok, chat_message=chat_message_instance)
 
