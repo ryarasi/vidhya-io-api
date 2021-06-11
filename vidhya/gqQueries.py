@@ -247,7 +247,8 @@ class Query(ObjectType):
 
     @login_required
     def resolve_chats(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Chat.objects.all().filter(active=True).order_by('-id')
+        qs = Chat.objects.all().filter(active=True, members__in=[
+            info.context.user.id]).order_by('-id')
 
         if searchField is not None:
             filter = (

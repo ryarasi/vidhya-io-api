@@ -813,12 +813,13 @@ class ChatWithMember(graphene.Mutation):
         if member is None:
             return ChatWithMember(ok=False, chat=None)
         if Chat.objects.filter(
-                members__in=[current_user.id, member.id]).exists():
+                members__in=[current_user.id, member.id], active=True).exists():
             chat_members = Chat.objects.filter(
-                members__in=[current_user.id, member.id])
-            existing_chat_instance = Chat.objects.get(
-                pk=chat_members[0].id)
-            if existing_chat_instance is not None:
+                members__in=[current_user.id, member.id], active=True)
+
+            if chat_members:
+                existing_chat_instance = Chat.objects.get(
+                    pk=chat_members[0].id, active=True)
                 return ChatWithMember(ok=ok, chat=existing_chat_instance)
 
         chat_instance = Chat()
