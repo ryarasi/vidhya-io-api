@@ -164,6 +164,11 @@ class Course(models.Model):
     institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
         'course', 'institution'), blank=True)
     searchField = models.CharField(max_length=1200, blank=True, null=True)
+
+    def default_sections():
+        return {}
+    sections = JSONField(default=default_sections)
+
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
