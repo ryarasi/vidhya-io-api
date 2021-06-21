@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
     'graphql_auth',
     'rest_framework',
-    'django_filters'
+    'django_filters',
+    'channels'
 ]
 
 GRAPHENE = {
@@ -54,6 +55,11 @@ GRAPHENE = {
     ],
 }
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayser'
+    }
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
