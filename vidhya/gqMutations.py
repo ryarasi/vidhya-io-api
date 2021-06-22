@@ -47,8 +47,10 @@ class CreateInstitution(graphene.Mutation):
                                            website=input.website, phone=input.phone, logo=input.logo, bio=input.bio, searchField=searchField)
         institution_instance.save()
 
+        payload = {"institution": institution_instance,
+                   "method": CREATE_METHOD}
         NotifyInstitution.broadcast(
-            payload=institution_instance, method=CREATE_METHOD)
+            payload=payload)
 
         return CreateInstitution(ok=ok, institution=institution_instance)
 
@@ -89,8 +91,10 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.searchField = searchField.lower()
 
             institution_instance.save()
+            payload = {"institution": institution_instance,
+                       "method": UPDATE_METHOD}
             NotifyInstitution.broadcast(
-                payload=institution_instance, method=UPDATE_METHOD)
+                payload=payload)
             return UpdateInstitution(ok=ok, institution=institution_instance)
         return UpdateInstitution(ok=ok, institution=None)
 
@@ -115,8 +119,10 @@ class DeleteInstitution(graphene.Mutation):
             institution_instance.active = False
 
             institution_instance.save()
+            payload = {"institution": institution_instance,
+                       "method": DELETE_METHOD}
             NotifyInstitution.broadcast(
-                payload=institution_instance, method=DELETE_METHOD)
+                payload=payload)
             return DeleteInstitution(ok=ok, institution=institution_instance)
         return DeleteInstitution(ok=ok, institution=None)
 

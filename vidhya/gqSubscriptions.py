@@ -10,17 +10,17 @@ class NotifyInstitution(channels_graphql_ws.Subscription):
     method = graphene.String()
     # class Arguments:
 
-    @login_required
+    # @login_required
     @staticmethod
     def subscribe(root, info):
         # user_id = info.context.user.user_id
         # return [user_id] if user_id else None
         return None
 
-    @login_required
+    # @login_required
     @staticmethod
-    def publish(payload, method, info):
-        return NotifyInstitution(institution=payload, method=method)
+    def publish(payload, info):
+        return NotifyInstitution(institution=payload["institution"], method=payload["method"])
 
 
 class Subscription(graphene.ObjectType):
