@@ -7,8 +7,9 @@ from .gqTypes import InstitutionType
 
 class NotifyInstitution(channels_graphql_ws.Subscription):
     institution = graphene.Field(InstitutionType)
-
+    method = graphene.String()
     # class Arguments:
+
     @login_required
     @staticmethod
     def subscribe(root, info):
