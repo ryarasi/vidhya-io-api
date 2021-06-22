@@ -3,6 +3,11 @@ from graphql import GraphQLError
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Assignment, Chat, ChatMessage
 from graphql_jwt.decorators import login_required
 from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, ChatType, ChatInput, ChatMessageType, ChatMessageInput
+from .gqSubscriptions import NotifyInstitution
+
+CREATE_METHOD = 'CREATE'
+UPDATE_METHOD = 'UPDATE'
+DELETE_METHOD = 'DELETE'
 
 
 class CreateInstitution(graphene.Mutation):
@@ -41,6 +46,10 @@ class CreateInstitution(graphene.Mutation):
         institution_instance = Institution(name=input.name, location=input.location, city=input.city,
                                            website=input.website, phone=input.phone, logo=input.logo, bio=input.bio, searchField=searchField)
         institution_instance.save()
+
+        NotifyInstitution.broadcast(
+            payload=institution_instance, method=CREATE_METHOD)
+
         return CreateInstitution(ok=ok, institution=institution_instance)
 
 
@@ -80,6 +89,8 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.searchField = searchField.lower()
 
             institution_instance.save()
+            NotifyInstitution.broadcast(
+                payload=institution_instance, method=UPDATE_METHOD)
             return UpdateInstitution(ok=ok, institution=institution_instance)
         return UpdateInstitution(ok=ok, institution=None)
 
@@ -104,6 +115,8 @@ class DeleteInstitution(graphene.Mutation):
             institution_instance.active = False
 
             institution_instance.save()
+            NotifyInstitution.broadcast(
+                payload=institution_instance, method=DELETE_METHOD)
             return DeleteInstitution(ok=ok, institution=institution_instance)
         return DeleteInstitution(ok=ok, institution=None)
 
