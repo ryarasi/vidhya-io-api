@@ -55,12 +55,6 @@ GRAPHENE = {
     ],
 }
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayser'
-    }
-}
-
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -122,6 +116,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'shuddhi.wsgi.application'
 
+ASGI_APPLICATION = 'shuddhi.router.application'
+
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -143,6 +139,14 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

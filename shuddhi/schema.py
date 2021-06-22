@@ -2,6 +2,8 @@ import vidhya.gqSchema
 import graphene
 from graphql_auth import mutations
 from graphql_auth.schema import UserQuery, MeQuery
+import channels
+import channels_graphql_ws
 
 
 class AuthMutation(graphene.ObjectType):
@@ -32,4 +34,26 @@ class Mutation(vidhya.gqSchema.Mutation, AuthMutation, graphene.ObjectType):
     pass
 
 
-schema = graphene.Schema(query=Query, mutation=Mutation)
+class Subscription(vidhya.gqSchema.Subscription):
+    pass
+
+
+schema = graphene.Schema(query=Query, mutation=Mutation,
+                         subscription=Subscription)
+
+
+def middleware(next_middleware, root, info, *args, **kwds):
+    if(info.operation.name is not None and info.operation.name.value != "IntrospectionQuery"):
+        print("Middleware report")
+        print(" operation :", info.operation.operation)
+        print(" name :", info.operation.name.value)
+
+    return next_middleware(root, info, *args, **kwds)
+
+
+class MyGraphqlWsConsumer(channels_graphql_ws.GraphqlWsConsumer):
+    async def on_connect(self, payload):
+        self.scope["user"] = await channels.auth.get_user(self.scope)
+
+    schema = schema
+    middleware = [middleware]
