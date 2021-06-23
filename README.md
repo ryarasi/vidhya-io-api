@@ -65,6 +65,7 @@ The following instructions assumes that you are attempting to setup the project 
 1. If docker-compose up keeps crashing, [rebuild the container](https://vsupalov.com/docker-compose-runs-old-containers/#the-quick-workaround)
    1. Use `docker-compose down && docker-compose build && docker-compose up`
    2. or use `docker-compose rm -f && docker-compose pull && docker-compose up`
+   3. Not recommended, but last resort => `docker-compose rm -f && sudo docker-compose build`
 2. If there are issues with migration conflicts, and simple solutions fail, reset the migrations with these commands:-
    1. Delete all files inside the `migrations` folder except `__init__.py`
    2. Delete the database file, in our case `./data`
