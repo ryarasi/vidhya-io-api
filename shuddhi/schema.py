@@ -42,11 +42,12 @@ schema = graphene.Schema(query=Query, mutation=Mutation,
                          subscription=Subscription)
 
 
-def middleware(next_middleware, root, info, *args, **kwds):
+def subscription_middleware(next_middleware, root, info, *args, **kwds):
     if(info.operation.name is not None and info.operation.name.value != "IntrospectionQuery"):
-        print("Middleware report")
+        print("Subscription Middleware report")
+        print(" user :", info.context.user)
         print(" operation :", info.operation.operation)
-        print(" name :", info.operation.name.value)
+        print(" resource :", info.operation.name.value)
 
     return next_middleware(root, info, *args, **kwds)
 
@@ -57,4 +58,4 @@ class MyGraphqlWsConsumer(channels_graphql_ws.GraphqlWsConsumer):
         self.user = self.scope["user"]
 
     schema = schema
-    middleware = [middleware]
+    middleware = [subscription_middleware]
