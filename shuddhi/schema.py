@@ -2,7 +2,7 @@ import vidhya.gqSchema
 import graphene
 from graphql_auth import mutations
 from graphql_auth.schema import UserQuery, MeQuery
-import channels
+from channels.auth import get_user
 import channels_graphql_ws
 
 
@@ -53,7 +53,11 @@ def middleware(next_middleware, root, info, *args, **kwds):
 
 class MyGraphqlWsConsumer(channels_graphql_ws.GraphqlWsConsumer):
     async def on_connect(self, payload):
-        self.scope["user"] = await channels.auth.get_user(self.scope)
+        # self.scope["user"] = await get_user(self.scope)
+        self.scope["user"] = self.scope["session"]
+        self.user = self.scope["user"]
+        print('self.scope from consumer => ', self.scope)
+        print('user from consumer => ', self.user)
 
     schema = schema
     middleware = [middleware]
