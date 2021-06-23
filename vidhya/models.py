@@ -40,7 +40,7 @@ class User(AbstractUser):
     EMAIL_FIELD = 'email'
 
     def __str__(self):
-        return self.name
+        return self.username
 
 
 class UserRole(models.Model):

@@ -1,9 +1,11 @@
+from base64 import decode
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
 from django.urls import path
 from .schema import MyGraphqlWsConsumer
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import get_user_model
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
 import jwt
@@ -14,13 +16,12 @@ from .settings import SECRET_KEY
 @database_sync_to_async
 def get_user(token_key):
     try:
-        print('From getUser => token', token_key)
         decodedPayload = jwt.decode(
             token_key, key=SECRET_KEY, algorithms=['HS256'])
-        print('decodedPayload => ', decodedPayload)
-        return decodedPayload
-        # token = Token.objects.get(key=token_key)
-        # return token.user
+        user_id = decodedPayload.get('sub')
+        User = get_user_model()
+        user = User.objects.get(pk=user_id)
+        return user
     except Exception as e:
         return AnonymousUser()
 
@@ -36,11 +37,9 @@ class TokenAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
         query = dict((x.split("=")
                      for x in scope["query_string"].decode().split("&")))
-        print('query', query)
         token_key = query.get("token")
         scope["user"] = await get_user(token_key)
         scope["session"] = scope["user"] if scope["user"] else None
-        print('user', scope["user"])
         return await super().__call__(scope, receive, send)
 
 
