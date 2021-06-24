@@ -148,8 +148,8 @@ class GroupInput(graphene.InputObjectType):
     description = graphene.String(required=True)
     group_type = graphene.String(required=True)
     institution_id = graphene.Int(name="institution", required=True)
-    admin_ids = graphene.List(graphene.Int, name="admins", required=True)
-    member_ids = graphene.List(graphene.Int, name="members", )
+    admin_ids = graphene.List(graphene.Int, name="admins")
+    member_ids = graphene.List(graphene.Int, name="members")
 
 
 class AnnouncementInput(graphene.InputObjectType):
@@ -159,7 +159,6 @@ class AnnouncementInput(graphene.InputObjectType):
     message = graphene.String(required=True)
     institution_id = graphene.Int(name="institution", required=True)
     group_ids = graphene.List(graphene.Int, name="groups", required=True)
-
 
 
 class CourseInput(graphene.InputObjectType):
@@ -190,4 +189,3 @@ class ChatMessageInput(graphene.InputObjectType):
     chat_id = graphene.ID(name="chat", required=True)
     message = graphene.String(required=True)
     author_id = graphene.ID(name="author", required=True)
-

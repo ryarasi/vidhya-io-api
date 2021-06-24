@@ -118,7 +118,7 @@ class GroupAdmin(models.Model):
     admin = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.group
 
 
 class GroupMember(models.Model):
@@ -126,7 +126,7 @@ class GroupMember(models.Model):
     member = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.group
 
 
 class Announcement(models.Model):
@@ -146,7 +146,7 @@ class Announcement(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.title
 
 
 class AnnouncementGroup(models.Model):
@@ -154,7 +154,7 @@ class AnnouncementGroup(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.announcement
 
 
 class Course(models.Model):
@@ -174,7 +174,7 @@ class Course(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.title
 
 
 class CourseInstitution(models.Model):
@@ -182,7 +182,7 @@ class CourseInstitution(models.Model):
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.course
 
 
 class Assignment(models.Model):
@@ -195,7 +195,7 @@ class Assignment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.title
 
 
 class Chat(models.Model):
@@ -209,13 +209,16 @@ class Chat(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.name
+
 
 class ChatAdmin(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     admin = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.chat
 
 
 class ChatMember(models.Model):
@@ -223,7 +226,7 @@ class ChatMember(models.Model):
     member = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.chat
 
 
 class ChatMessage(models.Model):
@@ -235,6 +238,9 @@ class ChatMessage(models.Model):
         User, related_name="chatSeenBy", on_delete=models.PROTECT, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.chat
 
 # For file uploads
 
