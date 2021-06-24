@@ -3,7 +3,7 @@ from graphql import GraphQLError
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Assignment, Chat, ChatMessage
 from graphql_jwt.decorators import login_required
 from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, ChatType, ChatInput, ChatMessageType, ChatMessageInput
-from .gqSubscriptions import NotifyInstitution
+from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyAssignment, NotifyChat, NotifyChatMessage
 
 CREATE_METHOD = 'CREATE'
 UPDATE_METHOD = 'UPDATE'
@@ -127,123 +127,6 @@ class DeleteInstitution(graphene.Mutation):
         return DeleteInstitution(ok=ok, institution=None)
 
 
-class CreateUser(graphene.Mutation):
-    class Meta:
-        description = "Mutation to create a new User"
-
-    class Arguments:
-        user = UserInput(required=True)
-
-    ok = graphene.Boolean()
-    user = graphene.Field(UserType)
-
-    @staticmethod
-    @login_required
-    def mutate(root, info, input=None):
-        ok = True
-        error = ""
-        if input.name is None:
-            error += "Name is a required field<br />"
-        if len(error) > 0:
-            raise GraphQLError(error)
-        searchField = input.name
-        searchField += input.title if input.title is not None else ""
-        searchField += input.bio if input.bio is not None else ""
-        searchField = searchField.lower()
-
-        user_instance = User(user_id=input.user_id, title=input.title, bio=input.bio,
-                             institution_id=input.institution_id, searchField=searchField)
-        user_instance.save()
-        return CreateUser(ok=ok, user=user_instance)
-
-
-class CreateUserRole(graphene.Mutation):
-    class Meta:
-        description = "Mutation to create a new User Role"
-
-    class Arguments:
-        input = UserRoleInput(required=True)
-
-    ok = graphene.Boolean()
-    user_role = graphene.Field(UserRoleType)
-
-    @staticmethod
-    @login_required
-    def mutate(root, info, input=None):
-        ok = True
-        error = ""
-        if input.name is None:
-            error += "Name is a required field<br />"
-        if input.description is None:
-            error += "Description is a required field<br />"
-        if input.permissions is None:
-            error += "permissions is a required field<br />"
-        if len(error) > 0:
-            raise GraphQLError(error)
-        searchField = input.name
-        searchField += input.description if input.description is not None else ""
-        searchField = searchField.lower()
-
-        user_role_instance = UserRole(name=input.name, description=input.description,
-                                      permissions=input.permissions, searchField=searchField)
-        user_role_instance.save()
-        return CreateUserRole(ok=ok, user_role=user_role_instance)
-
-
-class UpdateUserRole(graphene.Mutation):
-    class Meta:
-        description = "Mutation to update a User"
-
-    class Arguments:
-        id = graphene.ID(required=True)
-        input = UserRoleInput(required=True)
-
-    ok = graphene.Boolean()
-    user_role = graphene.Field(UserRoleType)
-
-    @staticmethod
-    @login_required
-    def mutate(root, info, id, input=None):
-        ok = False
-        user_role_instance = UserRole.objects.get(pk=id, active=True)
-        if user_role_instance:
-            ok = True
-            user_role_instance.name = input.name if input.name is not None else user_role_instance.name
-            user_role_instance.description = input.description if input.description is not None else user_role_instance.description
-            user_role_instance.permissions = input.permissions if input.permissions is not None else user_role_instance.permissions
-
-            searchField = input.name
-            searchField += input.description if input.description is not None else ""
-            searchField = searchField.lower()
-
-            user_role_instance.save()
-            return UpdateUserRole(ok=ok, user_role=user_role_instance)
-        return UpdateUserRole(ok=ok, user_role=None)
-
-
-class DeleteUserRole(graphene.Mutation):
-    class Meta:
-        description = "Mutation to mark a User Role as inactive"
-
-    class Arguments:
-        id = graphene.ID(required=True)
-
-    ok = graphene.Boolean()
-    user_role = graphene.Field(UserRoleType)
-
-    @staticmethod
-    def mutate(root, info, id, input=None):
-        ok = False
-        user_role_instance = UserRole.objects.get(pk=id, active=True)
-        if user_role_instance:
-            ok = True
-            user_role_instance.active = False
-
-            user_role_instance.save()
-            return DeleteUserRole(ok=ok, user_role=user_role_instance)
-        return DeleteUserRole(ok=ok, user_role=None)
-
-
 class VerifyInvitecode(graphene.Mutation):
     class Meta:
         descriptioin = "Mutation to add the invitecode that the user used to register"
@@ -290,7 +173,41 @@ class AddInvitecode(graphene.Mutation):
             user_instance.invitecode = invitecode
             user_instance.save()
         return AddInvitecode(ok=ok,)
-        return AddInvitecode(ok=ok,)
+
+
+class CreateUser(graphene.Mutation):
+    class Meta:
+        description = "Mutation to create a new User"
+
+    class Arguments:
+        user = UserInput(required=True)
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField += input.title if input.title is not None else ""
+        searchField += input.bio if input.bio is not None else ""
+        searchField = searchField.lower()
+
+        user_instance = User(user_id=input.user_id, title=input.title, bio=input.bio,
+                             institution_id=input.institution_id, searchField=searchField)
+        user_instance.save()
+
+        payload = {"user": user_instance,
+                   "method": CREATE_METHOD}
+        NotifyUser.broadcast(
+            payload=payload)
+        return CreateUser(ok=ok, user=user_instance)
 
 
 class UpdateUser(graphene.Mutation):
@@ -333,6 +250,12 @@ class UpdateUser(graphene.Mutation):
             user_instance.searchField = searchField.lower()
 
             user_instance.save()
+
+            payload = {"user": user_instance,
+                       "method": UPDATE_METHOD}
+            NotifyUser.broadcast(
+                payload=payload)
+
             return UpdateUser(ok=ok, user=user_instance)
         return UpdateUser(ok=ok, user=None)
 
@@ -357,8 +280,112 @@ class DeleteUser(graphene.Mutation):
             user_instance.active = False
 
             user_instance.save()
+            payload = {"user": user_instance,
+                       "method": DELETE_METHOD}
+            NotifyUser.broadcast(
+                payload=payload)
             return DeleteUser(ok=ok, user=user_instance)
         return DeleteUser(ok=ok, user=None)
+
+
+class CreateUserRole(graphene.Mutation):
+    class Meta:
+        description = "Mutation to create a new User Role"
+
+    class Arguments:
+        input = UserRoleInput(required=True)
+
+    ok = graphene.Boolean()
+    user_role = graphene.Field(UserRoleType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if input.permissions is None:
+            error += "permissions is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField += input.description if input.description is not None else ""
+        searchField = searchField.lower()
+
+        user_role_instance = UserRole(name=input.name, description=input.description,
+                                      permissions=input.permissions, searchField=searchField)
+        user_role_instance.save()
+
+        payload = {"user_role": user_role_instance,
+                   "method": CREATE_METHOD}
+        NotifyUserRole.broadcast(
+            payload=payload)
+        return CreateUserRole(ok=ok, user_role=user_role_instance)
+
+
+class UpdateUserRole(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a User"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = UserRoleInput(required=True)
+
+    ok = graphene.Boolean()
+    user_role = graphene.Field(UserRoleType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id, input=None):
+        ok = False
+        user_role_instance = UserRole.objects.get(pk=id, active=True)
+        if user_role_instance:
+            ok = True
+            user_role_instance.name = input.name if input.name is not None else user_role_instance.name
+            user_role_instance.description = input.description if input.description is not None else user_role_instance.description
+            user_role_instance.permissions = input.permissions if input.permissions is not None else user_role_instance.permissions
+
+            searchField = input.name
+            searchField += input.description if input.description is not None else ""
+            searchField = searchField.lower()
+
+            user_role_instance.save()
+            payload = {"user_role": user_role_instance,
+                       "method": UPDATE_METHOD}
+            NotifyUserRole.broadcast(
+                payload=payload)
+            return UpdateUserRole(ok=ok, user_role=user_role_instance)
+        return UpdateUserRole(ok=ok, user_role=None)
+
+
+class DeleteUserRole(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark a User Role as inactive"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    user_role = graphene.Field(UserRoleType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+        user_role_instance = UserRole.objects.get(pk=id, active=True)
+        if user_role_instance:
+            ok = True
+            user_role_instance.active = False
+
+            user_role_instance.save()
+            payload = {"user_role": user_role_instance,
+                       "method": DELETE_METHOD}
+            NotifyUserRole.broadcast(
+                payload=payload)
+            return DeleteUserRole(ok=ok, user_role=user_role_instance)
+        return DeleteUserRole(ok=ok, user_role=None)
 
 
 class CreateGroup(graphene.Mutation):
@@ -400,7 +427,13 @@ class CreateGroup(graphene.Mutation):
             group_instance.admins.add(*input.admins)
 
         # Adding the creator of the group as an admin
+
         group_instance.admins.set([current_user.id])
+
+        payload = {"group": group_instance,
+                   "method": CREATE_METHOD}
+        NotifyGroup.broadcast(
+            payload=payload)
 
         return CreateGroup(ok=ok, group=group_instance)
 
@@ -444,7 +477,10 @@ class UpdateGroup(graphene.Mutation):
 
             # Adding the creator of the group as an admin
             group_instance.admins.set([current_user.id])
-
+            payload = {"group": group_instance,
+                       "method": UPDATE_METHOD}
+            NotifyGroup.broadcast(
+                payload=payload)
             return UpdateGroup(ok=ok, group=group_instance)
         return UpdateGroup(ok=ok, group=None)
 
@@ -469,6 +505,12 @@ class DeleteGroup(graphene.Mutation):
             group_instance.active = False
 
             group_instance.save()
+
+            payload = {"group": group_instance,
+                       "method": DELETE_METHOD}
+            NotifyGroup.broadcast(
+                payload=payload)
+
             return DeleteGroup(ok=ok, group=group_instance)
         return DeleteGroup(ok=ok, group=None)
 
@@ -513,6 +555,11 @@ class CreateAnnouncement(graphene.Mutation):
         if input.groups is not None:
             announcement_instance.groups.add(*input.group_ids)
 
+        payload = {"announcement": announcement_instance,
+                   "method": CREATE_METHOD}
+        NotifyAnnouncement.broadcast(
+            payload=payload)
+
         return CreateAnnouncement(ok=ok, announcement=announcement_instance)
 
 
@@ -549,6 +596,10 @@ class UpdateAnnouncement(graphene.Mutation):
                 announcement_instance.groups.clear()
                 announcement_instance.groups.add(*input.group_ids)
 
+            payload = {"announcement": announcement_instance,
+                       "method": UPDATE_METHOD}
+            NotifyAnnouncement.broadcast(
+                payload=payload)
             return UpdateAnnouncement(ok=ok, announcement=announcement_instance)
         return UpdateAnnouncement(ok=ok, announcement=None)
 
@@ -573,6 +624,10 @@ class DeleteAnnouncement(graphene.Mutation):
             announcement_instance.active = False
 
             announcement_instance.save()
+            payload = {"announcement": announcement_instance,
+                       "method": DELETE_METHOD}
+            NotifyAnnouncement.broadcast(
+                payload=payload)
             return DeleteAnnouncement(ok=ok, announcement=announcement_instance)
         return DeleteAnnouncement(ok=ok, announcement=None)
 
@@ -614,6 +669,11 @@ class CreateCourse(graphene.Mutation):
         if input.institution_ids is not None:
             course_instance.institutions.add(*input.institution_ids)
 
+        payload = {"course": course_instance,
+                   "method": CREATE_METHOD}
+        NotifyCourse.broadcast(
+            payload=payload)
+
         return CreateCourse(ok=ok, course=course_instance)
 
 
@@ -650,6 +710,11 @@ class UpdateCourse(graphene.Mutation):
                 course_instance.institutions.clear()
                 course_instance.institutions.add(*input.institution_ids)
 
+            payload = {"course": course_instance,
+                       "method": UPDATE_METHOD}
+            NotifyCourse.broadcast(
+                payload=payload)
+
             return UpdateCourse(ok=ok, course=course_instance)
         return UpdateCourse(ok=ok, course=None)
 
@@ -674,6 +739,12 @@ class DeleteCourse(graphene.Mutation):
             course_instance.active = False
 
             course_instance.save()
+
+            payload = {"course": course_instance,
+                       "method": DELETE_METHOD}
+            NotifyCourse.broadcast(
+                payload=payload)
+
             return DeleteCourse(ok=ok, course=course_instance)
         return DeleteCourse(ok=ok, course=None)
 
@@ -710,6 +781,11 @@ class CreateAssignment(graphene.Mutation):
                                          course_id=input.course_id, searchField=searchField)
         assignment_instance.save()
 
+        payload = {"assignment": assignment_instance,
+                   "method": CREATE_METHOD}
+        NotifyAssignment.broadcast(
+            payload=payload)
+
         return CreateAssignment(ok=ok, assignment=assignment_instance)
 
 
@@ -741,7 +817,10 @@ class UpdateAssignment(graphene.Mutation):
             assignment_instance.searchField = searchField.lower()
 
             assignment_instance.save()
-
+            payload = {"assignment": assignment_instance,
+                       "method": UPDATE_METHOD}
+            NotifyAssignment.broadcast(
+                payload=payload)
             return UpdateAssignment(ok=ok, assignment=assignment_instance)
         return UpdateAssignment(ok=ok, assignment=None)
 
@@ -766,6 +845,12 @@ class DeleteAssignment(graphene.Mutation):
             assignment_instance.active = False
 
             assignment_instance.save()
+
+            payload = {"assignment": assignment_instance,
+                       "method": DELETE_METHOD}
+            NotifyAssignment.broadcast(
+                payload=payload)
+
             return DeleteAssignment(ok=ok, assignment=assignment_instance)
         return DeleteAssignment(ok=ok, assignment=None)
 
@@ -807,46 +892,15 @@ class CreateChat(graphene.Mutation):
             chat_instance.admins.add(*input.admin_ids)
 
         # Adding the creator of the group as an admin
+
         chat_instance.admins.set([current_user.id])
 
+        payload = {"chat": chat_instance,
+                   "method": CREATE_METHOD}
+        NotifyChat.broadcast(
+            payload=payload)
+
         return CreateChat(ok=ok, chat=chat_instance)
-
-
-class ChatWithMember(graphene.Mutation):
-
-    class Meta:
-        description = "Mutation to get into a Chat"
-
-    class Arguments:
-        id = graphene.ID(required=True)
-
-    ok = graphene.Boolean()
-    chat = graphene.Field(ChatType)
-
-    @staticmethod
-    @login_required
-    def mutate(root, info, id):
-        ok = True
-        current_user = info.context.user
-        member = User.objects.get(pk=id)
-        if member is None:
-            return ChatWithMember(ok=False, chat=None)
-        if Chat.objects.filter(
-                members__in=[current_user.id, member.id], active=True).exists():
-            chat_members = Chat.objects.filter(
-                members__in=[current_user.id, member.id], active=True)
-
-            if chat_members:
-                existing_chat_instance = Chat.objects.get(
-                    pk=chat_members[0].id, active=True)
-                return ChatWithMember(ok=ok, chat=existing_chat_instance)
-
-        chat_instance = Chat()
-        chat_instance.save()
-
-        # Adding the creator of the chat and the member
-        chat_instance.members.set([current_user.id, id])
-        return ChatWithMember(ok=ok, chat=chat_instance)
 
 
 class UpdateChat(graphene.Mutation):
@@ -883,6 +937,11 @@ class UpdateChat(graphene.Mutation):
                 chat_instance.admins.clear()
                 chat_instance.admins.add(*input.admin_ids)
 
+            payload = {"chat": chat_instance,
+                       "method": UPDATE_METHOD}
+            NotifyChat.broadcast(
+                payload=payload)
+
             return UpdateChat(ok=ok, chat=chat_instance)
         return UpdateChat(ok=ok, chat=None)
 
@@ -907,8 +966,52 @@ class DeleteChat(graphene.Mutation):
             chat_instance.active = False
 
             chat_instance.save()
+
+            payload = {"chat": chat_instance,
+                       "method": DELETE_METHOD}
+            NotifyChat.broadcast(
+                payload=payload)
+
             return DeleteChat(ok=ok, chat=chat_instance)
         return DeleteChat(ok=ok, chat=None)
+
+
+class ChatWithMember(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to get into a Chat"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    chat = graphene.Field(ChatType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id):
+        ok = True
+        current_user = info.context.user
+        member = User.objects.get(pk=id)
+        if member is None:
+            return ChatWithMember(ok=False, chat=None)
+        if Chat.objects.filter(
+                members__in=[current_user.id, member.id], active=True).exists():
+            chat_members = Chat.objects.filter(
+                members__in=[current_user.id, member.id], active=True)
+
+            if chat_members:
+                existing_chat_instance = Chat.objects.get(
+                    pk=chat_members[0].id, active=True)
+                return ChatWithMember(ok=ok, chat=existing_chat_instance)
+
+        chat_instance = Chat()
+        chat_instance.save()
+
+        # Adding the creator of the chat and the member
+        chat_instance.members.set([current_user.id, id])
+
+        return ChatWithMember(ok=ok, chat=chat_instance)
 
 
 class CreateChatMessage(graphene.Mutation):
@@ -932,6 +1035,11 @@ class CreateChatMessage(graphene.Mutation):
         chat_message_instance = ChatMessage(
             chat_id=chat, message=message, author=author_instance)
         chat_message_instance.save()
+
+        payload = {"chat_message": chat_message_instance,
+                   "method": CREATE_METHOD}
+        NotifyChatMessage.broadcast(
+            payload=payload)
 
         return CreateChatMessage(ok=ok, chat_message=chat_message_instance)
 
@@ -970,6 +1078,11 @@ class UpdateChatMessage(graphene.Mutation):
                 chat_message_instance.admins.clear()
                 chat_message_instance.admins.add(*input.admin_ids)
 
+            payload = {"chat_message": chat_message_instance,
+                       "method": UPDATE_METHOD}
+            NotifyChatMessage.broadcast(
+                payload=payload)
+
             return UpdateChatMessage(ok=ok, chat_message=chat_message_instance)
         return UpdateChatMessage(ok=ok, chat_message=None)
 
@@ -994,6 +1107,12 @@ class DeleteChatMessage(graphene.Mutation):
             chat_message_instance.active = False
 
             chat_message_instance.save()
+
+            payload = {"chat_": chat_message_instance,
+                       "method": DELETE_METHOD}
+            NotifyChatMessage.broadcast(
+                payload=payload)
+
             return DeleteChatMessage(ok=ok, chat_message=chat_message_instance)
         return DeleteChatMessage(ok=ok, chat_message=None)
 
