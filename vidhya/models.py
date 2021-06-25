@@ -236,6 +236,7 @@ class ChatMessage(models.Model):
         User, related_name="chatAuthor", on_delete=models.DO_NOTHING)
     seenBy = models.ForeignKey(
         User, related_name="chatSeenBy", on_delete=models.PROTECT, blank=True, null=True)
+    active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

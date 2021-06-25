@@ -45,7 +45,7 @@ class Query(ObjectType):
         ChatType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     chat_message = graphene.Field(ChatMessageType, id=graphene.ID())
-    chat_messages = graphene.List(ChatMessageType, searchField=graphene.String(
+    chat_messages = graphene.List(ChatMessageType, chat_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
     chat_members = graphene.List(
         UserType, query=graphene.String())
@@ -285,8 +285,11 @@ class Query(ObjectType):
             return None
 
     @login_required
-    def resolve_chat_messages(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = ChatMessage.objects.all().filter(active=True).order_by('-id')
+    def resolve_chat_messages(root, info, chat_id=None, searchField=None, limit=None, offset=None, **kwargs):
+        if chat_id is None:
+            qs = ChatMessage.objects.all().filter(active=True).order_by('-id')
+        else:
+            qs = ChatMessage.objects.all().filter(chat=chat_id, active=True).order_by('-id')
 
         if searchField is not None:
             filter = (

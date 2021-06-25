@@ -186,6 +186,6 @@ class ChatInput(graphene.InputObjectType):
 
 class ChatMessageInput(graphene.InputObjectType):
     id = graphene.ID()
-    chat_id = graphene.ID(name="chat", required=True)
+    chat_id = graphene.ID(name="chat")
     message = graphene.String(required=True)
     author_id = graphene.ID(name="author", required=True)
