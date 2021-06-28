@@ -200,7 +200,15 @@ class Assignment(models.Model):
 
 class Chat(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
+    # Type Choices
 
+    class TypeChoices(models.TextChoices):
+        INDIVIDUAL = "IL", _('Individual')
+        GROUP = "GP", _('Group')
+    # End of Type Choices
+
+    chat_type = models.CharField(
+        max_length=2, choices=TypeChoices.choices, default=TypeChoices.INDIVIDUAL)
     admins = models.ManyToManyField(User, related_name="adminInChats", through="ChatAdmin", through_fields=(
         'chat', 'admin'), blank=True)
     members = models.ManyToManyField(User, related_name="privateChats",
