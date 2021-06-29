@@ -226,7 +226,7 @@ class ChatAdmin(models.Model):
     admin = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.chat
+        return self.admin.username
 
 
 class ChatMember(models.Model):
@@ -234,7 +234,7 @@ class ChatMember(models.Model):
     member = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.chat
+        return self.member.username
 
 
 class ChatMessage(models.Model):

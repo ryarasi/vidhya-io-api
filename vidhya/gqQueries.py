@@ -266,13 +266,15 @@ class Query(ObjectType):
 
     @login_required
     def resolve_chat_members(root, info, query=None, **kwargs):
-        qs = User.objects.all().filter(active=True).order_by('-id')
+        user_id = info.context.user.id
+        qs = User.objects.all().filter(~Q(id=user_id), active=True).order_by('-id')
 
         if query is not None:
             filter = (
                 Q(searchField__icontains=query)
             )
             qs = qs.filter(filter)
+            qs = qs.exclude()
 
         return qs
 

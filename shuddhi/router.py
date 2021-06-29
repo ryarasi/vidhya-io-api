@@ -38,7 +38,9 @@ class TokenAuthMiddleware(BaseMiddleware):
         query = dict((x.split("=")
                      for x in scope["query_string"].decode().split("&")))
         token_key = query.get("token")
+        print('token from subscription request =>', token_key)
         scope["user"] = await get_user(token_key)
+        print('user subscribing ', scope["user"])
         scope["session"] = scope["user"] if scope["user"] else None
         return await super().__call__(scope, receive, send)
 
