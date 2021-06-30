@@ -1000,7 +1000,8 @@ class ChatWithMember(graphene.Mutation):
             return ChatWithMember(ok=False, chat=None)
         individual_chats = Chat.objects.annotate(member_count=Count('members'))
         individual_chats = individual_chats.filter(member_count=2)
-
+        print('Individual chats before try => ',
+              individual_chats.values_list('name', 'members__id'))
         try:
             chats_with_these_2_members = individual_chats.get(
                 members__in=[current_user, member])
