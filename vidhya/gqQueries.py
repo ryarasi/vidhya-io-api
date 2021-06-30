@@ -247,8 +247,15 @@ class Query(ObjectType):
 
     @login_required
     def resolve_chats(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Chat.objects.all().filter(active=True, members__in=[
-            info.context.user.id]).order_by('-id')
+        current_user_id = info.context.user.id
+        qs_gp = Chat.objects.all().filter(active=True, chat_type='GP', members__in=[
+            current_user_id]).order_by('-id')
+
+        qs_il = Chat.objects.all().filter(active=True, chat_type='IL')
+        qs_il = qs_il.filter(Q(individual_member_one=current_user_id) | Q(
+            individual_member_two=current_user_id))
+
+        qs = qs_gp | qs_il
 
         if searchField is not None:
             filter = (

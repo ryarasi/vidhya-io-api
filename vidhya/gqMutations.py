@@ -4,8 +4,6 @@ from vidhya.models import User, UserRole, Institution, Group, Announcement, Cour
 from graphql_jwt.decorators import login_required
 from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, ChatType, ChatInput, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyAssignment, NotifyChat, NotifyChatMessage
-from django.db.models import Count
-from django.core.exceptions import MultipleObjectsReturned
 
 CREATE_METHOD = 'CREATE'
 UPDATE_METHOD = 'UPDATE'
@@ -997,45 +995,23 @@ class ChatWithMember(graphene.Mutation):
         member = User.objects.get(pk=id)
         print('current_user => ', current_user, 'member => ', member)
         if member is None:
+            print('There is no member with id ', id, 'member =>', member)
             return ChatWithMember(ok=False, chat=None)
-        individual_chats = Chat.objects.annotate(member_count=Count('members'))
-        individual_chats = individual_chats.filter(member_count=2)
-        print('Individual chats before try => ',
-              individual_chats.values_list('name', 'members__id'))
         try:
-            chats_with_these_2_members = individual_chats.get(
-                members__in=[current_user, member])
-            return ChatWithMember(ok=ok, chat=chats_with_these_2_members)
-        except MultipleObjectsReturned:
-            print('multiple chats found!')
-            return ChatWithMember(ok=False, chat=None)
-            # Error because multiple chats found with these 2 members (and only them)
+            first_possibility = Chat.objects.get(
+                individual_member_one=current_user.id, individual_member_two=member.id)
+            return ChatWithMember(ok=ok, chat=first_possibility)
         except Chat.DoesNotExist:
+            try:
+                second_possibility = Chat.objects.get(
+                    individual_member_one=member.id, individual_member_two=current_user.id)
+                return ChatWithMember(ok=ok, chat=second_possibility)
+            except:
+                pass
 
-            # chats_with_these_2_members = individual_chats.filter(
-            #     current_user__in=members, member__in=members)
-            # if chats_with_these_2_members.exists():
-            #     chat = chats_with_these_2_members.first()
-            #     return ChatWithMember(ok=ok, chat=chat)
-
-            # print('individual chats 2 => ', individual_chats)
-            # for chat in individual_chats.all():
-            #     if current_user.id in chat.members and member.id in chat.members:
-            #         return ChatWithMember(ok=ok, chat=chat)
-            # if individual_chats(
-            #         members__in=[current_user.id, member.id], active=True).exists():
-            #     chat_members = Chat.objects.filter(
-            #         members__in=[current_user.id, member.id], active=True)
-
-            #     if chat_members:
-            #         existing_chat_instance = Chat.objects.get(
-            #             pk=chat_members[0].id, active=True)
-            print('Creating new chat')
-            chat_instance = Chat()
+            chat_instance = Chat(
+                individual_member_one=current_user, individual_member_two=member)
             chat_instance.save()
-
-            # Adding the creator of the chat and the member
-            chat_instance.members.set([current_user.id, id])
 
             return ChatWithMember(ok=ok, chat=chat_instance)
 

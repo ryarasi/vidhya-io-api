@@ -200,6 +200,10 @@ class Assignment(models.Model):
 
 class Chat(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
+    individual_member_one = models.ForeignKey(
+        User, related_name="chat_member_one", on_delete=models.CASCADE, blank=True, null=True)
+    individual_member_two = models.ForeignKey(
+        User, related_name="chat_member_two", on_delete=models.CASCADE, blank=True, null=True)
     # Type Choices
 
     class TypeChoices(models.TextChoices):
