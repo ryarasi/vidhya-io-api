@@ -987,20 +987,11 @@ class UpdateChatMessage(graphene.Mutation):
         chat_message_instance = chat_message
         if chat_message_instance:
             ok = True
-            chat_message_instance.name = input.name if input.name is not None else chat_message.name
-
-            searchField = input.name
+            chat_message_instance.message = input.message if input.messagae is not None else chat_message_instance.message
+            searchField = chat_message_instance.message
             chat_message_instance.searchField = searchField.lower()
 
             chat_message_instance.save()
-
-            if input.member_ids is not None:
-                chat_message_instance.members.clear()
-                chat_message_instance.members.add(*input.member_ids)
-
-            if input.admin_ids is not None:
-                chat_message_instance.admins.clear()
-                chat_message_instance.admins.add(*input.admin_ids)
 
             payload = {"chat_message": chat_message_instance,
                        "method": UPDATE_METHOD}

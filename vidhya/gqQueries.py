@@ -247,15 +247,22 @@ class Query(ObjectType):
 
     @login_required
     def resolve_chats(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        current_user_id = info.context.user.id
-        qs_gp = Chat.objects.all().filter(active=True, chat_type='GP', members__in=[
-            current_user_id]).order_by('-id')
+        current_user = info.context.user
+
+        groups = Group.objects.all().filter(
+            Q(members__in=[current_user]) | Q(admins__in=[current_user]))
+        group_ids = [group.id for group in groups]
+        print('groups => ', groups)
+        print('group Ids => ', group_ids)
+        # qs_gp = Chat.objects.all().filter(active=True, chat_type='GP', group__in=[
+        #     group_ids]).order_by('-id')
 
         qs_il = Chat.objects.all().filter(active=True, chat_type='IL')
-        qs_il = qs_il.filter(Q(individual_member_one=current_user_id) | Q(
-            individual_member_two=current_user_id))
+        qs_il = qs_il.filter(Q(individual_member_one=current_user.id) | Q(
+            individual_member_two=current_user.id))
 
-        qs = qs_gp | qs_il
+        # qs = qs_gp | qs_il
+        qs = qs_il
 
         if searchField is not None:
             filter = (
@@ -277,19 +284,19 @@ class Query(ObjectType):
 
         # "~Q(id=user_id)" is meant to exclude the current user from the results
         qs = User.objects.all().filter(~Q(id=current_user.id), active=True).order_by('-id')
-        groups = Group.objects.all().filter(
-            Q(members__in=[current_user]) | Q(admins__in=[current_user]))
+        # groups = Group.objects.all().filter(
+        #     Q(members__in=[current_user]) | Q(admins__in=[current_user]))
 
-        chat_gp = Chat.objects.all().filter(active=True, chat_type='GP', members__in=[
-            current_user.id]).order_by('-id')
+        # chat_gp = Chat.objects.all().filter(active=True, chat_type='GP', members__in=[
+        #     current_user.id]).order_by('-id')
 
-        chat_il = Chat.objects.all().filter(active=True, chat_type='IL')
-        chat_il = chat_il.filter(Q(individual_member_one=current_user.id) | Q(
-            individual_member_two=current_user.id))
+        # chat_il = Chat.objects.all().filter(active=True, chat_type='IL')
+        # chat_il = chat_il.filter(Q(individual_member_one=current_user.id) | Q(
+        #     individual_member_two=current_user.id))
 
-        chats = chat_gp | chat_il
-        chat_messages = ChatMessage.objects.all().filter(chat__in=[chats])
-        qs = qs | groups | chat_messages
+        # chats = chat_gp | chat_il
+        # chat_messages = ChatMessage.objects.all().filter(chat__in=[chats])
+        # qs = qs | groups | chat_messages
 
         if query is not None:
             filter = (
