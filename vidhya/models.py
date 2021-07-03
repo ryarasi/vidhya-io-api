@@ -10,7 +10,7 @@ from common.utils import random_number_with_N_digits
 class User(AbstractUser):
     email = models.EmailField(blank=False, max_length=255, unique=True)
     avatar = models.CharField(max_length=250, blank=True,
-                              null=True, default="https://i.imgur.com/XDZCq2b.png")
+                              null=True, default="https://i.imgur.com/KHtECqa.png")
     institution = models.ForeignKey(
         'Institution', on_delete=models.PROTECT, blank=True, null=True)
     role = models.ForeignKey(
@@ -67,7 +67,7 @@ class Institution(models.Model):
     website = models.CharField(max_length=100, blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
     logo = models.CharField(
-        max_length=250, blank=True, null=True, default="https://i.imgur.com/hB0OXas.png")
+        max_length=250, blank=True, null=True, default="https://i.imgur.com/dPO1MlY.png")
     bio = models.CharField(max_length=300, blank=True, null=True)
 
     def generate_invitecode():
@@ -88,8 +88,8 @@ class Group(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=250)
     institution = models.ForeignKey(Institution, on_delete=models.PROTECT)
-    chat = models.ForeignKey(
-        'Chat', on_delete=models.PROTECT, blank=True, null=True)
+    avatar = models.CharField(
+        max_length=250, blank=True, null=True, default="https://i.imgur.com/hNdMk4c.png")
     searchField = models.CharField(max_length=400, blank=True, null=True)
 
     # Type Choices
@@ -199,7 +199,8 @@ class Assignment(models.Model):
 
 
 class Chat(models.Model):
-    name = models.CharField(max_length=100, blank=True, null=True)
+    group = models.OneToOneField(
+        Group, on_delete=models.CASCADE, blank=True, null=True)
     individual_member_one = models.ForeignKey(
         User, related_name="chat_member_one", on_delete=models.CASCADE, blank=True, null=True)
     individual_member_two = models.ForeignKey(
@@ -213,32 +214,13 @@ class Chat(models.Model):
 
     chat_type = models.CharField(
         max_length=2, choices=TypeChoices.choices, default=TypeChoices.INDIVIDUAL)
-    admins = models.ManyToManyField(User, related_name="adminInChats", through="ChatAdmin", through_fields=(
-        'chat', 'admin'), blank=True)
-    members = models.ManyToManyField(User, related_name="privateChats",
-                                     through="ChatMember", through_fields=('chat', 'member'), blank=True)
+
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
-
-
-class ChatAdmin(models.Model):
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
-    admin = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return '%s' % (self.admin.username)
-
-
-class ChatMember(models.Model):
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
-    member = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return '%s' % (self.member.username)
 
 
 class ChatMessage(models.Model):

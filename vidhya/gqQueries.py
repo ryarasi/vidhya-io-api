@@ -47,7 +47,7 @@ class Query(ObjectType):
     chat_message = graphene.Field(ChatMessageType, id=graphene.ID())
     chat_messages = graphene.List(ChatMessageType, chat_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
-    chat_members = graphene.List(
+    chat_search = graphene.List(
         UserType, query=graphene.String())
 
     @login_required
@@ -272,9 +272,24 @@ class Query(ObjectType):
         return qs
 
     @login_required
-    def resolve_chat_members(root, info, query=None, **kwargs):
-        user_id = info.context.user.id
-        qs = User.objects.all().filter(~Q(id=user_id), active=True).order_by('-id')
+    def resolve_chat_search(root, info, query=None, **kwargs):
+        current_user = info.context.user
+
+        # "~Q(id=user_id)" is meant to exclude the current user from the results
+        qs = User.objects.all().filter(~Q(id=current_user.id), active=True).order_by('-id')
+        groups = Group.objects.all().filter(
+            Q(members__in=[current_user]) | Q(admins__in=[current_user]))
+
+        chat_gp = Chat.objects.all().filter(active=True, chat_type='GP', members__in=[
+            current_user.id]).order_by('-id')
+
+        chat_il = Chat.objects.all().filter(active=True, chat_type='IL')
+        chat_il = chat_il.filter(Q(individual_member_one=current_user.id) | Q(
+            individual_member_two=current_user.id))
+
+        chats = chat_gp | chat_il
+        chat_messages = ChatMessage.objects.all().filter(chat__in=[chats])
+        qs = qs | groups | chat_messages
 
         if query is not None:
             filter = (

@@ -144,6 +144,7 @@ class UserRoleInput(graphene.InputObjectType):
 
 class GroupInput(graphene.InputObjectType):
     id = graphene.ID()
+    avatar = graphene.String()
     name = graphene.String(required=True)
     description = graphene.String(required=True)
     group_type = graphene.String(required=True)
@@ -175,13 +176,6 @@ class AssignmentInput(graphene.InputObjectType):
     title = graphene.String(required=True)
     instructions = graphene.String(required=True)
     course_id = graphene.ID(name="course", required=True)
-
-
-class ChatInput(graphene.InputObjectType):
-    id = graphene.ID()
-    name = graphene.String()
-    admin_ids = graphene.List(graphene.ID, name="admins", required=True)
-    member_ids = graphene.List(graphene.ID, name="members", required=True)
 
 
 class ChatMessageInput(graphene.InputObjectType):
