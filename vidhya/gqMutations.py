@@ -190,11 +190,9 @@ class CreateUser(graphene.Mutation):
     def mutate(root, info, input=None):
         ok = True
         error = ""
-        if input.name is None:
-            error += "Name is a required field<br />"
-        if len(error) > 0:
-            raise GraphQLError(error)
-        searchField = input.name
+
+        searchField = input.first_name + \
+            input.last_name if input.first_name and input.last_name else ""
         searchField += input.title if input.title is not None else ""
         searchField += input.bio if input.bio is not None else ""
         searchField = searchField.lower()
