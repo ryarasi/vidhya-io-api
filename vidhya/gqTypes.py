@@ -1,12 +1,14 @@
+from django.db.models.deletion import DO_NOTHING
 import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Assignment, Chat, ChatMessage
-
+from django.db import models
 
 ##############
 # Query Types
 ##############
+
 
 class InstitutionType(DjangoObjectType):
     total_count = graphene.Int()
@@ -105,6 +107,19 @@ class ChatMessageType(DjangoObjectType):
 
     class Meta:
         model = ChatMessage
+
+
+class ChatSearchModel(models.Model):
+    users = models.ForeignKey(User, on_delete=DO_NOTHING)
+    groups = models.ForeignKey(Group, on_delete=DO_NOTHING)
+    chats = models.ForeignKey(Chat, on_delete=DO_NOTHING)
+    chat_messages = models.ForeignKey(ChatMessage, on_delete=DO_NOTHING)
+
+
+class ChatSearchType(DjangoObjectType):
+
+    class Meta:
+        model = ChatSearchModel
 
 ##############
 # Mutation Types
