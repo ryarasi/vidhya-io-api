@@ -220,7 +220,7 @@ class Chat(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.chat_type
 
 
 class ChatMessage(models.Model):
@@ -235,7 +235,7 @@ class ChatMessage(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.chat
+        return self.message
 
 # For file uploads
 
