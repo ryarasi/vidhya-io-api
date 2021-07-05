@@ -256,17 +256,17 @@ class Query(ObjectType):
 
         groups = Group.objects.all().filter(
             Q(members__in=[current_user]) | Q(admins__in=[current_user]))
-        group_ids = [group.id for group in groups]
+        group_ids = groups.values_list('id')
         print('groups => ', groups)
         print('group Ids => ', group_ids)
-        # qs_gp = Chat.objects.all().filter(active=True, chat_type='GP', group__in=[
-        #     group_ids]).order_by('-id')
+        # qs_gp = Chat.objects.filter(active=True, chat_type='GP', group__in=[
+        #    group_ids]).order_by('-id')
 
         qs_il = Chat.objects.all().filter(active=True, chat_type='IL')
         qs_il = qs_il.filter(Q(individual_member_one=current_user.id) | Q(
             individual_member_two=current_user.id))
 
-        # qs = qs_gp | qs_il
+        #qs = qs_gp | qs_il
         qs = qs_il
 
         if searchField is not None:
@@ -282,6 +282,72 @@ class Query(ObjectType):
             qs = qs[:limit]
 
         return qs
+
+    # @login_required
+    # def resolve_chat_search(root, info, query=None, **kwargs):
+    #     current_user = info.context.user
+
+    #     # "~Q(id=user_id)" is meant to exclude the current user from the results
+    #     qs = User.objects.all().filter(~Q(id=current_user.id), active=True).order_by('-id')
+
+    #     if query is not None:
+    #         filter = (
+    #             Q(searchField__icontains=query)
+    #         )
+    #         qs = qs.filter(filter)
+    #         qs = qs.exclude()
+
+    #     return qs
+
+    @login_required
+    def resolve_chat_search(root, info, query=None, **kwargs):
+        current_user = info.context.user
+
+        # print('Got the users ', users)
+
+        groups = Group.objects.all()
+
+        print('Got the gropus', groups)
+
+        group_ids = groups.values_list('id')
+
+        print('Group Ids =>', group_ids)
+
+        # chat_gp = Chat.objects.filter(active=True, chat_type='GP', group__in=[
+        #     group_ids]).order_by('-id')
+
+        # print('chat_gp', chat_gp)
+
+        chat_il = Chat.objects.all().filter(active=True, chat_type='IL')
+        chat_il = chat_il.filter(Q(individual_member_one=current_user.id) | Q(
+            individual_member_two=current_user.id))
+
+        print('Chat_il', chat_il)
+
+        chats = chat_il  # chat_gp | chat_il
+
+        if query is not None:
+            # "~Q(id=user_id)" is meant to exclude the current user from the results
+            users = User.objects.all().filter(
+                ~Q(id=current_user.id), Q(searchField__icontains=query), active=True,).order_by('-id')
+
+            groups = Group.objects.all().filter(Q(name__icontains=query))
+            groups = groups.filter(
+                Q(members__in=[current_user]) | Q(admins__in=[current_user]))
+
+            chat_messages = ChatMessage.objects.all().filter(
+                Q(message__icontains=query), active=True, author=current_user.id)
+
+            users = User()
+
+            qs = ChatSearchModel(users=users, groups=groups, chats=chats,
+                                 chat_messages=chat_messages)
+            # qs.save()
+
+            print('Gathered search result => ', qs)
+            return qs
+        else:
+            return None
 
     @login_required
     def resolve_chat_message(root, info, id, **kwargs):
