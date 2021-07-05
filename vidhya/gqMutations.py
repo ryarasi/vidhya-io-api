@@ -4,6 +4,7 @@ from vidhya.models import User, UserRole, Institution, Group, Announcement, Cour
 from graphql_jwt.decorators import login_required
 from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyAssignment, NotifyChat, NotifyChatMessage
+from django.db.models import Q
 
 CREATE_METHOD = 'CREATE'
 UPDATE_METHOD = 'UPDATE'
@@ -936,6 +937,40 @@ class DeleteChat(graphene.Mutation):
         return DeleteChat(ok=ok, chat=None)
 
 
+class ChatSearch(graphene.Mutation):
+
+    class Meta:
+        description = "Offers search results in the Chat UI. Sends back users, group chats and chat messages that match the query"
+
+    class Arguments:
+        query = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+    users = graphene.List(UserType)
+    groups = graphene.List(GroupType)
+    chat_messages = graphene.List(ChatMessageType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, query):
+        ok = False
+        current_user = info.context.user
+        if query is not None:
+            ok = True
+            users = User.objects.all().filter(
+                ~Q(id=current_user.id), Q(searchField__icontains=query), active=True,).order_by('-id')
+
+            groups = Group.objects.all().filter(Q(name__icontains=query))
+            groups = groups.filter(
+                Q(members__in=[current_user]) | Q(admins__in=[current_user]))
+
+            chat_messages = ChatMessage.objects.all().filter(
+                Q(message__icontains=query), active=True, author=current_user.id)
+            return ChatSearch(ok=ok, users=users, groups=groups, chat_messages=chat_messages)
+        else:
+            return ChatSearch(ok, users=None, groups=None, chat_messages=None)
+
+
 class CreateChatMessage(graphene.Mutation):
 
     class Meta:
@@ -1062,6 +1097,7 @@ class Mutation(graphene.ObjectType):
     update_assignment = UpdateAssignment.Field()
     delete_assignment = DeleteAssignment.Field()
 
+    chat_search = ChatSearch.Field()
     delete_chat = DeleteChat.Field()
     chat_with_member = ChatWithMember.Field()
 
