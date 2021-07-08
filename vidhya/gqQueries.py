@@ -19,7 +19,7 @@ class Query(ObjectType):
 
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.List(
-        UserType, searchField=graphene.String(), membershipStatusNot=graphene.String(), role=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        UserType, searchField=graphene.String(), membership_status_not=graphene.String(), role=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     user_role = graphene.Field(UserRoleType, id=graphene.ID())
     user_roles = graphene.List(
@@ -95,7 +95,8 @@ class Query(ObjectType):
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=None, role=None, limit=None, offset=None, **kwargs):
         qs = User.objects.all().filter(active=True).order_by('-id')
-
+        print('searchField', searchField, 'membership_status_not',
+              membership_status_not, 'role', role)
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField)
