@@ -270,6 +270,7 @@ class DeleteUser(graphene.Mutation):
     user = graphene.Field(UserType)
 
     @staticmethod
+    @login_required
     def mutate(root, info, id, input=None):
         ok = False
         user = User.objects.get(pk=id, active=True)
@@ -285,6 +286,69 @@ class DeleteUser(graphene.Mutation):
                 payload=payload)
             return DeleteUser(ok=ok, user=user_instance)
         return DeleteUser(ok=ok, user=None)
+
+
+class ApproveUser(graphene.Mutation):
+    class Meta:
+        description = "Mutation to approve user"
+
+    class Arguments:
+        user_id = graphene.ID(required=True)
+        role_id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, user_id, role_id):
+        ok = False
+        user = User.objects.get(pk=user_id, active=True)
+        user_instance = user
+        role = UserRole.objects.get(pk=role_id, active=True)
+        if user_instance and role:
+            ok = True
+            user_instance.role = role
+            user_instance.membership_status = 'AP'
+
+            user_instance.save()
+            payload = {"user": user_instance,
+                       "method": UPDATE_METHOD}
+            NotifyUser.broadcast(
+                payload=payload)
+            return ApproveUser(ok=ok, user=user_instance)
+        return ApproveUser(ok=ok, user=None)
+
+
+class SuspendUser(graphene.Mutation):
+    class Meta:
+        description = "Mutation to suspend user"
+
+    class Arguments:
+        user_id = graphene.ID(required=True)
+        remarks = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, user_id, remarks):
+        ok = False
+        user = User.objects.get(pk=user_id, active=True)
+        user_instance = user
+        if user_instance:
+            ok = True
+            user_instance.bio = remarks
+            user_instance.membership_status = 'SU'
+
+            user_instance.save()
+            payload = {"user": user_instance,
+                       "method": UPDATE_METHOD}
+            NotifyUser.broadcast(
+                payload=payload)
+            return SuspendUser(ok=ok, user=user_instance)
+        return SuspendUser(ok=ok, user=None)
 
 
 class CreateUserRole(graphene.Mutation):
@@ -1076,6 +1140,8 @@ class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
+    approve_user = ApproveUser.Field()
+    suspend_user = SuspendUser.Field()
 
     create_user_role = CreateUserRole.Field()
     update_user_role = UpdateUserRole.Field()
