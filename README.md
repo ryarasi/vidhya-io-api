@@ -70,9 +70,10 @@ The following instructions assumes that you are attempting to setup the project 
    1. Delete all files inside the `migrations` folder except `__init__.py`
    2. Delete the database file, in our case `./data`
    3. Run `docker-compose up` 
-3. If you have issues with connecting to the docker database, restarting postgresql can help
-   1. First stop it with `sudo service postgresql stop`
-   2. and then start it up again with `sudo service postgresql start`
+3. If you have issues with connecting to the docker database on pgadmin, try the following step:-
+   1. Stop docker and start it again with `docker-compose down && docker-compose up`
+   2. If the above step doesn't help, try restarting postgresql. First stop it with `sudo service postgresql stop`
+   3. and then start it up again with `sudo service postgresql start`
 
 ## Useful Links:-
 1. [Docker & Django](https://docs.docker.com/samples/django/)
