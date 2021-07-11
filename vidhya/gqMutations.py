@@ -313,7 +313,7 @@ class ApproveUser(graphene.Mutation):
 
             user_instance.save()
             payload = {"user": user_instance,
-                       "method": UPDATE_METHOD}
+                       "method": DELETE_METHOD}
             NotifyUser.broadcast(
                 payload=payload)
             return ApproveUser(ok=ok, user=user_instance)
