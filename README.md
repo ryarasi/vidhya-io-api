@@ -45,20 +45,25 @@ The following instructions assumes that you are attempting to setup the project 
     12. `GRANT ALL PRIVILEGES ON DATABASE shuddhidb TO shuddhiadmin;`
     13. `\q`
     14. `exit`
-9.  Test setup type in the following commands:-
+9.  Create a new file called `database.env` with the following content (feel free to use your own values if needed):-
+    1. POSTGRES_USER='shuddhiadmin'
+    2. POSTGRES_PASSWORD='password'
+    3. POSTGRES_DB='shuddhidb'
+10. Test setup type in the following commands:-
     1.  Start the postgres docker container with `docker start shuddhi-db`
             1.  If this says that ports are already in use, then shut down postgres and try again `sudo service postgresql stop`
     2.  Once the postgres container is up and running, start the docker for the project with `docker-compose up`
     3.  Visit `localhost:8000` or `localhost:8000/graphql` to check if setup has worked.
-10. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
-11. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
+11. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
+12. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
     1.  Choose your username and password.
     2.  Now you can go to `localhost:8000/admin` to log into the console
-12. While installing new packages follow these steps:-
+13. While installing new packages follow these steps:-
         1.  Make sure you've activated the virtual environment with `source venv/bin/activate`
         2.  Install the package with `pip install <package_name>`
         3.  Update the `requirements.txt` file with `pip freeze > requirements.txt`
         4.  If the docker doesn't recognize the newly installed package, ensure that the docker container is rebuilt and try again.
+14. The database can be explored and modified by visiting `localhost:5000` in the browser. The email and password are available in the `docker-compose.yml` file under `environment` in `pgadmin4`. During first time set up, add a new server with the hostname `db` and port `5432` and username and password as given in the `database.env` file.
 
 
 ## Troubleshooting:-
