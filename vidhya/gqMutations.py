@@ -628,7 +628,7 @@ class CreateAnnouncement(graphene.Mutation):
                                              institution_id=input.institution_id, searchField=searchField)
         announcement_instance.save()
 
-        if input.groups is not None:
+        if input.group_ids is not None:
             announcement_instance.groups.add(*input.group_ids)
 
         payload = {"announcement": announcement_instance,
