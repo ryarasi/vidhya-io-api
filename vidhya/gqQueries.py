@@ -4,10 +4,18 @@ from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required
 from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, Assignment, Chat, ChatMessage
 from django.db.models import Q
-from graphql import GraphQLError
 from .gqTypes import AnnouncementType, AssignmentType, ChatMessageType, ChatSearchModel, ChatSearchType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
-# Create a GraphQL type for the Institution model
-import itertools
+
+
+class ActiveChats(graphene.ObjectType):
+    chats = graphene.List(ChatType)
+    groups = graphene.List(GroupType)
+
+
+class ChatSearchResults(graphene.ObjectType):
+    users = graphene.List(UserType)
+    groups = graphene.List(GroupType)
+    chat_messages = graphene.List(ChatMessageType)
 
 
 class Query(ObjectType):
@@ -42,8 +50,11 @@ class Query(ObjectType):
         AssignmentType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     chat = graphene.Field(ChatType, id=graphene.ID())
-    chats = graphene.List(
-        ChatType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    chats = graphene.Field(
+        ActiveChats, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    chat_search = graphene.Field(ChatSearchResults, query=graphene.String(
+    ), limit=graphene.Int(), offset=graphene.Int())
 
     chat_message = graphene.Field(ChatMessageType, id=graphene.ID())
     chat_messages = graphene.List(ChatMessageType, chat_id=graphene.ID(), searchField=graphene.String(
@@ -257,51 +268,25 @@ class Query(ObjectType):
 
         groups = Group.objects.all().filter(
             Q(members__in=[current_user]) | Q(admins__in=[current_user]))
-        group_ids = groups.values_list('id')
-        print('groups => ', groups)
-        print('group Ids => ', group_ids)
-        # qs_gp = Chat.objects.filter(active=True, chat_type='GP', group__in=[
-        #    group_ids]).order_by('-id')
 
-        qs_il = Chat.objects.all().filter(active=True, chat_type='IL')
-        qs_il = qs_il.filter(Q(individual_member_one=current_user.id) | Q(
+        chats = Chat.objects.all().filter(active=True, chat_type='IL')
+        chats = chats.filter(Q(individual_member_one=current_user.id) | Q(
             individual_member_two=current_user.id))
 
-        #qs = qs_gp | qs_il
-        qs = qs_il
-
-        if searchField is not None:
-            filter = (
-                Q(searchField__icontains=searchField)
-            )
-            qs = qs.filter(filter)
+        print('from resolve_chats => chats =>', chats, 'groups => ', groups)
 
         if offset is not None:
-            qs = qs[offset:]
+            chats = chats[offset:]
+            groups = groups[offset:]
 
         if limit is not None:
-            qs = qs[:limit]
+            chats = chats[:limit]
+            groups = groups[:limit]
 
-        return qs
-
-    # @login_required
-    # def resolve_chat_search(root, info, query=None, **kwargs):
-    #     current_user = info.context.user
-
-    #     # "~Q(id=user_id)" is meant to exclude the current user from the results
-    #     qs = User.objects.all().filter(~Q(id=current_user.id), active=True).order_by('-id')
-
-    #     if query is not None:
-    #         filter = (
-    #             Q(searchField__icontains=query)
-    #         )
-    #         qs = qs.filter(filter)
-    #         qs = qs.exclude()
-
-    #     return qs
+        return ActiveChats(chats=chats, groups=groups)
 
     @login_required
-    def resolve_chat_search(root, info, query=None, **kwargs):
+    def resolve_chat_search(root, info, query=None, offset=None, limit=None, **kwargs):
         current_user = info.context.user
 
         # print('Got the users ', users)
@@ -313,19 +298,6 @@ class Query(ObjectType):
         group_ids = groups.values_list('id')
 
         print('Group Ids =>', group_ids)
-
-        # chat_gp = Chat.objects.filter(active=True, chat_type='GP', group__in=[
-        #     group_ids]).order_by('-id')
-
-        # print('chat_gp', chat_gp)
-
-        chat_il = Chat.objects.all().filter(active=True, chat_type='IL')
-        chat_il = chat_il.filter(Q(individual_member_one=current_user.id) | Q(
-            individual_member_two=current_user.id))
-
-        print('Chat_il', chat_il)
-
-        chats = chat_il  # chat_gp | chat_il
 
         if query is not None:
             # "~Q(id=user_id)" is meant to exclude the current user from the results
@@ -339,12 +311,14 @@ class Query(ObjectType):
             chat_messages = ChatMessage.objects.all().filter(
                 Q(message__icontains=query), active=True, author=current_user.id)
 
-            users = User()
-
-            qs = ChatSearchModel(users=users, groups=groups, chats=chats,
-                                 chat_messages=chat_messages)
+            qs = ChatSearchResults(users=users, groups=groups,
+                                   chat_messages=chat_messages)
             # qs.save()
+            if offset is not None:
+                qs = qs[offset:]
 
+            if limit is not None:
+                qs = qs[:limit]
             print('Gathered search result => ', qs)
             return qs
         else:

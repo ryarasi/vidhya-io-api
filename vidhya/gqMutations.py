@@ -931,46 +931,6 @@ class DeleteAssignment(graphene.Mutation):
         return DeleteAssignment(ok=ok, assignment=None)
 
 
-class ChatWithMember(graphene.Mutation):
-
-    class Meta:
-        description = "Mutation to get into a Chat"
-
-    class Arguments:
-        id = graphene.ID(required=True)
-
-    ok = graphene.Boolean()
-    chat = graphene.Field(ChatType)
-
-    @staticmethod
-    @login_required
-    def mutate(root, info, id):
-        ok = True
-        current_user = info.context.user
-        member = User.objects.get(pk=id)
-        print('current_user => ', current_user, 'member => ', member)
-        if member is None:
-            print('There is no member with id ', id, 'member =>', member)
-            return ChatWithMember(ok=False, chat=None)
-        try:
-            first_possibility = Chat.objects.get(
-                individual_member_one=current_user.id, individual_member_two=member.id)
-            return ChatWithMember(ok=ok, chat=first_possibility)
-        except Chat.DoesNotExist:
-            try:
-                second_possibility = Chat.objects.get(
-                    individual_member_one=member.id, individual_member_two=current_user.id)
-                return ChatWithMember(ok=ok, chat=second_possibility)
-            except:
-                pass
-
-            chat_instance = Chat(
-                individual_member_one=current_user, individual_member_two=member)
-            chat_instance.save()
-
-            return ChatWithMember(ok=ok, chat=chat_instance)
-
-
 class DeleteChat(graphene.Mutation):
     class Meta:
         description = "Mutation to mark an Chat as inactive"
@@ -999,40 +959,6 @@ class DeleteChat(graphene.Mutation):
 
             return DeleteChat(ok=ok, chat=chat_instance)
         return DeleteChat(ok=ok, chat=None)
-
-
-class ChatSearch(graphene.Mutation):
-
-    class Meta:
-        description = "Offers search results in the Chat UI. Sends back users, group chats and chat messages that match the query"
-
-    class Arguments:
-        query = graphene.String(required=True)
-
-    ok = graphene.Boolean()
-    users = graphene.List(UserType)
-    groups = graphene.List(GroupType)
-    chat_messages = graphene.List(ChatMessageType)
-
-    @staticmethod
-    @login_required
-    def mutate(root, info, query):
-        ok = False
-        current_user = info.context.user
-        if query is not None:
-            ok = True
-            users = User.objects.all().filter(
-                ~Q(id=current_user.id), Q(searchField__icontains=query), active=True,).order_by('-id')
-
-            groups = Group.objects.all().filter(Q(name__icontains=query))
-            groups = groups.filter(
-                Q(members__in=[current_user]) | Q(admins__in=[current_user]))
-
-            chat_messages = ChatMessage.objects.all().filter(
-                Q(message__icontains=query), active=True, author=current_user.id)
-            return ChatSearch(ok=ok, users=users, groups=groups, chat_messages=chat_messages)
-        else:
-            return ChatSearch(ok, users=None, groups=None, chat_messages=None)
 
 
 class CreateChatMessage(graphene.Mutation):
@@ -1163,9 +1089,7 @@ class Mutation(graphene.ObjectType):
     update_assignment = UpdateAssignment.Field()
     delete_assignment = DeleteAssignment.Field()
 
-    chat_search = ChatSearch.Field()
     delete_chat = DeleteChat.Field()
-    chat_with_member = ChatWithMember.Field()
 
     create_chat_message = CreateChatMessage.Field()
     update_chat_message = UpdateChatMessage.Field()
