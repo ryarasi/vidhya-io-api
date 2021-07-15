@@ -341,7 +341,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(message__icontains=searchField)
             )
             qs = qs.filter(filter)
 

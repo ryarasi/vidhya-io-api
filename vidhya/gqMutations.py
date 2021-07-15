@@ -931,6 +931,46 @@ class DeleteAssignment(graphene.Mutation):
         return DeleteAssignment(ok=ok, assignment=None)
 
 
+class ChatWithMember(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to get into a Chat"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    chat = graphene.Field(ChatType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id):
+        ok = True
+        current_user = info.context.user
+        member = User.objects.get(pk=id)
+        print('current_user => ', current_user, 'member => ', member)
+        if member is None:
+            print('There is no member with id ', id, 'member =>', member)
+            return ChatWithMember(ok=False, chat=None)
+        try:
+            first_possibility = Chat.objects.get(
+                individual_member_one=current_user.id, individual_member_two=member.id)
+            return ChatWithMember(ok=ok, chat=first_possibility)
+        except Chat.DoesNotExist:
+            try:
+                second_possibility = Chat.objects.get(
+                    individual_member_one=member.id, individual_member_two=current_user.id)
+                return ChatWithMember(ok=ok, chat=second_possibility)
+            except:
+                pass
+
+            chat_instance = Chat(
+                individual_member_one=current_user, individual_member_two=member)
+            chat_instance.save()
+
+            return ChatWithMember(ok=ok, chat=chat_instance)
+
+
 class DeleteChat(graphene.Mutation):
     class Meta:
         description = "Mutation to mark an Chat as inactive"
@@ -1090,6 +1130,7 @@ class Mutation(graphene.ObjectType):
     delete_assignment = DeleteAssignment.Field()
 
     delete_chat = DeleteChat.Field()
+    chat_with_member = ChatWithMember.Field()
 
     create_chat_message = CreateChatMessage.Field()
     update_chat_message = UpdateChatMessage.Field()
