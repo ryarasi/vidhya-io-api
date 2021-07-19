@@ -30,7 +30,7 @@ The following instructions assumes that you are attempting to setup the project 
 5. Create a new Django project `django-admin startproject shuddhi .`
 6. Create a new app called vidhya inside the shuddhi project folder with `django-admin startapp vidhya`
 7. Update the `DATABASES` variable in `settings.py` file with the contents of that variable from the `settings.py` file in this repo.
-8. Create a postgres database and a database user inside Docker with the following commands:-
+8.  Create a postgres database and a database user inside Docker with the following commands:-
     1.  `docker pull postgres:alpine` to create postgres docker image. We use the alipne version because its lighter.
     2.  `docker images` to check if it shows the newly created docker image.
     3.  `docker run --name shuddhi-db -e POSTGRES_PASSWORD=password -d -p 5432:5432 postgres:alpine` to create a docker container named shuddhi-db with the docker image we just pulled.
@@ -49,21 +49,22 @@ The following instructions assumes that you are attempting to setup the project 
     1. POSTGRES_USER='shuddhiadmin'
     2. POSTGRES_PASSWORD='password'
     3. POSTGRES_DB='shuddhidb'
-10. Test setup type in the following commands:-
+10. Create your superuser in django (different from the db user created above) that will be used for the admin console in the backend with `docker-compose run web python manage.py createsuperuser` and follow prompts to setup username and password. You can use the credentials to login to the admin console at `http://localhost:8000/admin/login/`.
+11. Test setup type in the following commands:-
     1.  Start the postgres docker container with `docker start shuddhi-db`
             1.  If this says that ports are already in use, then shut down postgres and try again `sudo service postgresql stop`
     2.  Once the postgres container is up and running, start the docker for the project with `docker-compose up`
     3.  Visit `localhost:8000` or `localhost:8000/graphql` to check if setup has worked.
-11. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
-12. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
+12. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
+13. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
     1.  Choose your username and password.
     2.  Now you can go to `localhost:8000/admin` to log into the console
-13. While installing new packages follow these steps:-
+14. While installing new packages follow these steps:-
         1.  Make sure you've activated the virtual environment with `source venv/bin/activate`
         2.  Install the package with `pip install <package_name>`
         3.  Update the `requirements.txt` file with `pip freeze > requirements.txt`
         4.  If the docker doesn't recognize the newly installed package, ensure that the docker container is rebuilt and try again.
-14. The database can be explored and modified by visiting `localhost:5000` in the browser. The email and password are available in the `docker-compose.yml` file under `environment` in `pgadmin4`. During first time set up, add a new server with the hostname `db` and port `5432` and username and password as given in the `database.env` file.
+15. The database can be explored and modified by visiting `localhost:5000` in the browser. The email and password are available in the `docker-compose.yml` file under `environment` in `pgadmin4`. During first time set up, add a new server with the hostname `db` and port `5432` and username and password as given in the `database.env` file.
 
 
 ## Troubleshooting:-
