@@ -267,7 +267,7 @@ class Query(ObjectType):
         current_user = info.context.user
 
         groups = Group.objects.all().filter(
-            Q(members__in=[current_user]) | Q(admins__in=[current_user]))
+            Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True)
 
         chats = Chat.objects.all().filter(active=True, chat_type='IL')
         chats = chats.filter(Q(individual_member_one=current_user.id) | Q(
