@@ -27,7 +27,7 @@ class Query(ObjectType):
 
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.List(
-        UserType, searchField=graphene.String(), membership_status_not=graphene.String(), role=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        UserType, searchField=graphene.String(), membership_status_not=graphene.String(), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     user_role = graphene.Field(UserRoleType, id=graphene.ID())
     user_roles = graphene.List(
@@ -104,10 +104,10 @@ class Query(ObjectType):
             return None
 
     @login_required
-    def resolve_users(root, info, searchField=None, membership_status_not=None, role=None, limit=None, offset=None, **kwargs):
+    def resolve_users(root, info, searchField=None, membership_status_not=None, role_name=None, limit=None, offset=None, **kwargs):
         qs = User.objects.all().filter(active=True).order_by('-id')
         print('searchField', searchField, 'membership_status_not',
-              membership_status_not, 'role', role)
+              membership_status_not, 'role', role_name)
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField)
@@ -117,8 +117,13 @@ class Query(ObjectType):
         if membership_status_not is not None:
             qs = qs.exclude(membership_status=membership_status_not)
 
-        if role is not None:
-            qs = qs.filter(role=role)
+        if role_name is not None:
+            try:
+                role = UserRole.objects.get(active=True, name=role_name)
+                print('role with role_name', role)
+                qs = qs.filter(role=role)
+            except UserRole.DoesNotExist:
+                pass
 
         if offset is not None:
             qs = qs[offset:]
