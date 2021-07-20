@@ -1,11 +1,16 @@
 from django.contrib import admin
-from .models import User, Institution
+from .models import User, Institution, UserRole, Group, Announcement, Course, Assignment
 from django.apps import apps
 
 # Register your models here.
 
 admin.site.register(User)
 admin.site.register(Institution)
+admin.site.register(UserRole)
+admin.site.register(Group)
+admin.site.register(Announcement)
+admin.site.register(Course)
+admin.site.register(Assignment)
 
 app = apps.get_app_config('graphql_auth')
 
