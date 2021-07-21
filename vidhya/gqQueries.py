@@ -105,6 +105,7 @@ class Query(ObjectType):
 
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=None, role_name=None, limit=None, offset=None, **kwargs):
+
         qs = User.objects.all().filter(active=True).order_by('-id')
         print('searchField', searchField, 'membership_status_not',
               membership_status_not, 'role', role_name)
@@ -159,7 +160,9 @@ class Query(ObjectType):
 
     @login_required
     def resolve_group(root, info, id, **kwargs):
-        group_instance = Group.objects.get(pk=id, active=True)
+        current_user = info.context.user
+        group_instance = Group.objects.get(Q(members__in=[current_user]) | Q(
+            admins__in=[current_user]), pk=id, active=True)
         if group_instance is not None:
             return group_instance
         else:
