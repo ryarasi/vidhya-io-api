@@ -167,7 +167,9 @@ class Query(ObjectType):
 
     @login_required
     def resolve_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Group.objects.all().filter(active=True).order_by('-id')
+        current_user = info.context.user
+        qs = Group.objects.all().filter(
+            Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).order_by('-id')
 
         if searchField is not None:
             filter = (
@@ -184,7 +186,12 @@ class Query(ObjectType):
 
     @login_required
     def resolve_announcement(root, info, id, **kwargs):
-        announcement_instance = Announcement.objects.get(pk=id)
+        current_user = info.context.user
+        groups = Group.objects.all().filter(
+            Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).order_by('-id')
+
+        announcement_instance = Announcement.objects.get(
+            pk=id, active=True, groups__in=groups)
         if announcement_instance is not None:
             return announcement_instance
         else:
@@ -192,7 +199,12 @@ class Query(ObjectType):
 
     @login_required
     def resolve_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Announcement.objects.all().filter(active=True).order_by('-id')
+        current_user = info.context.user
+        groups = Group.objects.all().filter(
+            Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).order_by('-id')
+
+        qs = Announcement.objects.all().filter(
+            active=True, groups__in=groups).order_by('-id')
 
         if searchField is not None:
             filter = (
