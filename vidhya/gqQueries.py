@@ -5,6 +5,7 @@ from graphql_jwt.decorators import login_required
 from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, Assignment, Chat, ChatMessage
 from django.db.models import Q
 from .gqTypes import AnnouncementType, AssignmentType, ChatMessageType, ChatSearchModel, ChatSearchType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from common.constants import USER_ROLES_NAMES
 
 
 class ActiveChats(graphene.ObjectType):
@@ -105,8 +106,22 @@ class Query(ObjectType):
 
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=None, role_name=None, limit=None, offset=None, **kwargs):
+        current_user = info.context.user
 
-        qs = User.objects.all().filter(active=True).order_by('-id')
+        current_user_role_name = current_user.role.name
+        print('user role name => ', current_user_role_name)
+        print('suer admin role name constant => ',
+              USER_ROLES_NAMES["SUPER_ADMIN"])
+        if current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]:
+            print('User is super admin')
+            # if the user is super user then they
+            qs = User.objects.all().filter(active=True).order_by('-id')
+        else:
+            print('User is NOT a super admin')
+            # If the user is not a super user, we filter the users by institution
+            qs = User.objects.all().filter(
+                active=True, institution_id=current_user.institution.id).order_by('-id')
+
         print('searchField', searchField, 'membership_status_not',
               membership_status_not, 'role', role_name)
         if searchField is not None:
