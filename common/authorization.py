@@ -33,15 +33,12 @@ ACTIONS = {
 
 
 def has_access(user=None, resource=None, action=None):
-    print('From has_access', user, resource, action)
     result = False
     if user:
         user_permissions = user.role.permissions
-        if user_permissions and resource is not None and action is not None:
+        if user_permissions and resource and action:
             result = user_permissions[resource][action]
 
-    if result is True:
-        return result
-
-    # raise GraphQLError('You are not authorized for this resource')
-    return False
+    if result is False:
+        raise GraphQLError('You are not authorized to access this resource')
+    return result
