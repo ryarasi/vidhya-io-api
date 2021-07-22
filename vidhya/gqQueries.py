@@ -1,11 +1,11 @@
 
 import graphene
 from graphene_django.types import ObjectType
-from graphql_jwt.decorators import login_required
+from graphql_jwt.decorators import login_required, user_passes_test
 from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, Assignment, Chat, ChatMessage
 from django.db.models import Q
 from .gqTypes import AnnouncementType, AssignmentType, ChatMessageType, ChatSearchModel, ChatSearchType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
-from common.constants import USER_ROLES_NAMES
+from common.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS
 
 
 class ActiveChats(graphene.ObjectType):
@@ -71,6 +71,7 @@ class Query(ObjectType):
             return None
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['GET']))
     def resolve_institution(root, info, id, **kwargs):
         institution_instance = Institution.objects.get(pk=id, active=True)
         if institution_instance is not None:
@@ -79,6 +80,7 @@ class Query(ObjectType):
             return None
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
     def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
         qs = Institution.objects.all().filter(active=True).order_by('-id')
 
@@ -149,6 +151,7 @@ class Query(ObjectType):
         return qs
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['GET']))
     def resolve_user_role(root, info, id, **kwargs):
         user_role_instance = UserRole.objects.get(pk=id, active=True)
         if user_role_instance is not None:
@@ -157,6 +160,7 @@ class Query(ObjectType):
             return None
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['LIST']))
     def resolve_user_roles(root, info, searchField=None, limit=None, offset=None, **kwargs):
         qs = UserRole.objects.all().filter(active=True).order_by('-id')
 
@@ -174,6 +178,7 @@ class Query(ObjectType):
         return qs
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['GET']))
     def resolve_group(root, info, id, **kwargs):
         current_user = info.context.user
         group_instance = Group.objects.get(Q(members__in=[current_user]) | Q(
@@ -184,6 +189,7 @@ class Query(ObjectType):
             return None
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['LIST']))
     def resolve_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
         qs = Group.objects.all().filter(
@@ -203,6 +209,7 @@ class Query(ObjectType):
         return qs
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['GET']))
     def resolve_announcement(root, info, id, **kwargs):
         current_user = info.context.user
         groups = Group.objects.all().filter(
@@ -216,6 +223,7 @@ class Query(ObjectType):
             return None
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['LIST']))
     def resolve_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
         groups = Group.objects.all().filter(
@@ -238,6 +246,7 @@ class Query(ObjectType):
         return qs
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['GET']))
     def resolve_course(root, info, id, **kwargs):
         course_instance = Course.objects.get(pk=id, active=True)
         if course_instance is not None:
@@ -246,6 +255,7 @@ class Query(ObjectType):
             return None
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
         qs = Course.objects.all().filter(active=True).order_by('-id')
 
@@ -264,6 +274,7 @@ class Query(ObjectType):
         return qs
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['GET']))
     def resolve_assignment(root, info, id, **kwargs):
         assignment_instance = Assignment.objects.get(pk=id, active=True)
         if assignment_instance is not None:
@@ -272,6 +283,7 @@ class Query(ObjectType):
             return None
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['LIST']))
     def resolve_assignments(root, info, searchField=None, limit=None, offset=None, **kwargs):
         qs = Assignment.objects.all().filter(active=True).order_by('-id')
 

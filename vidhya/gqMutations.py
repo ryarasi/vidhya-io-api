@@ -1,10 +1,11 @@
+from django.contrib.auth import login
 import graphene
 from graphql import GraphQLError
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Assignment, Chat, ChatMessage
-from graphql_jwt.decorators import login_required
+from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyAssignment, NotifyChat, NotifyChatMessage
-from django.db.models import Q
+from common.authorization import has_access, RESOURCES, ACTIONS
 
 CREATE_METHOD = 'CREATE'
 UPDATE_METHOD = 'UPDATE'
@@ -23,6 +24,7 @@ class CreateInstitution(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['CREATE']))
     def mutate(root, info, input=None):
         ok = True
         error = ""
@@ -69,6 +71,7 @@ class UpdateInstitution(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
         ok = False
         institution = Institution.objects.get(pk=id, active=True)
@@ -111,6 +114,8 @@ class DeleteInstitution(graphene.Mutation):
     institution = graphene.Field(InstitutionType)
 
     @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['DELETE']))
     def mutate(root, info, id, input=None):
         ok = False
         institution = Institution.objects.get(pk=id, active=True)
@@ -176,37 +181,37 @@ class AddInvitecode(graphene.Mutation):
         return AddInvitecode(ok=ok,)
 
 
-class CreateUser(graphene.Mutation):
-    class Meta:
-        description = "Mutation to create a new User"
+# class CreateUser(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to create a new User"
 
-    class Arguments:
-        user = UserInput(required=True)
+#     class Arguments:
+#         user = UserInput(required=True)
 
-    ok = graphene.Boolean()
-    user = graphene.Field(UserType)
+#     ok = graphene.Boolean()
+#     user = graphene.Field(UserType)
 
-    @staticmethod
-    @login_required
-    def mutate(root, info, input=None):
-        ok = True
-        error = ""
+#     @staticmethod
+#     @login_required
+#     def mutate(root, info, input=None):
+#         ok = True
+#         error = ""
 
-        searchField = input.first_name + \
-            input.last_name if input.first_name and input.last_name else ""
-        searchField += input.title if input.title is not None else ""
-        searchField += input.bio if input.bio is not None else ""
-        searchField = searchField.lower()
+#         searchField = input.first_name + \
+#             input.last_name if input.first_name and input.last_name else ""
+#         searchField += input.title if input.title is not None else ""
+#         searchField += input.bio if input.bio is not None else ""
+#         searchField = searchField.lower()
 
-        user_instance = User(user_id=input.user_id, title=input.title, bio=input.bio,
-                             institution_id=input.institution_id, searchField=searchField)
-        user_instance.save()
+#         user_instance = User(user_id=input.user_id, title=input.title, bio=input.bio,
+#                              institution_id=input.institution_id, searchField=searchField)
+#         user_instance.save()
 
-        payload = {"user": user_instance,
-                   "method": CREATE_METHOD}
-        NotifyUser.broadcast(
-            payload=payload)
-        return CreateUser(ok=ok, user=user_instance)
+#         payload = {"user": user_instance,
+#                    "method": CREATE_METHOD}
+#         NotifyUser.broadcast(
+#             payload=payload)
+#         return CreateUser(ok=ok, user=user_instance)
 
 
 class UpdateUser(graphene.Mutation):
@@ -301,6 +306,7 @@ class ApproveUser(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['MODERATION'], ACTIONS['UPDATE']))
     def mutate(root, info, user_id, role_id):
         ok = False
         user = User.objects.get(pk=user_id, active=True)
@@ -333,6 +339,7 @@ class SuspendUser(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['MODERATION'], ACTIONS['UPDATE']))
     def mutate(root, info, user_id, remarks):
         ok = False
         user = User.objects.get(pk=user_id, active=True)
@@ -363,6 +370,7 @@ class CreateUserRole(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['CREATE']))
     def mutate(root, info, input=None):
         ok = True
         error = ""
@@ -402,6 +410,7 @@ class UpdateUserRole(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
         ok = False
         user_role_instance = UserRole.objects.get(pk=id, active=True)
@@ -435,6 +444,8 @@ class DeleteUserRole(graphene.Mutation):
     user_role = graphene.Field(UserRoleType)
 
     @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['DELETE']))
     def mutate(root, info, id, input=None):
         ok = False
         user_role_instance = UserRole.objects.get(pk=id, active=True)
@@ -464,6 +475,7 @@ class CreateGroup(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['CREATE']))
     def mutate(root, info, input=None):
         current_user = info.context.user
         ok = True
@@ -521,6 +533,7 @@ class UpdateGroup(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
         current_user = info.context.user
         ok = False
@@ -567,6 +580,8 @@ class DeleteGroup(graphene.Mutation):
     group = graphene.Field(GroupType)
 
     @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['DELETE']))
     def mutate(root, info, id, input=None):
         ok = False
         group = Group.objects.get(pk=id, active=True)
@@ -604,6 +619,7 @@ class CreateAnnouncement(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['CREATE']))
     def mutate(root, info, input=None):
         current_user = info.context.user
         ok = True
@@ -652,6 +668,7 @@ class UpdateAnnouncement(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
         ok = False
         announcement = Announcement.objects.get(pk=id, active=True)
@@ -691,6 +708,8 @@ class DeleteAnnouncement(graphene.Mutation):
     announcement = graphene.Field(AnnouncementType)
 
     @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['DELETE']))
     def mutate(root, info, id, input=None):
         ok = False
         announcement = Announcement.objects.get(pk=id, active=True)
@@ -721,6 +740,7 @@ class CreateCourse(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['CREATE']))
     def mutate(root, info, input=None):
         ok = True
         error = ""
@@ -766,6 +786,7 @@ class UpdateCourse(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
         ok = False
         course = Course.objects.get(pk=id, active=True)
@@ -806,6 +827,8 @@ class DeleteCourse(graphene.Mutation):
     course = graphene.Field(CourseType)
 
     @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['DELETE']))
     def mutate(root, info, id, input=None):
         ok = False
         course = Course.objects.get(pk=id, active=True)
@@ -838,6 +861,7 @@ class CreateAssignment(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['CREATE']))
     def mutate(root, info, input=None):
         ok = True
         error = ""
@@ -878,6 +902,7 @@ class UpdateAssignment(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
         ok = False
         assignment = Assignment.objects.get(pk=id, active=True)
@@ -912,6 +937,8 @@ class DeleteAssignment(graphene.Mutation):
     assignment = graphene.Field(AssignmentType)
 
     @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['DELETE']))
     def mutate(root, info, id, input=None):
         ok = False
         assignment = Assignment.objects.get(pk=id, active=True)
@@ -1103,7 +1130,7 @@ class Mutation(graphene.ObjectType):
     add_invitecode = AddInvitecode.Field()
     verify_invitecode = VerifyInvitecode.Field()
 
-    create_user = CreateUser.Field()
+    # create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     approve_user = ApproveUser.Field()
