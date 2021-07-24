@@ -159,19 +159,27 @@ class AnnouncementGroup(models.Model):
 
 class Course(models.Model):
     title = models.CharField(max_length=80)
-    description = models.CharField(max_length=500)
+    description = models.CharField(max_length=1000)
     instructor = models.ForeignKey(User, on_delete=models.PROTECT)
     institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
         'course', 'institution'), blank=True)
+    participants = models.ManyToManyField(
+        User, through="CourseParticipant", related_name="participants", through_fields=('course', 'participant'), blank=True)
+    # short descripition (200 characters), mandatory prerequisites, recommended prerequistes, start date, end date, credit hours per week
     searchField = models.CharField(max_length=1200, blank=True, null=True)
-
-    def default_sections():
-        return {}
-    sections = JSONField(default=default_sections)
 
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class CourseSection(models.Model):
+    title = models.CharField(max_length=80)
+    index = models.DecimalField(max_digits=4, decimal_places=2)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
@@ -185,10 +193,20 @@ class CourseInstitution(models.Model):
         return self.course
 
 
+class CourseParticipant(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.course
+
+
 class Assignment(models.Model):
     title = models.CharField(max_length=80)
     instructions = models.CharField(max_length=1000)
     course = models.ForeignKey(Course, on_delete=models.PROTECT)
+    # section = models.ForeignKey(CourseSection, on_delete=models.DO_NOTHING)
+    # prerequisite assignments, due date, points, exercises(new model with prompt (string), type (enum), options (string array), answer (string), attachments (array of name, description and filetype) )
     searchField = models.CharField(max_length=1200, blank=True, null=True)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

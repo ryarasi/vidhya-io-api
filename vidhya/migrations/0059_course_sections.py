@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='course',
             name='sections',
-            field=django.contrib.postgres.fields.jsonb.JSONField(default=vidhya.models.Course.default_sections),
+            field=django.contrib.postgres.fields.jsonb.JSONField(),
         ),
     ]
