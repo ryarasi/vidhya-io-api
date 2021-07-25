@@ -1,10 +1,10 @@
 from django.contrib.auth import login
 import graphene
 from graphql import GraphQLError
-from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Assignment, Chat, ChatMessage
+from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Chapter, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, AssignmentInput, AssignmentType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, ChatType, ChatMessageType, ChatMessageInput
-from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyAssignment, NotifyChat, NotifyChatMessage
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, ChapterInput, ChapterType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, ChatType, ChatMessageType, ChatMessageInput
+from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyChapter, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 
 CREATE_METHOD = 'CREATE'
@@ -848,20 +848,20 @@ class DeleteCourse(graphene.Mutation):
         return DeleteCourse(ok=ok, course=None)
 
 
-class CreateAssignment(graphene.Mutation):
+class CreateChapter(graphene.Mutation):
 
     class Meta:
-        description = "Mutation to create a new Assignment"
+        description = "Mutation to create a new Chapter"
 
     class Arguments:
-        input = AssignmentInput(required=True)
+        input = ChapterInput(required=True)
 
     ok = graphene.Boolean()
-    assignment = graphene.Field(AssignmentType)
+    chapter = graphene.Field(ChapterType)
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['CREATE']))
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
     def mutate(root, info, input=None):
         ok = True
         error = ""
@@ -877,85 +877,85 @@ class CreateAssignment(graphene.Mutation):
         searchField += input.instructions if input.instructions is not None else ""
         searchField = searchField.lower()
 
-        assignment_instance = Assignment(title=input.title, instructions=input.instructions,
-                                         course_id=input.course_id, searchField=searchField)
-        assignment_instance.save()
+        chapter_instance = Chapter(title=input.title, instructions=input.instructions,
+                                   course_id=input.course_id, searchField=searchField)
+        chapter_instance.save()
 
-        payload = {"assignment": assignment_instance,
+        payload = {"chapter": chapter_instance,
                    "method": CREATE_METHOD}
-        NotifyAssignment.broadcast(
+        NotifyChapter.broadcast(
             payload=payload)
 
-        return CreateAssignment(ok=ok, assignment=assignment_instance)
+        return CreateChapter(ok=ok, chapter=chapter_instance)
 
 
-class UpdateAssignment(graphene.Mutation):
+class UpdateChapter(graphene.Mutation):
     class Meta:
-        description = "Mutation to update a Assignment"
+        description = "Mutation to update a Chapter"
 
     class Arguments:
         id = graphene.ID(required=True)
-        input = AssignmentInput(required=True)
+        input = ChapterInput(required=True)
 
     ok = graphene.Boolean()
-    assignment = graphene.Field(AssignmentType)
+    chapter = graphene.Field(ChapterType)
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['UPDATE']))
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
         ok = False
-        assignment = Assignment.objects.get(pk=id, active=True)
-        assignment_instance = assignment
-        if assignment_instance:
+        chapter = Chapter.objects.get(pk=id, active=True)
+        chapter_instance = chapter
+        if chapter_instance:
             ok = True
-            assignment_instance.title = input.title if input.title is not None else assignment.title
-            assignment_instance.instructions = input.instructions if input.instructions is not None else assignment.instructions
-            assignment_instance.course_id = input.course_id if input.course_id is not None else assignment.course_id
+            chapter_instance.title = input.title if input.title is not None else chapter.title
+            chapter_instance.instructions = input.instructions if input.instructions is not None else chapter.instructions
+            chapter_instance.course_id = input.course_id if input.course_id is not None else chapter.course_id
 
             searchField = input.title
             searchField += input.instructions if input.instructions is not None else ""
-            assignment_instance.searchField = searchField.lower()
+            chapter_instance.searchField = searchField.lower()
 
-            assignment_instance.save()
-            payload = {"assignment": assignment_instance,
+            chapter_instance.save()
+            payload = {"chapter": chapter_instance,
                        "method": UPDATE_METHOD}
-            NotifyAssignment.broadcast(
+            NotifyChapter.broadcast(
                 payload=payload)
-            return UpdateAssignment(ok=ok, assignment=assignment_instance)
-        return UpdateAssignment(ok=ok, assignment=None)
+            return UpdateChapter(ok=ok, chapter=chapter_instance)
+        return UpdateChapter(ok=ok, chapter=None)
 
 
-class DeleteAssignment(graphene.Mutation):
+class DeleteChapter(graphene.Mutation):
     class Meta:
-        description = "Mutation to mark an Assignment as inactive"
+        description = "Mutation to mark an Chapter as inactive"
 
     class Arguments:
         id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
-    assignment = graphene.Field(AssignmentType)
+    chapter = graphene.Field(ChapterType)
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['DELETE']))
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
     def mutate(root, info, id, input=None):
         ok = False
-        assignment = Assignment.objects.get(pk=id, active=True)
-        assignment_instance = assignment
-        if assignment_instance:
+        chapter = Chapter.objects.get(pk=id, active=True)
+        chapter_instance = chapter
+        if chapter_instance:
             ok = True
-            assignment_instance.active = False
+            chapter_instance.active = False
 
-            assignment_instance.save()
+            chapter_instance.save()
 
-            payload = {"assignment": assignment_instance,
+            payload = {"chapter": chapter_instance,
                        "method": DELETE_METHOD}
-            NotifyAssignment.broadcast(
+            NotifyChapter.broadcast(
                 payload=payload)
 
-            return DeleteAssignment(ok=ok, assignment=assignment_instance)
-        return DeleteAssignment(ok=ok, assignment=None)
+            return DeleteChapter(ok=ok, chapter=chapter_instance)
+        return DeleteChapter(ok=ok, chapter=None)
 
 
 class ChatWithMember(graphene.Mutation):
@@ -1152,9 +1152,9 @@ class Mutation(graphene.ObjectType):
     update_course = UpdateCourse.Field()
     delete_course = DeleteCourse.Field()
 
-    create_assignment = CreateAssignment.Field()
-    update_assignment = UpdateAssignment.Field()
-    delete_assignment = DeleteAssignment.Field()
+    create_chapter = CreateChapter.Field()
+    update_chapter = UpdateChapter.Field()
+    delete_chapter = DeleteChapter.Field()
 
     delete_chat = DeleteChat.Field()
     chat_with_member = ChatWithMember.Field()

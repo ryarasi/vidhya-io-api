@@ -15,32 +15,37 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Exercise',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('prompt', models.CharField(max_length=300)),
-                ('question_type', models.CharField(choices=[('OP', 'OPTIONS'), ('DE', 'DESCRIPTION'), ('FL', 'FILE')], default='OP', max_length=2)),
-                ('options', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=200), blank=True, null=True, size=None)),
+                ('question_type', models.CharField(choices=[
+                 ('OP', 'OPTIONS'), ('DE', 'DESCRIPTION'), ('FL', 'FILE')], default='OP', max_length=2)),
+                ('options', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(
+                    blank=True, max_length=200), blank=True, null=True, size=None)),
                 ('answer', models.CharField(max_length=500)),
             ],
         ),
         migrations.AddField(
-            model_name='assignment',
+            model_name='chapter',
             name='due_date',
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='assignment',
+            model_name='chapter',
             name='points',
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='assignment',
+            model_name='chapter',
             name='prerequisites',
-            field=models.ManyToManyField(blank=True, related_name='required', to='vidhya.Assignment'),
+            field=models.ManyToManyField(
+                blank=True, related_name='required', to='vidhya.Chapter'),
         ),
         migrations.AddField(
-            model_name='assignment',
+            model_name='chapter',
             name='section',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='vidhya.coursesection'),
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='vidhya.coursesection'),
         ),
         migrations.AddField(
             model_name='course',
@@ -60,12 +65,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='course',
             name='mandatory_prerequisites',
-            field=models.ManyToManyField(blank=True, related_name='required', to='vidhya.Course'),
+            field=models.ManyToManyField(
+                blank=True, related_name='required', to='vidhya.Course'),
         ),
         migrations.AddField(
             model_name='course',
             name='recommended_prerequisites',
-            field=models.ManyToManyField(blank=True, related_name='optional', to='vidhya.Course'),
+            field=models.ManyToManyField(
+                blank=True, related_name='optional', to='vidhya.Course'),
         ),
         migrations.AddField(
             model_name='course',
@@ -75,11 +82,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ExerciseFileAttachments',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
                 ('description', models.CharField(max_length=200)),
-                ('file_type', models.CharField(choices=[('IM', 'IMAGE'), ('DO', 'DOCUMENT'), ('ZP', 'ZIP')], default='IM', max_length=2)),
-                ('exercise', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='vidhya.exercise')),
+                ('file_type', models.CharField(choices=[
+                 ('IM', 'IMAGE'), ('DO', 'DOCUMENT'), ('ZP', 'ZIP')], default='IM', max_length=2)),
+                ('exercise', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='vidhya.exercise')),
             ],
         ),
     ]

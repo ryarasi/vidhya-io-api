@@ -2,7 +2,7 @@ from django.db.models.deletion import DO_NOTHING
 import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
-from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Assignment, Chat, ChatMessage
+from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Chapter, Chat, ChatMessage
 from django.db import models
 
 ##############
@@ -76,15 +76,15 @@ class CourseType(DjangoObjectType):
         model = Course
 
 
-class AssignmentType(DjangoObjectType):
+class ChapterType(DjangoObjectType):
     total_count = graphene.Int()
 
     def resolve_total_count(self, info):
-        count = Assignment.objects.all().filter(active=True).count()
+        count = Chapter.objects.all().filter(active=True).count()
         return count
 
     class Meta:
-        model = Assignment
+        model = Chapter
 
 
 class ChatType(DjangoObjectType):
@@ -186,7 +186,7 @@ class CourseInput(graphene.InputObjectType):
         graphene.ID, name="institutions", required=True)
 
 
-class AssignmentInput(graphene.InputObjectType):
+class ChapterInput(graphene.InputObjectType):
     id = graphene.ID()
     title = graphene.String(required=True)
     instructions = graphene.String(required=True)

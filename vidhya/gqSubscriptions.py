@@ -1,7 +1,7 @@
 import channels_graphql_ws
 import graphene
 from graphql_jwt.decorators import login_required
-from .gqTypes import InstitutionType, UserType, UserRoleType, GroupType, AnnouncementType, CourseType, AssignmentType, ChatType, ChatMessageType
+from .gqTypes import InstitutionType, UserType, UserRoleType, GroupType, AnnouncementType, CourseType, ChapterType, ChatType, ChatMessageType
 
 
 class NotifyInstitution(channels_graphql_ws.Subscription):
@@ -100,8 +100,8 @@ class NotifyCourse(channels_graphql_ws.Subscription):
         return NotifyCourse(course=payload["course"], method=payload["method"])
 
 
-class NotifyAssignment(channels_graphql_ws.Subscription):
-    assignment = graphene.Field(AssignmentType)
+class NotifyChapter(channels_graphql_ws.Subscription):
+    chapter = graphene.Field(ChapterType)
     method = graphene.String()
     # class Arguments:
 
@@ -113,7 +113,7 @@ class NotifyAssignment(channels_graphql_ws.Subscription):
     @staticmethod
     @login_required
     def publish(payload, info):
-        return NotifyAssignment(assignment=payload["assignment"], method=payload["method"])
+        return NotifyChapter(chapter=payload["chapter"], method=payload["method"])
 
 
 class NotifyChat(channels_graphql_ws.Subscription):
@@ -155,6 +155,6 @@ class Subscription(graphene.ObjectType):
     notify_group = NotifyGroup.Field()
     notify_announcement = NotifyAnnouncement.Field()
     notify_course = NotifyCourse.Field()
-    notify_assignment = NotifyAssignment.Field()
+    notify_chapter = NotifyChapter.Field()
     notify_chat = NotifyChat.Field()
     notify_chat_message = NotifyChatMessage.Field()

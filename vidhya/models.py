@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, AbstractUser
 from django.contrib.postgres.fields import JSONField
 # from django.db.models import JSONField
 from django.db.models.deletion import CASCADE
+from django.db.models.fields import IntegerField
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.validators import MinLengthValidator
@@ -211,14 +212,14 @@ class CourseParticipant(models.Model):
         return self.course
 
 
-class Assignment(models.Model):
+class Chapter(models.Model):
     title = models.CharField(max_length=80)
     instructions = models.CharField(max_length=1000)
-    course = models.ForeignKey(Course, on_delete=models.PROTECT)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
     section = models.ForeignKey(
         CourseSection, on_delete=models.DO_NOTHING, blank=True, null=True)
     prerequisites = models.ManyToManyField(
-        'Assignment', related_name="required", blank=True)
+        'Chapter', related_name="required", blank=True)
     due_date = models.DateTimeField(blank=True, null=True)
     points = models.IntegerField(blank=True, null=True)
 
@@ -233,6 +234,7 @@ class Assignment(models.Model):
 
 class Exercise(models.Model):
     prompt = models.CharField(max_length=300)
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
 
     class QuestionTypeChoices(models.TextChoices):
         OPTIONS = 'OP', _('OPTIONS')
@@ -245,6 +247,10 @@ class Exercise(models.Model):
     options = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
     answer = models.CharField(max_length=500, blank=True, null=True)
+    points = models.IntegerField(blank=True, null=True)
+    required = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class ExerciseFileAttachments(models.Model):
@@ -252,15 +258,17 @@ class ExerciseFileAttachments(models.Model):
     participant = models.ForeignKey(User, on_delete=CASCADE)
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    class FileTypeChoices(models.TextChoices):
-        IMAGE = 'IM', _('IMAGE')
-        DOCUMENT = "DO", _('DOCUMENT')
-        ZIP = "ZP", _('ZIP')
-    # End of Type Choices
+    # class FileTypeChoices(models.TextChoices):
+    #     IMAGE = 'IM', _('IMAGE')
+    #     DOCUMENT = "DO", _('DOCUMENT')
+    #     ZIP = "ZP", _('ZIP')
+    # # End of Type Choices
 
-    file_type = models.CharField(
-        max_length=2, choices=FileTypeChoices.choices, default=FileTypeChoices.IMAGE)
+    # file_type = models.CharField(
+    #     max_length=2, choices=FileTypeChoices.choices, default=FileTypeChoices.IMAGE)
 
 
 class ExerciseSubmission(models.Model):
@@ -268,6 +276,29 @@ class ExerciseSubmission(models.Model):
     correct_option = models.CharField(
         max_length=200, blank=True, null=True)
     answer = models.CharField(max_length=500, blank=True, null=True)
+    files = ArrayField(models.CharField(
+        max_length=200, blank=True), blank=True, null=True)
+    points = IntegerField(blank=True, null=True)
+
+    class StatusChoices(models.TextChoices):
+        DRAFT = 'DR', _('DRAFT')
+        SUBMITTED = "CO", _('SUBMITTED')
+        GRADED = "GR", _('GRADED')
+        RETURNED = "RE", _('RETURNED')
+    # End of Type Choices
+
+    staus = models.CharField(
+        max_length=2, choices=StatusChoices.choices, default=StatusChoices.DRAFT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class Report(models.Model):
+    participant = models.ForeignKey(User, on_delete=CASCADE)
+    course = models.ForeignKey(Course, on_delete=CASCADE)
+    # This will be calculated on grading by dividing the number of graded exercise submissions by required exercises * 100
+    completed = models.IntegerField(default=0)
+    score = models.IntegerField(default=0)
 
 
 class Chat(models.Model):
@@ -277,8 +308,8 @@ class Chat(models.Model):
         User, related_name="chat_member_one", on_delete=models.CASCADE, blank=True, null=True)
     individual_member_two = models.ForeignKey(
         User, related_name="chat_member_two", on_delete=models.CASCADE, blank=True, null=True)
-    # Type Choices
 
+    # Type Choices
     class TypeChoices(models.TextChoices):
         INDIVIDUAL = "IL", _('Individual')
         GROUP = "GP", _('Group')

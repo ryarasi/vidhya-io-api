@@ -2,9 +2,9 @@
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, Assignment, Chat, ChatMessage
+from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, Chapter, Chat, ChatMessage
 from django.db.models import Q
-from .gqTypes import AnnouncementType, AssignmentType, ChatMessageType, ChatSearchModel, ChatSearchType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from .gqTypes import AnnouncementType, ChapterType, ChatMessageType, ChatSearchModel, ChatSearchType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS
 
 
@@ -46,9 +46,9 @@ class Query(ObjectType):
     courses = graphene.List(
         CourseType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
-    assignment = graphene.Field(AssignmentType, id=graphene.ID())
-    assignments = graphene.List(
-        AssignmentType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    chapter = graphene.Field(ChapterType, id=graphene.ID())
+    chapters = graphene.List(
+        ChapterType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     chat = graphene.Field(ChatType, id=graphene.ID())
     chats = graphene.Field(
@@ -274,18 +274,18 @@ class Query(ObjectType):
         return qs
 
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['GET']))
-    def resolve_assignment(root, info, id, **kwargs):
-        assignment_instance = Assignment.objects.get(pk=id, active=True)
-        if assignment_instance is not None:
-            return assignment_instance
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
+    def resolve_chapter(root, info, id, **kwargs):
+        chapter_instance = Chapter.objects.get(pk=id, active=True)
+        if chapter_instance is not None:
+            return chapter_instance
         else:
             return None
 
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['LIST']))
-    def resolve_assignments(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Assignment.objects.all().filter(active=True).order_by('-id')
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
+    def resolve_chapters(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Chapter.objects.all().filter(active=True).order_by('-id')
 
         if searchField is not None:
             filter = (
