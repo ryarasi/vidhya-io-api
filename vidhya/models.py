@@ -1,10 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User, AbstractUser
 from django.contrib.postgres.fields import JSONField
+# from django.db.models import JSONField
+from django.db.models.deletion import CASCADE
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.validators import MinLengthValidator
 from common.utils import random_number_with_N_digits
+from django.contrib.postgres.fields import ArrayField
 
 
 class User(AbstractUser):
@@ -159,13 +162,20 @@ class AnnouncementGroup(models.Model):
 
 class Course(models.Model):
     title = models.CharField(max_length=80)
+    blurb = models.CharField(max_length=150, default="This is a course")
     description = models.CharField(max_length=1000)
     instructor = models.ForeignKey(User, on_delete=models.PROTECT)
     institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
         'course', 'institution'), blank=True)
     participants = models.ManyToManyField(
         User, through="CourseParticipant", related_name="participants", through_fields=('course', 'participant'), blank=True)
-    # short descripition (200 characters), mandatory prerequisites, recommended prerequistes, start date, end date, credit hours per week
+    mandatory_prerequisites = models.ManyToManyField(
+        'Course', related_name="required", blank=True)
+    recommended_prerequisites = models.ManyToManyField(
+        'Course', related_name="optional", blank=True)
+    start_date = models.DateField(blank=True, null=True)
+    end_date = models.DateField(blank=True, null=True)
+    credit_hours = models.IntegerField(blank=True, null=True)
     searchField = models.CharField(max_length=1200, blank=True, null=True)
 
     active = models.BooleanField(default=True)
@@ -205,8 +215,13 @@ class Assignment(models.Model):
     title = models.CharField(max_length=80)
     instructions = models.CharField(max_length=1000)
     course = models.ForeignKey(Course, on_delete=models.PROTECT)
-    # section = models.ForeignKey(CourseSection, on_delete=models.DO_NOTHING)
-    # prerequisite assignments, due date, points, exercises(new model with prompt (string), type (enum), options (string array), answer (string), attachments (array of name, description and filetype) )
+    section = models.ForeignKey(
+        CourseSection, on_delete=models.DO_NOTHING, blank=True, null=True)
+    prerequisites = models.ManyToManyField(
+        'Assignment', related_name="required", blank=True)
+    due_date = models.DateTimeField(blank=True, null=True)
+    points = models.IntegerField(blank=True, null=True)
+
     searchField = models.CharField(max_length=1200, blank=True, null=True)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -214,6 +229,45 @@ class Assignment(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Exercise(models.Model):
+    prompt = models.CharField(max_length=300)
+
+    class QuestionTypeChoices(models.TextChoices):
+        OPTIONS = 'OP', _('OPTIONS')
+        DESCRIPTION = "DE", _('DESCRIPTION')
+        FILE = "FL", _('FILE')
+    # End of Type Choices
+
+    question_type = models.CharField(
+        max_length=2, choices=QuestionTypeChoices.choices, default=QuestionTypeChoices.OPTIONS)
+    options = ArrayField(models.CharField(
+        max_length=200, blank=True), blank=True, null=True)
+    answer = models.CharField(max_length=500, blank=True, null=True)
+
+
+class ExerciseFileAttachments(models.Model):
+    exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
+    participant = models.ForeignKey(User, on_delete=CASCADE)
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=200)
+
+    class FileTypeChoices(models.TextChoices):
+        IMAGE = 'IM', _('IMAGE')
+        DOCUMENT = "DO", _('DOCUMENT')
+        ZIP = "ZP", _('ZIP')
+    # End of Type Choices
+
+    file_type = models.CharField(
+        max_length=2, choices=FileTypeChoices.choices, default=FileTypeChoices.IMAGE)
+
+
+class ExerciseSubmission(models.Model):
+    exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
+    correct_option = models.CharField(
+        max_length=200, blank=True, null=True)
+    answer = models.CharField(max_length=500, blank=True, null=True)
 
 
 class Chat(models.Model):
