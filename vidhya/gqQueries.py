@@ -137,7 +137,7 @@ class Query(ObjectType):
 
         if role_name is not None:
             try:
-                role = UserRole.objects.get(active=True, name=role_name)
+                role = UserRole.objects.get(active=True, pk=role_name)
                 print('role with role_name', role)
                 qs = qs.filter(role=role)
             except UserRole.DoesNotExist:
