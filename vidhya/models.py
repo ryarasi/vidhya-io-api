@@ -1,14 +1,14 @@
-from django.db import models
-from django.contrib.auth.models import User, AbstractUser
-from django.contrib.postgres.fields import JSONField
-# from django.db.models import JSONField
-from django.db.models.deletion import CASCADE
-from django.db.models.fields import IntegerField
-from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
-from django.core.validators import MinLengthValidator
-from common.utils import random_number_with_N_digits
 from django.contrib.postgres.fields import ArrayField
+from common.utils import random_number_with_N_digits
+from django.core.validators import MinLengthValidator
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.db.models.fields import IntegerField
+from django.db.models.deletion import CASCADE
+from django.contrib.postgres.fields import JSONField
+from django.contrib.auth.models import User, AbstractUser
+from django.db import models
+# from django.db.models import JSONField
 
 
 class User(AbstractUser):
@@ -163,7 +163,7 @@ class AnnouncementGroup(models.Model):
 
 class Course(models.Model):
     title = models.CharField(max_length=80)
-    blurb = models.CharField(max_length=150, default="This is a course")
+    blurb = models.CharField(max_length=150)
     description = models.CharField(max_length=1000)
     instructor = models.ForeignKey(User, on_delete=models.PROTECT)
     institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
@@ -187,15 +187,6 @@ class Course(models.Model):
         return self.title
 
 
-class CourseSection(models.Model):
-    title = models.CharField(max_length=80)
-    index = models.DecimalField(max_digits=4, decimal_places=2)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.title
-
-
 class CourseInstitution(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
@@ -210,6 +201,16 @@ class CourseParticipant(models.Model):
 
     def __str__(self):
         return self.course
+
+
+class CourseSection(models.Model):
+    title = models.CharField(max_length=80)
+    index = models.DecimalField(
+        max_digits=4, decimal_places=2, blank=True, null=True)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
 
 
 class Chapter(models.Model):
@@ -246,39 +247,30 @@ class Exercise(models.Model):
         max_length=2, choices=QuestionTypeChoices.choices, default=QuestionTypeChoices.OPTIONS)
     options = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
-    answer = models.CharField(max_length=500, blank=True, null=True)
     points = models.IntegerField(blank=True, null=True)
     required = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class ExerciseFileAttachments(models.Model):
+class ExerciseFileAttachment(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
     participant = models.ForeignKey(User, on_delete=CASCADE)
     name = models.CharField(max_length=100)
-    description = models.CharField(max_length=200)
+    description = models.CharField(max_length=200, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    # class FileTypeChoices(models.TextChoices):
-    #     IMAGE = 'IM', _('IMAGE')
-    #     DOCUMENT = "DO", _('DOCUMENT')
-    #     ZIP = "ZP", _('ZIP')
-    # # End of Type Choices
-
-    # file_type = models.CharField(
-    #     max_length=2, choices=FileTypeChoices.choices, default=FileTypeChoices.IMAGE)
 
 
 class ExerciseSubmission(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
-    correct_option = models.CharField(
+    option = models.CharField(
         max_length=200, blank=True, null=True)
     answer = models.CharField(max_length=500, blank=True, null=True)
     files = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
-    points = IntegerField(blank=True, null=True)
+    points = models.DecimalField(
+        max_digits=3, decimal_places=1, blank=True, null=True)
 
     class StatusChoices(models.TextChoices):
         DRAFT = 'DR', _('DRAFT')
