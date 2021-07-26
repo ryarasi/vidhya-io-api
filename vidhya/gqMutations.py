@@ -299,7 +299,7 @@ class ApproveUser(graphene.Mutation):
 
     class Arguments:
         user_id = graphene.ID(required=True)
-        role_id = graphene.ID(required=True)
+        role_name = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     user = graphene.Field(UserType)
@@ -307,11 +307,11 @@ class ApproveUser(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['MODERATION'], ACTIONS['UPDATE']))
-    def mutate(root, info, user_id, role_id):
+    def mutate(root, info, user_id, role_name):
         ok = False
         user = User.objects.get(pk=user_id, active=True)
         user_instance = user
-        role = UserRole.objects.get(pk=role_id, active=True)
+        role = UserRole.objects.get(pk=role_name, active=True)
         if user_instance and role:
             ok = True
             user_instance.role = role
@@ -380,6 +380,8 @@ class CreateUserRole(graphene.Mutation):
             error += "Description is a required field<br />"
         if input.permissions is None:
             error += "permissions is a required field<br />"
+        if input.priority is None:
+            error += "priority is a required field<br />"
         if len(error) > 0:
             raise GraphQLError(error)
         searchField = input.name
@@ -387,7 +389,7 @@ class CreateUserRole(graphene.Mutation):
         searchField = searchField.lower()
 
         user_role_instance = UserRole(name=input.name, description=input.description,
-                                      permissions=input.permissions, searchField=searchField)
+                                      permissions=input.permissions, priority=input.priority, searchField=searchField)
         user_role_instance.save()
 
         payload = {"user_role": user_role_instance,
@@ -399,10 +401,10 @@ class CreateUserRole(graphene.Mutation):
 
 class UpdateUserRole(graphene.Mutation):
     class Meta:
-        description = "Mutation to update a User"
+        description = "Mutation to update a User Role"
 
     class Arguments:
-        id = graphene.ID(required=True)
+        role_name = graphene.ID(required=True)
         input = UserRoleInput(required=True)
 
     ok = graphene.Boolean()
@@ -411,14 +413,15 @@ class UpdateUserRole(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['UPDATE']))
-    def mutate(root, info, id, input=None):
+    def mutate(root, info, role_name, input=None):
         ok = False
-        user_role_instance = UserRole.objects.get(pk=id, active=True)
+        user_role_instance = UserRole.objects.get(pk=role_name, active=True)
         if user_role_instance:
             ok = True
             user_role_instance.name = input.name if input.name is not None else user_role_instance.name
             user_role_instance.description = input.description if input.description is not None else user_role_instance.description
             user_role_instance.permissions = input.permissions if input.permissions is not None else user_role_instance.permissions
+            user_role_instance.priority = input.priority if input.priority is not None else user_role_instance.priority
 
             searchField = input.name
             searchField += input.description if input.description is not None else ""
@@ -438,7 +441,7 @@ class DeleteUserRole(graphene.Mutation):
         description = "Mutation to mark a User Role as inactive"
 
     class Arguments:
-        id = graphene.ID(required=True)
+        role_name = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     user_role = graphene.Field(UserRoleType)
@@ -446,9 +449,9 @@ class DeleteUserRole(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['DELETE']))
-    def mutate(root, info, id, input=None):
+    def mutate(root, info, role_name):
         ok = False
-        user_role_instance = UserRole.objects.get(pk=id, active=True)
+        user_role_instance = UserRole.objects.get(pk=role_name, active=True)
         if user_role_instance:
             ok = True
             user_role_instance.active = False
@@ -582,7 +585,7 @@ class DeleteGroup(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['DELETE']))
-    def mutate(root, info, id, input=None):
+    def mutate(root, info, id):
         ok = False
         group = Group.objects.get(pk=id, active=True)
         group_instance = group
@@ -746,6 +749,8 @@ class CreateCourse(graphene.Mutation):
         error = ""
         if input.title is None:
             error += "Title is a required field<br />"
+        if input.blurb is None:
+            error += "Blurb is a required field<br />"
         if input.description is None:
             error += "Description is a required field<br />"
         if input.instructor_id is None:
@@ -755,15 +760,27 @@ class CreateCourse(graphene.Mutation):
         if len(error) > 0:
             raise GraphQLError(error)
         searchField = input.title
+        searchField += input.blurb if input.blurb is not None else ""
         searchField += input.description if input.description is not None else ""
         searchField = searchField.lower()
 
-        course_instance = Course(title=input.title, description=input.description,
-                                 instructor_id=input.instructor_id, searchField=searchField)
+        course_instance = Course(title=input.title, blurb=input.blurb, description=input.description,
+                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, searchField=searchField)
         course_instance.save()
 
         if input.institution_ids is not None:
             course_instance.institutions.add(*input.institution_ids)
+
+        if input.participant_ids is not None:
+            course_instance.participants.add(*input.participant_ids)
+
+        if input.mandatory_prerequisite_ids is not None:
+            course_instance.mandatory_prerequisites.add(
+                *input.mandatory_prerequisite_ids)
+
+        if input.recommended_prerequisite_ids is not None:
+            course_instance.recommended_prerequisites.add(
+                *input.recommended_prerequisite_ids)
 
         payload = {"course": course_instance,
                    "method": CREATE_METHOD}
@@ -794,18 +811,37 @@ class UpdateCourse(graphene.Mutation):
         if course_instance:
             ok = True
             course_instance.title = input.title if input.title is not None else course.title
+            course_instance.blurb = input.blurb if input.blurb is not None else course.blurb
             course_instance.description = input.description if input.description is not None else course.description
             course_instance.instructor_id = input.instructor_id if input.instructor_id is not None else course.instructor_id
+            course_instance.start_date = input.start_date if input.start_date is not None else course.start_date
+            course_instance.end_date = input.end_date if input.end_date is not None else course.end_date
+            course_instance.credit_hours = input.credit_hours if input.credit_hours is not None else course.credit_hours
 
             searchField = input.title
+            searchField += input.blurb if input.blurb is not None else ""
             searchField += input.description if input.description is not None else ""
-            course_instance.searchField = searchField.lower()
+            searchField = searchField.lower()
 
             course_instance.save()
 
             if input.institution_ids is not None:
                 course_instance.institutions.clear()
                 course_instance.institutions.add(*input.institution_ids)
+
+            if input.participant_ids is not None:
+                course_instance.participants.clear()
+                course_instance.participants.add(*input.participant_ids)
+
+            if input.mandatory_prerequisite_ids is not None:
+                course_instance.mandatory_prerequisites.clear()
+                course_instance.mandatory_prerequisites.add(
+                    *input.mandatory_prerequisite_ids)
+
+            if input.recommended_prerequisite_ids is not None:
+                course_instance.recommended_prerequisites.clear()
+                course_instance.recommended_prerequisites.add(
+                    *input.recommended_prerequisite_ids)
 
             payload = {"course": course_instance,
                        "method": UPDATE_METHOD}
@@ -878,8 +914,12 @@ class CreateChapter(graphene.Mutation):
         searchField = searchField.lower()
 
         chapter_instance = Chapter(title=input.title, instructions=input.instructions,
-                                   course_id=input.course_id, searchField=searchField)
+                                   course_id=input.course_id, section_id=input.section_id, due_date=input.due_date, points=input.points, searchField=searchField)
         chapter_instance.save()
+
+        if input.prerequisite_ids is not None:
+            chapter_instance.prerequisites.add(
+                *input.prerequisite_ids)
 
         payload = {"chapter": chapter_instance,
                    "method": CREATE_METHOD}
@@ -912,12 +952,21 @@ class UpdateChapter(graphene.Mutation):
             chapter_instance.title = input.title if input.title is not None else chapter.title
             chapter_instance.instructions = input.instructions if input.instructions is not None else chapter.instructions
             chapter_instance.course_id = input.course_id if input.course_id is not None else chapter.course_id
+            chapter_instance.section_id = input.section_id if input.section_id is not None else chapter.section_id
+            chapter_instance.due_date = input.due_date if input.due_date is not None else chapter.due_date
+            chapter_instance.points = input.points if input.points is not None else chapter.points
 
             searchField = input.title
             searchField += input.instructions if input.instructions is not None else ""
             chapter_instance.searchField = searchField.lower()
 
             chapter_instance.save()
+
+            if input.prerequisite_ids is not None:
+                chapter.prerequisites.clear()
+                chapter_instance.prerequisites.add(
+                    *input.prerequisite_ids)
+
             payload = {"chapter": chapter_instance,
                        "method": UPDATE_METHOD}
             NotifyChapter.broadcast(
@@ -939,7 +988,7 @@ class DeleteChapter(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
-    def mutate(root, info, id, input=None):
+    def mutate(root, info, id):
         ok = False
         chapter = Chapter.objects.get(pk=id, active=True)
         chapter_instance = chapter
