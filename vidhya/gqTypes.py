@@ -109,7 +109,7 @@ class ExerciseType(DjangoObjectType):
         model = Exercise
 
 
-class ExerciseFileAttachment(DjangoObjectType):
+class ExerciseFileAttachmentType(DjangoObjectType):
     total_count = graphene.Int()
 
     def resolve_total_count(self, info):
@@ -250,7 +250,7 @@ class CourseInput(graphene.InputObjectType):
     credit_hours = graphene.Int()
 
 
-class CourseSection(graphene.InputObjectType):
+class CourseSectionInput(graphene.InputObjectType):
     id = graphene.ID()
     title = graphene.String(required=True)
     index = graphene.Decimal()
@@ -286,7 +286,7 @@ class ExerciseFileAttachmentInput(graphene.InputObjectType):
     description = graphene.String()
 
 
-class ExerciseSubmission(graphene.InputObjectType):
+class ExerciseSubmissionInput(graphene.InputObjectType):
     id = graphene.ID()
     exercise_id = graphene.ID(name="exercise", required=True)
     option = graphene.String()

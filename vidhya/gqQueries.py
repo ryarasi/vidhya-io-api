@@ -2,9 +2,9 @@
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, Chapter, Chat, ChatMessage
+from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseFileAttachment, ExerciseSubmission, Report, Chat, ChatMessage
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, ChatMessageType, ChatSearchModel, ChatSearchType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseFileAttachmentType, ExerciseSubmissionType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS
 
 
@@ -46,9 +46,31 @@ class Query(ObjectType):
     courses = graphene.List(
         CourseType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    course_section = graphene.Field(CourseSectionType, id=graphene.ID())
+    course_sections = graphene.List(CourseSectionType, searchField=graphene.String(
+    ), limit=graphene.Int(), offset=graphene.Int())
+
     chapter = graphene.Field(ChapterType, id=graphene.ID())
     chapters = graphene.List(
         ChapterType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    exercise = graphene.Field(ExerciseType, id=graphene.ID())
+    exercises = graphene.List(ExerciseType, searchField=graphene.String(
+    ), limit=graphene.Int(), offset=graphene.Int())
+
+    exercise_file_attachment = graphene.Field(
+        ExerciseFileAttachmentType, id=graphene.ID())
+    exercise_file_attachments = graphene.List(
+        ExerciseFileAttachmentType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    exercise_submission = graphene.Field(
+        ExerciseSubmissionType, id=graphene.ID())
+    exercise_submissions = graphene.List(ExerciseSubmissionType, searchField=graphene.String(
+    ), limit=graphene.Int(), offset=graphene.Int())
+
+    report = graphene.Field(ReportType, id=graphene.ID())
+    reports = graphene.List(ReportType, searchField=graphene.String(
+    ), limit=graphene.Int(), offset=graphene.Int())
 
     chat = graphene.Field(ChatType, id=graphene.ID())
     chats = graphene.Field(
@@ -274,6 +296,34 @@ class Query(ObjectType):
         return qs
 
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['GET']))
+    def resolve_course_section(root, info, id, **kwargs):
+        course_instance = CourseSection.objects.get(pk=id, active=True)
+        if course_instance is not None:
+            return course_instance
+        else:
+            return None
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
+    def resolve_course_sections(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Course.objects.all().filter(active=True).order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        return qs
+
+    @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
     def resolve_chapter(root, info, id, **kwargs):
         chapter_instance = Chapter.objects.get(pk=id, active=True)
@@ -286,6 +336,120 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_chapters(root, info, searchField=None, limit=None, offset=None, **kwargs):
         qs = Chapter.objects.all().filter(active=True).order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        return qs
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
+    def resolve_exercise(root, info, id, **kwargs):
+        exercise_instance = Exercise.objects.get(pk=id, active=True)
+        if exercise_instance is not None:
+            return exercise_instance
+        else:
+            return None
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
+    def resolve_exercises(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Exercise.objects.all().filter(active=True).order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        return qs
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
+    def resolve_exercise_file_attachment(root, info, id, **kwargs):
+        exercise_file_attachment_instance = ExerciseFileAttachment.objects.get(
+            pk=id, active=True)
+        if exercise_file_attachment_instance is not None:
+            return exercise_file_attachment_instance
+        else:
+            return None
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
+    def resolve_exercise_file_attachments(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = ExerciseFileAttachment.objects.all().filter(active=True).order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        return qs
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
+    def resolve_exercise_submission(root, info, id, **kwargs):
+        exercise_submission_instance = ExerciseSubmission.objects.get(
+            pk=id, active=True)
+        if exercise_submission_instance is not None:
+            return exercise_submission_instance
+        else:
+            return None
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
+    def resolve_exercise_submissions(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = ExerciseSubmission.objects.all().filter(active=True).order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        return qs
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['GET']))
+    def resolve_report(root, info, id, **kwargs):
+        report_instance = Report.objects.get(pk=id, active=True)
+        if report_instance is not None:
+            return report_instance
+        else:
+            return None
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['LIST']))
+    def resolve_reports(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Report.objects.all().filter(active=True).order_by('-id')
 
         if searchField is not None:
             filter = (

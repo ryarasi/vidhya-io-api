@@ -1,7 +1,7 @@
 import channels_graphql_ws
 import graphene
 from graphql_jwt.decorators import login_required
-from .gqTypes import InstitutionType, UserType, UserRoleType, GroupType, AnnouncementType, CourseType, ChapterType, ChatType, ChatMessageType
+from .gqTypes import InstitutionType, UserType, UserRoleType, GroupType, AnnouncementType, CourseType, CourseSectionType, ChapterType, ExerciseType, ExerciseFileAttachmentType, ExerciseSubmissionType, ReportType, ChatType, ChatMessageType
 
 
 class NotifyInstitution(channels_graphql_ws.Subscription):
@@ -100,6 +100,22 @@ class NotifyCourse(channels_graphql_ws.Subscription):
         return NotifyCourse(course=payload["course"], method=payload["method"])
 
 
+class NotifyCourseSection(channels_graphql_ws.Subscription):
+    course_section = graphene.Field(CourseSectionType)
+    method = graphene.String()
+    # class Arguments:
+
+    @staticmethod
+    @login_required
+    def subscribe(root, info):
+        return None
+
+    @staticmethod
+    @login_required
+    def publish(payload, info):
+        return NotifyCourseSection(course_section=payload["course_section"], method=payload["method"])
+
+
 class NotifyChapter(channels_graphql_ws.Subscription):
     chapter = graphene.Field(ChapterType)
     method = graphene.String()
@@ -114,6 +130,70 @@ class NotifyChapter(channels_graphql_ws.Subscription):
     @login_required
     def publish(payload, info):
         return NotifyChapter(chapter=payload["chapter"], method=payload["method"])
+
+
+class NotifyExercise(channels_graphql_ws.Subscription):
+    exercise = graphene.Field(ExerciseType)
+    method = graphene.String()
+    # class Arguments:
+
+    @staticmethod
+    @login_required
+    def subscribe(root, info):
+        return None
+
+    @staticmethod
+    @login_required
+    def publish(payload, info):
+        return NotifyExercise(exercise=payload["exercise"], method=payload["method"])
+
+
+class NotifyExerciseFileAttachment(channels_graphql_ws.Subscription):
+    exercise_file_attachment = graphene.Field(ExerciseFileAttachmentType)
+    method = graphene.String()
+    # class Arguments:
+
+    @staticmethod
+    @login_required
+    def subscribe(root, info):
+        return None
+
+    @staticmethod
+    @login_required
+    def publish(payload, info):
+        return NotifyExerciseFileAttachment(exercise_file_attachment=payload["exercise_file_attachment"], method=payload["method"])
+
+
+class NotifyExerciseSubmission(channels_graphql_ws.Subscription):
+    exercise_submission = graphene.Field(ExerciseSubmissionType)
+    method = graphene.String()
+    # class Arguments:
+
+    @staticmethod
+    @login_required
+    def subscribe(root, info):
+        return None
+
+    @staticmethod
+    @login_required
+    def publish(payload, info):
+        return NotifyExerciseSubmission(exercise_submission=payload["exercise_submission"], method=payload["method"])
+
+
+class NotifyReport(channels_graphql_ws.Subscription):
+    report = graphene.Field(ReportType)
+    method = graphene.String()
+    # class Arguments:
+
+    @staticmethod
+    @login_required
+    def subscribe(root, info):
+        return None
+
+    @staticmethod
+    @login_required
+    def publish(payload, info):
+        return NotifyReport(report=payload["report"], method=payload["method"])
 
 
 class NotifyChat(channels_graphql_ws.Subscription):

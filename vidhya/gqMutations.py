@@ -1,10 +1,10 @@
 from django.contrib.auth import login
 import graphene
 from graphql import GraphQLError
-from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Chapter, Chat, ChatMessage
+from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseFileAttachment, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, ChapterInput, ChapterType, CourseInput, CourseType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, ChatType, ChatMessageType, ChatMessageInput
-from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyChapter, NotifyChat, NotifyChatMessage
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseType, ExerciseFileAttachmentType, ExerciseSubmissionType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseFileAttachmentInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseFileAttachment, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 
 CREATE_METHOD = 'CREATE'
@@ -884,6 +884,115 @@ class DeleteCourse(graphene.Mutation):
         return DeleteCourse(ok=ok, course=None)
 
 
+class CreateCourseSection(graphene.Mutation):
+    class Meta:
+        description = "Mutation to create a new CourseSection"
+
+    class Arguments:
+        input = CourseSectionInput(required=True)
+
+    ok = graphene.Boolean()
+    course_section = graphene.Field(CourseSectionType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['CREATE']))
+    def mutate(root, info, input=None):
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if input.permissions is None:
+            error += "permissions is a required field<br />"
+        if input.priority is None:
+            error += "priority is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField += input.description if input.description is not None else ""
+        searchField = searchField.lower()
+
+        course_section_instance = CourseSection(name=input.name, description=input.description,
+                                                permissions=input.permissions, priority=input.priority, searchField=searchField)
+        course_section_instance.save()
+
+        payload = {"course_section": course_section_instance,
+                   "method": CREATE_METHOD}
+        NotifyCourseSection.broadcast(
+            payload=payload)
+        return CreateCourseSection(ok=ok, course_section=course_section_instance)
+
+
+class UpdateCourseSection(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a CourseSection"
+
+    class Arguments:
+        role_name = graphene.ID(required=True)
+        input = CourseSectionInput(required=True)
+
+    ok = graphene.Boolean()
+    course_section = graphene.Field(CourseSectionType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['UPDATE']))
+    def mutate(root, info, role_name, input=None):
+        ok = False
+        course_section_instance = CourseSection.objects.get(
+            pk=role_name, active=True)
+        if course_section_instance:
+            ok = True
+            course_section_instance.name = input.name if input.name is not None else course_section_instance.name
+            course_section_instance.description = input.description if input.description is not None else course_section_instance.description
+            course_section_instance.permissions = input.permissions if input.permissions is not None else course_section_instance.permissions
+            course_section_instance.priority = input.priority if input.priority is not None else course_section_instance.priority
+
+            searchField = input.name
+            searchField += input.description if input.description is not None else ""
+            searchField = searchField.lower()
+
+            course_section_instance.save()
+            payload = {"course_section": course_section_instance,
+                       "method": UPDATE_METHOD}
+            NotifyCourseSection.broadcast(
+                payload=payload)
+            return UpdateCourseSection(ok=ok, course_section=course_section_instance)
+        return UpdateCourseSection(ok=ok, course_section=None)
+
+
+class DeleteCourseSection(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark a CourseSection as inactive"
+
+    class Arguments:
+        role_name = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    course_section = graphene.Field(CourseSectionType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['DELETE']))
+    def mutate(root, info, role_name):
+        ok = False
+        course_section_instance = CourseSection.objects.get(
+            pk=role_name, active=True)
+        if course_section_instance:
+            ok = True
+            course_section_instance.active = False
+
+            course_section_instance.save()
+            payload = {"course_section": course_section_instance,
+                       "method": DELETE_METHOD}
+            NotifyCourseSection.broadcast(
+                payload=payload)
+            return DeleteCourseSection(ok=ok, course_section=course_section_instance)
+        return DeleteCourseSection(ok=ok, course_section=None)
+
+
 class CreateChapter(graphene.Mutation):
 
     class Meta:
@@ -1005,6 +1114,438 @@ class DeleteChapter(graphene.Mutation):
 
             return DeleteChapter(ok=ok, chapter=chapter_instance)
         return DeleteChapter(ok=ok, chapter=None)
+
+
+class CreateExercise(graphene.Mutation):
+    class Meta:
+        description = "Mutation to create a new Exercise"
+
+    class Arguments:
+        input = ExerciseInput(required=True)
+
+    ok = graphene.Boolean()
+    exercise = graphene.Field(ExerciseType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
+    def mutate(root, info, input=None):
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if input.permissions is None:
+            error += "permissions is a required field<br />"
+        if input.priority is None:
+            error += "priority is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField += input.description if input.description is not None else ""
+        searchField = searchField.lower()
+
+        exercise_instance = Exercise(name=input.name, description=input.description,
+                                     permissions=input.permissions, priority=input.priority, searchField=searchField)
+        exercise_instance.save()
+
+        payload = {"exercise": exercise_instance,
+                   "method": CREATE_METHOD}
+        NotifyExercise.broadcast(
+            payload=payload)
+        return CreateExercise(ok=ok, exercise=exercise_instance)
+
+
+class UpdateExercise(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Exercise"
+
+    class Arguments:
+        role_name = graphene.ID(required=True)
+        input = ExerciseInput(required=True)
+
+    ok = graphene.Boolean()
+    exercise = graphene.Field(ExerciseType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
+    def mutate(root, info, role_name, input=None):
+        ok = False
+        exercise_instance = Exercise.objects.get(pk=role_name, active=True)
+        if exercise_instance:
+            ok = True
+            exercise_instance.name = input.name if input.name is not None else exercise_instance.name
+            exercise_instance.description = input.description if input.description is not None else exercise_instance.description
+            exercise_instance.permissions = input.permissions if input.permissions is not None else exercise_instance.permissions
+            exercise_instance.priority = input.priority if input.priority is not None else exercise_instance.priority
+
+            searchField = input.name
+            searchField += input.description if input.description is not None else ""
+            searchField = searchField.lower()
+
+            exercise_instance.save()
+            payload = {"exercise": exercise_instance,
+                       "method": UPDATE_METHOD}
+            NotifyExercise.broadcast(
+                payload=payload)
+            return UpdateExercise(ok=ok, exercise=exercise_instance)
+        return UpdateExercise(ok=ok, exercise=None)
+
+
+class DeleteExercise(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark a Exercise as inactive"
+
+    class Arguments:
+        role_name = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    exercise = graphene.Field(ExerciseType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
+    def mutate(root, info, role_name):
+        ok = False
+        exercise_instance = Exercise.objects.get(pk=role_name, active=True)
+        if exercise_instance:
+            ok = True
+            exercise_instance.active = False
+
+            exercise_instance.save()
+            payload = {"exercise": exercise_instance,
+                       "method": DELETE_METHOD}
+            NotifyExercise.broadcast(
+                payload=payload)
+            return DeleteExercise(ok=ok, exercise=exercise_instance)
+        return DeleteExercise(ok=ok, exercise=None)
+
+
+class CreateExerciseFileAttachment(graphene.Mutation):
+    class Meta:
+        description = "Mutation to create a new ExerciseFileAttachment"
+
+    class Arguments:
+        input = ExerciseFileAttachmentInput(required=True)
+
+    ok = graphene.Boolean()
+    exercise_file_attachment = graphene.Field(ExerciseFileAttachmentType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
+    def mutate(root, info, input=None):
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if input.permissions is None:
+            error += "permissions is a required field<br />"
+        if input.priority is None:
+            error += "priority is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField += input.description if input.description is not None else ""
+        searchField = searchField.lower()
+
+        exercise_file_attachment_instance = ExerciseFileAttachment(name=input.name, description=input.description,
+                                                                   permissions=input.permissions, priority=input.priority, searchField=searchField)
+        exercise_file_attachment_instance.save()
+
+        payload = {"exercise_file_attachment": exercise_file_attachment_instance,
+                   "method": CREATE_METHOD}
+        NotifyExerciseFileAttachment.broadcast(
+            payload=payload)
+        return CreateExerciseFileAttachment(ok=ok, exercise_file_attachment=exercise_file_attachment_instance)
+
+
+class UpdateExerciseFileAttachment(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a ExerciseFileAttachment"
+
+    class Arguments:
+        role_name = graphene.ID(required=True)
+        input = ExerciseFileAttachmentInput(required=True)
+
+    ok = graphene.Boolean()
+    exercise_file_attachment = graphene.Field(ExerciseFileAttachmentType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
+    def mutate(root, info, role_name, input=None):
+        ok = False
+        exercise_file_attachment_instance = ExerciseFileAttachment.objects.get(
+            pk=role_name, active=True)
+        if exercise_file_attachment_instance:
+            ok = True
+            exercise_file_attachment_instance.name = input.name if input.name is not None else exercise_file_attachment_instance.name
+            exercise_file_attachment_instance.description = input.description if input.description is not None else exercise_file_attachment_instance.description
+            exercise_file_attachment_instance.permissions = input.permissions if input.permissions is not None else exercise_file_attachment_instance.permissions
+            exercise_file_attachment_instance.priority = input.priority if input.priority is not None else exercise_file_attachment_instance.priority
+
+            searchField = input.name
+            searchField += input.description if input.description is not None else ""
+            searchField = searchField.lower()
+
+            exercise_file_attachment_instance.save()
+            payload = {"exercise_file_attachment": exercise_file_attachment_instance,
+                       "method": UPDATE_METHOD}
+            NotifyExerciseFileAttachment.broadcast(
+                payload=payload)
+            return UpdateExerciseFileAttachment(ok=ok, exercise_file_attachment=exercise_file_attachment_instance)
+        return UpdateExerciseFileAttachment(ok=ok, exercise_file_attachment=None)
+
+
+class DeleteExerciseFileAttachment(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark a ExerciseFileAttachment as inactive"
+
+    class Arguments:
+        role_name = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    exercise_file_attachment = graphene.Field(ExerciseFileAttachmentType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
+    def mutate(root, info, role_name):
+        ok = False
+        exercise_file_attachment_instance = ExerciseFileAttachment.objects.get(
+            pk=role_name, active=True)
+        if exercise_file_attachment_instance:
+            ok = True
+            exercise_file_attachment_instance.active = False
+
+            exercise_file_attachment_instance.save()
+            payload = {"exercise_file_attachment": exercise_file_attachment_instance,
+                       "method": DELETE_METHOD}
+            NotifyExerciseFileAttachment.broadcast(
+                payload=payload)
+            return DeleteExerciseFileAttachment(ok=ok, exercise_file_attachment=exercise_file_attachment_instance)
+        return DeleteExerciseFileAttachment(ok=ok, exercise_file_attachment=None)
+
+
+class CreateExerciseSubmission(graphene.Mutation):
+    class Meta:
+        description = "Mutation to create a new ExerciseSubmission"
+
+    class Arguments:
+        input = ExerciseSubmissionInput(required=True)
+
+    ok = graphene.Boolean()
+    exercise_submission = graphene.Field(ExerciseSubmissionType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
+    def mutate(root, info, input=None):
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if input.permissions is None:
+            error += "permissions is a required field<br />"
+        if input.priority is None:
+            error += "priority is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField += input.description if input.description is not None else ""
+        searchField = searchField.lower()
+
+        exercise_submission_instance = ExerciseSubmission(name=input.name, description=input.description,
+                                                          permissions=input.permissions, priority=input.priority, searchField=searchField)
+        exercise_submission_instance.save()
+
+        payload = {"exercise_submission": exercise_submission_instance,
+                   "method": CREATE_METHOD}
+        NotifyExerciseSubmission.broadcast(
+            payload=payload)
+        return CreateExerciseSubmission(ok=ok, exercise_submission=exercise_submission_instance)
+
+
+class UpdateExerciseSubmission(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a ExerciseSubmission"
+
+    class Arguments:
+        role_name = graphene.ID(required=True)
+        input = ExerciseSubmissionInput(required=True)
+
+    ok = graphene.Boolean()
+    exercise_submission = graphene.Field(ExerciseSubmissionType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
+    def mutate(root, info, role_name, input=None):
+        ok = False
+        exercise_submission_instance = ExerciseSubmission.objects.get(
+            pk=role_name, active=True)
+        if exercise_submission_instance:
+            ok = True
+            exercise_submission_instance.name = input.name if input.name is not None else exercise_submission_instance.name
+            exercise_submission_instance.description = input.description if input.description is not None else exercise_submission_instance.description
+            exercise_submission_instance.permissions = input.permissions if input.permissions is not None else exercise_submission_instance.permissions
+            exercise_submission_instance.priority = input.priority if input.priority is not None else exercise_submission_instance.priority
+
+            searchField = input.name
+            searchField += input.description if input.description is not None else ""
+            searchField = searchField.lower()
+
+            exercise_submission_instance.save()
+            payload = {"exercise_submission": exercise_submission_instance,
+                       "method": UPDATE_METHOD}
+            NotifyExerciseSubmission.broadcast(
+                payload=payload)
+            return UpdateExerciseSubmission(ok=ok, exercise_submission=exercise_submission_instance)
+        return UpdateExerciseSubmission(ok=ok, exercise_submission=None)
+
+
+class DeleteExerciseSubmission(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark a ExerciseSubmission as inactive"
+
+    class Arguments:
+        role_name = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    exercise_submission = graphene.Field(ExerciseSubmissionType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
+    def mutate(root, info, role_name):
+        ok = False
+        exercise_submission_instance = ExerciseSubmission.objects.get(
+            pk=role_name, active=True)
+        if exercise_submission_instance:
+            ok = True
+            exercise_submission_instance.active = False
+
+            exercise_submission_instance.save()
+            payload = {"exercise_submission": exercise_submission_instance,
+                       "method": DELETE_METHOD}
+            NotifyExerciseSubmission.broadcast(
+                payload=payload)
+            return DeleteExerciseSubmission(ok=ok, exercise_submission=exercise_submission_instance)
+        return DeleteExerciseSubmission(ok=ok, exercise_submission=None)
+
+
+class CreateReport(graphene.Mutation):
+    class Meta:
+        description = "Mutation to create a new Report"
+
+    class Arguments:
+        input = ReportInput(required=True)
+
+    ok = graphene.Boolean()
+    report = graphene.Field(ReportType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['CREATE']))
+    def mutate(root, info, input=None):
+        ok = True
+        error = ""
+        if input.name is None:
+            error += "Name is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if input.permissions is None:
+            error += "permissions is a required field<br />"
+        if input.priority is None:
+            error += "priority is a required field<br />"
+        if len(error) > 0:
+            raise GraphQLError(error)
+        searchField = input.name
+        searchField += input.description if input.description is not None else ""
+        searchField = searchField.lower()
+
+        report_instance = Report(name=input.name, description=input.description,
+                                 permissions=input.permissions, priority=input.priority, searchField=searchField)
+        report_instance.save()
+
+        payload = {"report": report_instance,
+                   "method": CREATE_METHOD}
+        NotifyReport.broadcast(
+            payload=payload)
+        return CreateReport(ok=ok, report=report_instance)
+
+
+class UpdateReport(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Report"
+
+    class Arguments:
+        role_name = graphene.ID(required=True)
+        input = ReportInput(required=True)
+
+    ok = graphene.Boolean()
+    report = graphene.Field(ReportType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
+    def mutate(root, info, role_name, input=None):
+        ok = False
+        report_instance = Report.objects.get(pk=role_name, active=True)
+        if report_instance:
+            ok = True
+            report_instance.name = input.name if input.name is not None else report_instance.name
+            report_instance.description = input.description if input.description is not None else report_instance.description
+            report_instance.permissions = input.permissions if input.permissions is not None else report_instance.permissions
+            report_instance.priority = input.priority if input.priority is not None else report_instance.priority
+
+            searchField = input.name
+            searchField += input.description if input.description is not None else ""
+            searchField = searchField.lower()
+
+            report_instance.save()
+            payload = {"report": report_instance,
+                       "method": UPDATE_METHOD}
+            NotifyReport.broadcast(
+                payload=payload)
+            return UpdateReport(ok=ok, report=report_instance)
+        return UpdateReport(ok=ok, report=None)
+
+
+class DeleteReport(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark a Report as inactive"
+
+    class Arguments:
+        role_name = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    report = graphene.Field(ReportType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['DELETE']))
+    def mutate(root, info, role_name):
+        ok = False
+        report_instance = Report.objects.get(pk=role_name, active=True)
+        if report_instance:
+            ok = True
+            report_instance.active = False
+
+            report_instance.save()
+            payload = {"report": report_instance,
+                       "method": DELETE_METHOD}
+            NotifyReport.broadcast(
+                payload=payload)
+            return DeleteReport(ok=ok, report=report_instance)
+        return DeleteReport(ok=ok, report=None)
 
 
 class ChatWithMember(graphene.Mutation):
