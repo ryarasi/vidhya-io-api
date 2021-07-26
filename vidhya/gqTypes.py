@@ -2,7 +2,7 @@ from django.db.models.deletion import DO_NOTHING
 import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
-from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, Chapter, Chat, ChatMessage
+from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseFileAttachment, ExerciseSubmission, Report, Chat, ChatMessage
 from django.db import models
 
 ##############
@@ -76,6 +76,17 @@ class CourseType(DjangoObjectType):
         model = Course
 
 
+class CourseSectionType(DjangoObjectType):
+    total_count = graphene.Int()
+
+    def resolve_total_count(self, info):
+        count = CourseSection.objects.all().filter(active=True).count()
+        return count
+
+    class Meta:
+        model = CourseSection
+
+
 class ChapterType(DjangoObjectType):
     total_count = graphene.Int()
 
@@ -85,6 +96,50 @@ class ChapterType(DjangoObjectType):
 
     class Meta:
         model = Chapter
+
+
+class ExerciseType(DjangoObjectType):
+    total_count = graphene.Int()
+
+    def resolve_total_count(self, info):
+        count = Exercise.objects.all().filter(active=True).count()
+        return count
+
+    class Meta:
+        model = Exercise
+
+
+class ExerciseFileAttachment(DjangoObjectType):
+    total_count = graphene.Int()
+
+    def resolve_total_count(self, info):
+        count = ExerciseFileAttachment.objects.all().filter(active=True).count()
+        return count
+
+    class Meta:
+        model = ExerciseFileAttachment
+
+
+class ExerciseSubmissionType(DjangoObjectType):
+    total_count = graphene.Int()
+
+    def resolve_total_count(self, info):
+        count = ExerciseSubmission.objects.all().filter(active=True).count()
+        return count
+
+    class Meta:
+        model = ExerciseSubmission
+
+
+class ReportType(DjangoObjectType):
+    total_count = graphene.Int()
+
+    def resolve_total_count(self, info):
+        count = Report.objects.all().filter(active=True).count()
+        return count
+
+    class Meta:
+        model = Report
 
 
 class ChatType(DjangoObjectType):
@@ -154,6 +209,7 @@ class UserRoleInput(graphene.InputObjectType):
     id = graphene.ID()
     name = graphene.String(required=True)
     description = graphene.String(required=True)
+    priority = graphene.Int(required=True)
     permissions = generic.GenericScalar()
 
 
@@ -180,10 +236,25 @@ class AnnouncementInput(graphene.InputObjectType):
 class CourseInput(graphene.InputObjectType):
     id = graphene.ID()
     title = graphene.String(required=True)
+    blurb = graphene.String(required=True)
     description = graphene.String(required=True)
     instructor_id = graphene.ID(name="instructor", required=True)
     institution_ids = graphene.List(
         graphene.ID, name="institutions", required=True)
+    mandatory_prerequisite_ids = graphene.List(
+        graphene.ID, name="mandatoryPrerequisites")
+    recommended_prerequisite_ids = graphene.List(
+        graphene.ID, name="recommendedPrerequisites")
+    start_date = graphene.Date()
+    end_date = graphene.Date()
+    credit_hours = graphene.Int()
+
+
+class CourseSection(graphene.InputObjectType):
+    id = graphene.ID()
+    title = graphene.String(required=True)
+    index = graphene.Decimal()
+    course_id = graphene.ID(name="course", required=True)
 
 
 class ChapterInput(graphene.InputObjectType):
@@ -191,6 +262,46 @@ class ChapterInput(graphene.InputObjectType):
     title = graphene.String(required=True)
     instructions = graphene.String(required=True)
     course_id = graphene.ID(name="course", required=True)
+    section_id = graphene.ID(name="section")
+    prerequisite_ids = graphene.List(graphene.ID, name="prerequisites")
+    due_date = graphene.Date()
+    points = graphene.Int()
+
+
+class ExerciseInput(graphene.InputObjectType):
+    id = graphene.ID()
+    prompt = graphene.String()
+    chapter_id = graphene.ID(required=True)
+    question_type = graphene.String(required=True)
+    options = graphene.List(graphene.String)
+    points = graphene.Int()
+    required = graphene.Boolean(required=True)
+
+
+class ExerciseFileAttachmentInput(graphene.InputObjectType):
+    id = graphene.ID()
+    exercise_id = graphene.ID(name="exercise", required=True)
+    participant_id = graphene.ID(name="participant", required=True)
+    name = graphene.String(required=True)
+    description = graphene.String()
+
+
+class ExerciseSubmission(graphene.InputObjectType):
+    id = graphene.ID()
+    exercise_id = graphene.ID(name="exercise", required=True)
+    option = graphene.String()
+    answer = graphene.String()
+    files = graphene.List(graphene.String)
+    points = graphene.Decimal()
+    status = graphene.String()
+
+
+class ReportInput(graphene.InputObjectType):
+    id = graphene.ID()
+    participant_id = graphene.ID(name="participant", required=True)
+    course_id = graphene.ID(name="course", required=True)
+    completed = graphene.Int(required=True)
+    score = graphene.Int(required=True)
 
 
 class ChatMessageInput(graphene.InputObjectType):
