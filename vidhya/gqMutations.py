@@ -3,7 +3,7 @@ import graphene
 from graphql import GraphQLError
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseFileAttachment, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseType, ExerciseFileAttachmentType, ExerciseSubmissionType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseFileAttachmentInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseType, ExerciseFileAttachmentType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseFileAttachmentInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseFileAttachment, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 
