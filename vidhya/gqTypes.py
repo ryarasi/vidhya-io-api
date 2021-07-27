@@ -270,18 +270,17 @@ class ChapterInput(graphene.InputObjectType):
 
 class ExerciseInput(graphene.InputObjectType):
     id = graphene.ID()
-    prompt = graphene.String()
+    prompt = graphene.String(required=True)
     chapter_id = graphene.ID(required=True)
     question_type = graphene.String(required=True)
+    required = graphene.Boolean(required=True)
     options = graphene.List(graphene.String)
     points = graphene.Int()
-    required = graphene.Boolean(required=True)
 
 
 class ExerciseFileAttachmentInput(graphene.InputObjectType):
     id = graphene.ID()
     exercise_id = graphene.ID(name="exercise", required=True)
-    participant_id = graphene.ID(name="participant", required=True)
     name = graphene.String(required=True)
     description = graphene.String()
 

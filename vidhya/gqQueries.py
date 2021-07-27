@@ -47,29 +47,29 @@ class Query(ObjectType):
         CourseType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     course_section = graphene.Field(CourseSectionType, id=graphene.ID())
-    course_sections = graphene.List(CourseSectionType, searchField=graphene.String(
+    course_sections = graphene.List(CourseSectionType, course_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     chapter = graphene.Field(ChapterType, id=graphene.ID())
     chapters = graphene.List(
-        ChapterType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        ChapterType, course_id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     exercise = graphene.Field(ExerciseType, id=graphene.ID())
-    exercises = graphene.List(ExerciseType, searchField=graphene.String(
+    exercises = graphene.List(ExerciseType, chapter_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     exercise_file_attachment = graphene.Field(
         ExerciseFileAttachmentType, id=graphene.ID())
     exercise_file_attachments = graphene.List(
-        ExerciseFileAttachmentType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        ExerciseFileAttachmentType, exercise_id=graphene.ID(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     exercise_submission = graphene.Field(
         ExerciseSubmissionType, id=graphene.ID())
-    exercise_submissions = graphene.List(ExerciseSubmissionType, searchField=graphene.String(
+    exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(),searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     report = graphene.Field(ReportType, id=graphene.ID())
-    reports = graphene.List(ReportType, searchField=graphene.String(
+    reports = graphene.List(ReportType, participant_id=graphene.ID(), course_id=graphene.ID(), institution_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     chat = graphene.Field(ChatType, id=graphene.ID())
@@ -306,22 +306,25 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
-    def resolve_course_sections(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Course.objects.all().filter(active=True).order_by('-id')
+    def resolve_course_sections(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
 
-        if searchField is not None:
-            filter = (
-                Q(searchField__icontains=searchField)
-            )
-            qs = qs.filter(filter)
+        if course_id is not None:
+            qs = CourseSection.objects.all().filter(active=True, course_id=course_id).order_by('-id')
 
-        if offset is not None:
-            qs = qs[offset:]
+            if searchField is not None:
+                filter = (
+                    Q(searchField__icontains=searchField)
+                )
+                qs = qs.filter(filter)
 
-        if limit is not None:
-            qs = qs[:limit]
+            if offset is not None:
+                qs = qs[offset:]
 
-        return qs
+            if limit is not None:
+                qs = qs[:limit]
+
+            return qs
+        return None
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
@@ -334,22 +337,25 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
-    def resolve_chapters(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Chapter.objects.all().filter(active=True).order_by('-id')
+    def resolve_chapters(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
+        if course_id is not None:
 
-        if searchField is not None:
-            filter = (
-                Q(searchField__icontains=searchField)
-            )
-            qs = qs.filter(filter)
+            qs = Chapter.objects.all().filter(active=True, course_id=course_id).order_by('-id')
 
-        if offset is not None:
-            qs = qs[offset:]
+            if searchField is not None:
+                filter = (
+                    Q(searchField__icontains=searchField)
+                )
+                qs = qs.filter(filter)
 
-        if limit is not None:
-            qs = qs[:limit]
+            if offset is not None:
+                qs = qs[offset:]
 
-        return qs
+            if limit is not None:
+                qs = qs[:limit]
+
+            return qs
+        return None
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
@@ -362,22 +368,24 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
-    def resolve_exercises(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Exercise.objects.all().filter(active=True).order_by('-id')
+    def resolve_exercises(root, info, chapter_id=None, searchField=None, limit=None, offset=None, **kwargs):
+        if chapter_id is not None:
+            qs = Exercise.objects.all().filter(chapter_id=chapter_id, active=True).order_by('-id')
 
-        if searchField is not None:
-            filter = (
-                Q(searchField__icontains=searchField)
-            )
-            qs = qs.filter(filter)
+            if searchField is not None:
+                filter = (
+                    Q(searchField__icontains=searchField)
+                )
+                qs = qs.filter(filter)
 
-        if offset is not None:
-            qs = qs[offset:]
+            if offset is not None:
+                qs = qs[offset:]
 
-        if limit is not None:
-            qs = qs[:limit]
+            if limit is not None:
+                qs = qs[:limit]
 
-        return qs
+            return qs
+        return None
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
@@ -391,22 +399,24 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
-    def resolve_exercise_file_attachments(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = ExerciseFileAttachment.objects.all().filter(active=True).order_by('-id')
+    def resolve_exercise_file_attachments(root, info, exercise_id=None, searchField=None, limit=None, offset=None, **kwargs):
+        if exercise_id is not None:
+            qs = ExerciseFileAttachment.objects.all().filter(exercise_id=exercise_id, active=True).order_by('-id')
 
-        if searchField is not None:
-            filter = (
-                Q(searchField__icontains=searchField)
-            )
-            qs = qs.filter(filter)
+            if searchField is not None:
+                filter = (
+                    Q(searchField__icontains=searchField)
+                )
+                qs = qs.filter(filter)
 
-        if offset is not None:
-            qs = qs[offset:]
+            if offset is not None:
+                qs = qs[offset:]
 
-        if limit is not None:
-            qs = qs[:limit]
+            if limit is not None:
+                qs = qs[:limit]
 
-        return qs
+            return qs
+        return None
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
@@ -420,8 +430,26 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
-    def resolve_exercise_submissions(root, info, searchField=None, limit=None, offset=None, **kwargs):
+    def resolve_exercise_submissions(root, info, exercise_id=None, participant_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
         qs = ExerciseSubmission.objects.all().filter(active=True).order_by('-id')
+
+        if exercise_id is not None:
+            filter = (
+                Q(exercise_id=exercise_id)
+            )
+            qs = qs.filter(filter)
+
+        if participant_id is not None:
+            filter = (
+                Q(participant_id=participant_id)
+            )
+            qs = qs.filter(filter)          
+
+        if status is not None:
+            filter = (
+                Q(status=status)
+            )
+            qs = qs.filter(filter)             
 
         if searchField is not None:
             filter = (
@@ -448,8 +476,27 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['LIST']))
-    def resolve_reports(root, info, searchField=None, limit=None, offset=None, **kwargs):
+    def resolve_reports(root, info, participant_id=None, course_id=None, institution_id=None,searchField=None, limit=None, offset=None, **kwargs):
+
         qs = Report.objects.all().filter(active=True).order_by('-id')
+
+        if participant_id is not None:
+            filter = (
+                Q(participant_id=participant_id)
+            )
+            qs = qs.filter(filter)         
+
+        if course_id is not None:
+            filter = (
+                Q(course_id=course_id)
+            )
+            qs = qs.filter(filter) 
+
+        if institution_id is not None:
+            filter = (
+                Q(institution_id=institution_id)
+            )
+            qs = qs.filter(filter)             
 
         if searchField is not None:
             filter = (

@@ -886,7 +886,7 @@ class DeleteCourse(graphene.Mutation):
 
 class CreateCourseSection(graphene.Mutation):
     class Meta:
-        description = "Mutation to create a new CourseSection"
+        description = "Mutation to create a new Course Section"
 
     class Arguments:
         input = CourseSectionInput(required=True)
@@ -900,22 +900,18 @@ class CreateCourseSection(graphene.Mutation):
     def mutate(root, info, input=None):
         ok = True
         error = ""
-        if input.name is None:
-            error += "Name is a required field<br />"
-        if input.description is None:
-            error += "Description is a required field<br />"
-        if input.permissions is None:
-            error += "permissions is a required field<br />"
-        if input.priority is None:
-            error += "priority is a required field<br />"
+        if input.title is None:
+            error += "Title is a required field<br />"
+        if input.course_id is None:
+            error += "Course is a required field<br />"
+
         if len(error) > 0:
             raise GraphQLError(error)
-        searchField = input.name
-        searchField += input.description if input.description is not None else ""
+        searchField = input.title
         searchField = searchField.lower()
 
-        course_section_instance = CourseSection(name=input.name, description=input.description,
-                                                permissions=input.permissions, priority=input.priority, searchField=searchField)
+        course_section_instance = CourseSection(title=input.title, index=input.index, course_id=input.course_id,
+                                                 searchField=searchField)
         course_section_instance.save()
 
         payload = {"course_section": course_section_instance,
@@ -930,7 +926,7 @@ class UpdateCourseSection(graphene.Mutation):
         description = "Mutation to update a CourseSection"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        id = graphene.ID(required=True)
         input = CourseSectionInput(required=True)
 
     ok = graphene.Boolean()
@@ -939,19 +935,18 @@ class UpdateCourseSection(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['UPDATE']))
-    def mutate(root, info, role_name, input=None):
+    def mutate(root, info, id, input=None):
         ok = False
         course_section_instance = CourseSection.objects.get(
-            pk=role_name, active=True)
+            pk=id, active=True)
         if course_section_instance:
             ok = True
-            course_section_instance.name = input.name if input.name is not None else course_section_instance.name
-            course_section_instance.description = input.description if input.description is not None else course_section_instance.description
-            course_section_instance.permissions = input.permissions if input.permissions is not None else course_section_instance.permissions
-            course_section_instance.priority = input.priority if input.priority is not None else course_section_instance.priority
+            course_section_instance.title = input.title if input.title is not None else course_section_instance.title
+            course_section_instance.index = input.index if input.index is not None else course_section_instance.index
+            course_section_instance.course_id = input.course_id if input.course_id is not None else course_section_instance.course_id
 
-            searchField = input.name
-            searchField += input.description if input.description is not None else ""
+
+            searchField = input.title
             searchField = searchField.lower()
 
             course_section_instance.save()
@@ -968,7 +963,7 @@ class DeleteCourseSection(graphene.Mutation):
         description = "Mutation to mark a CourseSection as inactive"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     course_section = graphene.Field(CourseSectionType)
@@ -976,10 +971,10 @@ class DeleteCourseSection(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['DELETE']))
-    def mutate(root, info, role_name):
+    def mutate(root, info, id):
         ok = False
         course_section_instance = CourseSection.objects.get(
-            pk=role_name, active=True)
+            pk=id, active=True)
         if course_section_instance:
             ok = True
             course_section_instance.active = False
@@ -1132,22 +1127,21 @@ class CreateExercise(graphene.Mutation):
     def mutate(root, info, input=None):
         ok = True
         error = ""
-        if input.name is None:
-            error += "Name is a required field<br />"
-        if input.description is None:
-            error += "Description is a required field<br />"
-        if input.permissions is None:
-            error += "permissions is a required field<br />"
-        if input.priority is None:
-            error += "priority is a required field<br />"
+        if input.prompt is None:
+            error += "Prompt is a required field<br />"
+        if input.chapter_id is None:
+            error += "Chapter is a required field<br />"
+        if input.question_type is None:
+            error += "Question type is a required field<br />"
+        if input.required is None:
+            error += "Required is a required field<br />"
         if len(error) > 0:
             raise GraphQLError(error)
-        searchField = input.name
-        searchField += input.description if input.description is not None else ""
+        searchField = input.prompt
         searchField = searchField.lower()
 
-        exercise_instance = Exercise(name=input.name, description=input.description,
-                                     permissions=input.permissions, priority=input.priority, searchField=searchField)
+        exercise_instance = Exercise(prompt=input.prompt, chapter_id=input.chapter_id,
+                                     question_type=input.question_type, required=input.required, options=input.options, points=input.points, searchField=searchField)
         exercise_instance.save()
 
         payload = {"exercise": exercise_instance,
@@ -1162,7 +1156,7 @@ class UpdateExercise(graphene.Mutation):
         description = "Mutation to update a Exercise"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        id = graphene.ID(required=True)
         input = ExerciseInput(required=True)
 
     ok = graphene.Boolean()
@@ -1171,19 +1165,20 @@ class UpdateExercise(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
-    def mutate(root, info, role_name, input=None):
+    def mutate(root, info, id, input=None):
         ok = False
-        exercise_instance = Exercise.objects.get(pk=role_name, active=True)
+        exercise_instance = Exercise.objects.get(pk=id, active=True)
         if exercise_instance:
             ok = True
-            exercise_instance.name = input.name if input.name is not None else exercise_instance.name
-            exercise_instance.description = input.description if input.description is not None else exercise_instance.description
-            exercise_instance.permissions = input.permissions if input.permissions is not None else exercise_instance.permissions
-            exercise_instance.priority = input.priority if input.priority is not None else exercise_instance.priority
+            exercise_instance.prompt = input.prompt if input.prompt is not None else exercise_instance.prompt
+            exercise_instance.chapter_id = input.chapter_id if input.chapter_id is not None else exercise_instance.chapter_id
+            exercise_instance.question_type = input.question_type if input.question_type is not None else exercise_instance.question_type
+            exercise_instance.required = input.required if input.required is not None else exercise_instance.required
+            exercise_instance.options = input.options if input.options is not None else exercise_instance.options
+            exercise_instance.points = input.points if input.points is not None else exercise_instance.points
 
-            searchField = input.name
-            searchField += input.description if input.description is not None else ""
-            searchField = searchField.lower()
+            searchField = input.prompt
+            exercise_instance.searchField = searchField.lower()
 
             exercise_instance.save()
             payload = {"exercise": exercise_instance,
@@ -1199,7 +1194,7 @@ class DeleteExercise(graphene.Mutation):
         description = "Mutation to mark a Exercise as inactive"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     exercise = graphene.Field(ExerciseType)
@@ -1207,9 +1202,9 @@ class DeleteExercise(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
-    def mutate(root, info, role_name):
+    def mutate(root, info, id):
         ok = False
-        exercise_instance = Exercise.objects.get(pk=role_name, active=True)
+        exercise_instance = Exercise.objects.get(pk=id, active=True)
         if exercise_instance:
             ok = True
             exercise_instance.active = False
@@ -1239,14 +1234,11 @@ class CreateExerciseFileAttachment(graphene.Mutation):
     def mutate(root, info, input=None):
         ok = True
         error = ""
+        if input.exiercise_id is None:
+            error += "Exercise is a required field<br />"
         if input.name is None:
             error += "Name is a required field<br />"
-        if input.description is None:
-            error += "Description is a required field<br />"
-        if input.permissions is None:
-            error += "permissions is a required field<br />"
-        if input.priority is None:
-            error += "priority is a required field<br />"
+
         if len(error) > 0:
             raise GraphQLError(error)
         searchField = input.name
@@ -1254,7 +1246,7 @@ class CreateExerciseFileAttachment(graphene.Mutation):
         searchField = searchField.lower()
 
         exercise_file_attachment_instance = ExerciseFileAttachment(name=input.name, description=input.description,
-                                                                   permissions=input.permissions, priority=input.priority, searchField=searchField)
+                                                                   exercise_id=input.exercise_id, searchField=searchField)
         exercise_file_attachment_instance.save()
 
         payload = {"exercise_file_attachment": exercise_file_attachment_instance,
@@ -1269,7 +1261,7 @@ class UpdateExerciseFileAttachment(graphene.Mutation):
         description = "Mutation to update a ExerciseFileAttachment"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        id = graphene.ID(required=True)
         input = ExerciseFileAttachmentInput(required=True)
 
     ok = graphene.Boolean()
@@ -1278,20 +1270,19 @@ class UpdateExerciseFileAttachment(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
-    def mutate(root, info, role_name, input=None):
+    def mutate(root, info, id, input=None):
         ok = False
         exercise_file_attachment_instance = ExerciseFileAttachment.objects.get(
-            pk=role_name, active=True)
+            pk=id, active=True)
         if exercise_file_attachment_instance:
             ok = True
             exercise_file_attachment_instance.name = input.name if input.name is not None else exercise_file_attachment_instance.name
             exercise_file_attachment_instance.description = input.description if input.description is not None else exercise_file_attachment_instance.description
-            exercise_file_attachment_instance.permissions = input.permissions if input.permissions is not None else exercise_file_attachment_instance.permissions
-            exercise_file_attachment_instance.priority = input.priority if input.priority is not None else exercise_file_attachment_instance.priority
+            exercise_file_attachment_instance.exercise_id = input.exercise_id if input.exercise_id is not None else exercise_file_attachment_instance.exercise_id
 
             searchField = input.name
             searchField += input.description if input.description is not None else ""
-            searchField = searchField.lower()
+            exercise_file_attachment_instance.searchField = searchField.lower()
 
             exercise_file_attachment_instance.save()
             payload = {"exercise_file_attachment": exercise_file_attachment_instance,
@@ -1307,7 +1298,7 @@ class DeleteExerciseFileAttachment(graphene.Mutation):
         description = "Mutation to mark a ExerciseFileAttachment as inactive"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     exercise_file_attachment = graphene.Field(ExerciseFileAttachmentType)
@@ -1315,10 +1306,10 @@ class DeleteExerciseFileAttachment(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
-    def mutate(root, info, role_name):
+    def mutate(root, info, id):
         ok = False
         exercise_file_attachment_instance = ExerciseFileAttachment.objects.get(
-            pk=role_name, active=True)
+            pk=id, active=True)
         if exercise_file_attachment_instance:
             ok = True
             exercise_file_attachment_instance.active = False
@@ -1348,22 +1339,17 @@ class CreateExerciseSubmission(graphene.Mutation):
     def mutate(root, info, input=None):
         ok = True
         error = ""
-        if input.name is None:
-            error += "Name is a required field<br />"
-        if input.description is None:
-            error += "Description is a required field<br />"
-        if input.permissions is None:
-            error += "permissions is a required field<br />"
-        if input.priority is None:
-            error += "priority is a required field<br />"
+        if input.exercise_id is None:
+            error += "Exercise is a required field<br />"
+
         if len(error) > 0:
             raise GraphQLError(error)
-        searchField = input.name
-        searchField += input.description if input.description is not None else ""
+        searchField = input.option
+        searchField += input.answer if input.answer is not None else ""
         searchField = searchField.lower()
 
-        exercise_submission_instance = ExerciseSubmission(name=input.name, description=input.description,
-                                                          permissions=input.permissions, priority=input.priority, searchField=searchField)
+        exercise_submission_instance = ExerciseSubmission(exercise_id=input.exercise_id, option=input.option,
+                                                          answer=input.answer, files=input.files, points=input.points, status=input.status, searchField=searchField)
         exercise_submission_instance.save()
 
         payload = {"exercise_submission": exercise_submission_instance,
@@ -1378,7 +1364,7 @@ class UpdateExerciseSubmission(graphene.Mutation):
         description = "Mutation to update a ExerciseSubmission"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        id = graphene.ID(required=True)
         input = ExerciseSubmissionInput(required=True)
 
     ok = graphene.Boolean()
@@ -1387,20 +1373,22 @@ class UpdateExerciseSubmission(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
-    def mutate(root, info, role_name, input=None):
+    def mutate(root, info, id, input=None):
         ok = False
         exercise_submission_instance = ExerciseSubmission.objects.get(
-            pk=role_name, active=True)
+            pk=id, active=True)
         if exercise_submission_instance:
             ok = True
-            exercise_submission_instance.name = input.name if input.name is not None else exercise_submission_instance.name
-            exercise_submission_instance.description = input.description if input.description is not None else exercise_submission_instance.description
-            exercise_submission_instance.permissions = input.permissions if input.permissions is not None else exercise_submission_instance.permissions
-            exercise_submission_instance.priority = input.priority if input.priority is not None else exercise_submission_instance.priority
+            exercise_submission_instance.exercise_id = input.exercise_id if input.exercise_id is not None else exercise_submission_instance.exercise_id
+            exercise_submission_instance.option = input.option if input.option is not None else exercise_submission_instance.option
+            exercise_submission_instance.answer = input.answer if input.answer is not None else exercise_submission_instance.answer
+            exercise_submission_instance.files = input.files if input.files is not None else exercise_submission_instance.files
+            exercise_submission_instance.points = input.points if input.points is not None else exercise_submission_instance.points
+            exercise_submission_instance.status = input.status if input.status is not None else exercise_submission_instance.status
 
-            searchField = input.name
-            searchField += input.description if input.description is not None else ""
-            searchField = searchField.lower()
+            searchField = input.option
+            searchField += input.answer if input.answer is not None else ""
+            exercise_submission_instance.searchField = searchField.lower()
 
             exercise_submission_instance.save()
             payload = {"exercise_submission": exercise_submission_instance,
@@ -1416,7 +1404,7 @@ class DeleteExerciseSubmission(graphene.Mutation):
         description = "Mutation to mark a ExerciseSubmission as inactive"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     exercise_submission = graphene.Field(ExerciseSubmissionType)
@@ -1424,10 +1412,10 @@ class DeleteExerciseSubmission(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
-    def mutate(root, info, role_name):
+    def mutate(root, info, id):
         ok = False
         exercise_submission_instance = ExerciseSubmission.objects.get(
-            pk=role_name, active=True)
+            pk=id, active=True)
         if exercise_submission_instance:
             ok = True
             exercise_submission_instance.active = False
@@ -1457,22 +1445,21 @@ class CreateReport(graphene.Mutation):
     def mutate(root, info, input=None):
         ok = True
         error = ""
-        if input.name is None:
-            error += "Name is a required field<br />"
-        if input.description is None:
-            error += "Description is a required field<br />"
-        if input.permissions is None:
-            error += "permissions is a required field<br />"
-        if input.priority is None:
-            error += "priority is a required field<br />"
+        if input.participant_id is None:
+            error += "Participant is a required field<br />"
+        if input.course_id is None:
+            error += "Course is a required field<br />"
+        if input.completed is None:
+            error += "Completed is a required field<br />"
+        if input.score is None:
+            error += "Score is a required field<br />"
         if len(error) > 0:
             raise GraphQLError(error)
-        searchField = input.name
-        searchField += input.description if input.description is not None else ""
-        searchField = searchField.lower()
+        searchField = ""
+        searchField = searchField.lower()        
 
-        report_instance = Report(name=input.name, description=input.description,
-                                 permissions=input.permissions, priority=input.priority, searchField=searchField)
+        report_instance = Report(participant_id=input.participant_id, course_id=input.course_id,
+                                 completed=input.completed, score=input.score, searchField=searchField)
         report_instance.save()
 
         payload = {"report": report_instance,
@@ -1487,7 +1474,7 @@ class UpdateReport(graphene.Mutation):
         description = "Mutation to update a Report"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        id = graphene.ID(required=True)
         input = ReportInput(required=True)
 
     ok = graphene.Boolean()
@@ -1496,19 +1483,19 @@ class UpdateReport(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
-    def mutate(root, info, role_name, input=None):
+    def mutate(root, info, id, input=None):
         ok = False
-        report_instance = Report.objects.get(pk=role_name, active=True)
+        report_instance = Report.objects.get(pk=id, active=True)
         if report_instance:
             ok = True
-            report_instance.name = input.name if input.name is not None else report_instance.name
-            report_instance.description = input.description if input.description is not None else report_instance.description
-            report_instance.permissions = input.permissions if input.permissions is not None else report_instance.permissions
-            report_instance.priority = input.priority if input.priority is not None else report_instance.priority
+            report_instance.participant_id = input.participant_id if input.participant_id is not None else report_instance.participant_id
+            report_instance.course_id = input.course_id if input.course_id is not None else report_instance.course_id
+            report_instance.completed = input.completed if input.completed is not None else report_instance.completed
+            report_instance.score = input.score if input.score is not None else report_instance.score
 
-            searchField = input.name
-            searchField += input.description if input.description is not None else ""
-            searchField = searchField.lower()
+            searchField = ""
+            report_instance.searchField = searchField.lower()
+
 
             report_instance.save()
             payload = {"report": report_instance,
@@ -1524,7 +1511,7 @@ class DeleteReport(graphene.Mutation):
         description = "Mutation to mark a Report as inactive"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     report = graphene.Field(ReportType)
@@ -1532,9 +1519,9 @@ class DeleteReport(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['DELETE']))
-    def mutate(root, info, role_name):
+    def mutate(root, info, id):
         ok = False
-        report_instance = Report.objects.get(pk=role_name, active=True)
+        report_instance = Report.objects.get(pk=id, active=True)
         if report_instance:
             ok = True
             report_instance.active = False
