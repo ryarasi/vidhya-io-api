@@ -245,17 +245,16 @@ class Exercise(models.Model):
 
     question_type = models.CharField(
         max_length=2, choices=QuestionTypeChoices.choices, default=QuestionTypeChoices.OPTIONS)
+    required = models.BooleanField(default=True)
     options = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
     points = models.IntegerField(blank=True, null=True)
-    required = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
 class ExerciseFileAttachment(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
-    participant = models.ForeignKey(User, on_delete=CASCADE)
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=200, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -264,6 +263,7 @@ class ExerciseFileAttachment(models.Model):
 
 class ExerciseSubmission(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
+    participant = models.ForeignKey(User, on_delete=CASCADE)
     option = models.CharField(
         max_length=200, blank=True, null=True)
     answer = models.CharField(max_length=500, blank=True, null=True)
@@ -288,6 +288,7 @@ class ExerciseSubmission(models.Model):
 class Report(models.Model):
     participant = models.ForeignKey(User, on_delete=CASCADE)
     course = models.ForeignKey(Course, on_delete=CASCADE)
+    institution=models.ForeignKey(Institution, on_delete=CASCADE)
     # This will be calculated on grading by dividing the number of graded exercise submissions by required exercises * 100
     completed = models.IntegerField(default=0)
     score = models.IntegerField(default=0)
