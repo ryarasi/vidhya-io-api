@@ -1,4 +1,5 @@
 
+from typing_extensions import Required
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
@@ -52,16 +53,16 @@ class Query(ObjectType):
 
     chapter = graphene.Field(ChapterType, id=graphene.ID())
     chapters = graphene.List(
-        ChapterType, course_id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        ChapterType, course_id=graphene.ID(required=True),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     exercise = graphene.Field(ExerciseType, id=graphene.ID())
-    exercises = graphene.List(ExerciseType, chapter_id=graphene.ID(), searchField=graphene.String(
+    exercises = graphene.List(ExerciseType, chapter_id=graphene.ID(required=True), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     exercise_file_attachment = graphene.Field(
         ExerciseFileAttachmentType, id=graphene.ID())
     exercise_file_attachments = graphene.List(
-        ExerciseFileAttachmentType, exercise_id=graphene.ID(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        ExerciseFileAttachmentType, exercise_id=graphene.ID(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     exercise_submission = graphene.Field(
         ExerciseSubmissionType, id=graphene.ID())
