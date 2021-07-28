@@ -48,7 +48,7 @@ class Query(ObjectType):
         CourseType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     course_section = graphene.Field(CourseSectionType, id=graphene.ID())
-    course_sections = graphene.List(CourseSectionType, course_id=graphene.ID(), searchField=graphene.String(
+    course_sections = graphene.List(CourseSectionType, course_id=graphene.ID(required=True), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     chapter = graphene.Field(ChapterType, id=graphene.ID())
