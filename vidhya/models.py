@@ -208,7 +208,9 @@ class CourseSection(models.Model):
     index = models.DecimalField(
         max_digits=4, decimal_places=2, blank=True, null=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.title
 
@@ -249,6 +251,7 @@ class Exercise(models.Model):
     options = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
     points = models.IntegerField(blank=True, null=True)
+    active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -257,6 +260,7 @@ class ExerciseFileAttachment(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=200, blank=True, null=True)
+    active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -279,8 +283,9 @@ class ExerciseSubmission(models.Model):
         RETURNED = "RE", _('RETURNED')
     # End of Type Choices
 
-    staus = models.CharField(
+    status = models.CharField(
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.DRAFT)
+    active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -292,6 +297,9 @@ class Report(models.Model):
     # This will be calculated on grading by dividing the number of graded exercise submissions by required exercises * 100
     completed = models.IntegerField(default=0)
     score = models.IntegerField(default=0)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)    
 
 
 class Chat(models.Model):
