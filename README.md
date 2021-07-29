@@ -69,8 +69,8 @@ The following instructions assumes that you are attempting to setup the project 
     2.  The database can be explored and modified by visiting `localhost:5000` in the browser. 
     3.  The email and password are available in the `docker-compose.yml` file under `environment` in `pgadmin4`. 
 16. Using data fixtures:-
-    1.  In order to get a JSON file of the data in a table, use `docker-compose run web python manage.py dumpdata app_label.ModelName > specific_file.json`
-    2.  In order to load the data from the file to a table use `docker-compose run web python manage.py loaddata specific_file.json`
+    1.  In order to get a JSON file of the data in a table, use `docker-compose run web python manage.py dumpdata vidhya.UserRole > ./vidhya/fixtures/roles.json`
+    2.  In order to load the data from the file to a table use `docker-compose run web python manage.py loaddata ./vidhya/fixtures/roles.json`
 
 
 ## Troubleshooting:-
