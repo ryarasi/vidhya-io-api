@@ -1,5 +1,3 @@
-
-from typing_extensions import Required
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
