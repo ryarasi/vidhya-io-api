@@ -240,7 +240,8 @@ class CourseInput(graphene.InputObjectType):
     description = graphene.String(required=True)
     instructor_id = graphene.ID(name="instructor", required=True)
     institution_ids = graphene.List(
-        graphene.ID, name="institutions", required=True)
+        graphene.ID, name="institutions")
+    participant_ids = graphene.List(graphene.ID, name="participants")
     mandatory_prerequisite_ids = graphene.List(
         graphene.ID, name="mandatoryPrerequisites")
     recommended_prerequisite_ids = graphene.List(
