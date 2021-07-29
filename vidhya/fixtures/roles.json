@@ -1,2 +1,107 @@
-
-[{"model": "vidhya.userrole", "pk": "Super Admin", "fields": {"description": "Has all the access", "priority": 0, "permissions": {"GROUP": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "COURSE": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "MEMBER": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "REPORT": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "CHAPTER": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "LEARNER": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "USER_ROLE": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "MODERATION": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "CLASS_ADMIN": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "INSTITUTION": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "OWN_PROFILE": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "ANNOUNCEMENT": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}, "INSTITUTION_ADMIN": {"GET": true, "LIST": true, "CREATE": true, "DELETE": true, "UPDATE": true}}, "searchField": null, "active": true, "created_at": "2021-07-25T11:42:28.252Z", "updated_at": "2021-07-25T11:42:28.252Z"}}]
+[
+    {
+        "model": "vidhya.userrole",
+        "pk": "Super Admin",
+        "fields": {
+            "description": "Has all the access",
+            "priority": 0,
+            "permissions": {
+                "GROUP": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "COURSE": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "MEMBER": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "REPORT": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "CHAPTER": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "LEARNER": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "USER_ROLE": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "MODERATION": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "CLASS_ADMIN": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "INSTITUTION": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "OWN_PROFILE": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "ANNOUNCEMENT": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                },
+                "INSTITUTION_ADMIN": {
+                    "GET": true,
+                    "LIST": true,
+                    "CREATE": true,
+                    "DELETE": true,
+                    "UPDATE": true
+                }
+            },
+            "searchField": null,
+            "active": true,
+            "created_at": "2021-07-25T11:42:28.252Z",
+            "updated_at": "2021-07-25T11:42:28.252Z"
+        }
+    }
+]
