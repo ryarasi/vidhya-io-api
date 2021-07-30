@@ -174,8 +174,8 @@ class Course(models.Model):
         'Course', related_name="required", blank=True)
     recommended_prerequisites = models.ManyToManyField(
         'Course', related_name="optional", blank=True)
-    start_date = models.DateField(blank=True, null=True)
-    end_date = models.DateField(blank=True, null=True)
+    start_date = models.CharField(max_length=100, blank=True, null=True)
+    end_date = models.CharField(max_length=100, blank=True, null=True)
     credit_hours = models.IntegerField(blank=True, null=True)
     searchField = models.CharField(max_length=1200, blank=True, null=True)
 

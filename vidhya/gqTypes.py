@@ -246,8 +246,8 @@ class CourseInput(graphene.InputObjectType):
         graphene.ID, name="mandatoryPrerequisites")
     recommended_prerequisite_ids = graphene.List(
         graphene.ID, name="recommendedPrerequisites")
-    start_date = graphene.Date()
-    end_date = graphene.Date()
+    start_date = graphene.String()
+    end_date = graphene.String()
     credit_hours = graphene.Int()
 
 
