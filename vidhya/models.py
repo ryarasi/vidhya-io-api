@@ -223,7 +223,7 @@ class Chapter(models.Model):
         CourseSection, on_delete=models.DO_NOTHING, blank=True, null=True)
     prerequisites = models.ManyToManyField(
         'Chapter', related_name="required", blank=True)
-    due_date = models.DateTimeField(blank=True, null=True)
+    due_date = models.CharField(max_length=100, blank=True, null=True)
     points = models.IntegerField(blank=True, null=True)
 
     searchField = models.CharField(max_length=1200, blank=True, null=True)

@@ -265,7 +265,7 @@ class ChapterInput(graphene.InputObjectType):
     course_id = graphene.ID(name="course", required=True)
     section_id = graphene.ID(name="section")
     prerequisite_ids = graphene.List(graphene.ID, name="prerequisites")
-    due_date = graphene.Date()
+    due_date = graphene.String()
     points = graphene.Int()
 
 
