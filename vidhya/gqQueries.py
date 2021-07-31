@@ -51,7 +51,7 @@ class Query(ObjectType):
 
     chapter = graphene.Field(ChapterType, id=graphene.ID())
     chapters = graphene.List(
-        ChapterType, course_id=graphene.ID(required=True),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        ChapterType, course_id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     exercise = graphene.Field(ExerciseType, id=graphene.ID())
     exercises = graphene.List(ExerciseType, chapter_id=graphene.ID(required=True), searchField=graphene.String(
@@ -337,24 +337,26 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_chapters(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Chapter.objects.all().filter(active=True).order_by('-id')
         if course_id is not None:
+            filter = (
+                Q(course_id=course_id)
+            )
+            qs = qs.filter(filter)
 
-            qs = Chapter.objects.all().filter(active=True, course_id=course_id).order_by('-id')
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
 
-            if searchField is not None:
-                filter = (
-                    Q(searchField__icontains=searchField)
-                )
-                qs = qs.filter(filter)
+        if offset is not None:
+            qs = qs[offset:]
 
-            if offset is not None:
-                qs = qs[offset:]
+        if limit is not None:
+            qs = qs[:limit]
 
-            if limit is not None:
-                qs = qs[:limit]
-
-            return qs
-        return None
+        return qs
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
