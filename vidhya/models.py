@@ -243,7 +243,8 @@ class Exercise(models.Model):
     class QuestionTypeChoices(models.TextChoices):
         OPTIONS = 'OP', _('OPTIONS')
         DESCRIPTION = "DE", _('DESCRIPTION')
-        FILE = "FL", _('FILE')
+        IMAGE = "IM", _('IMAGE')
+        LINK = "LI", _('LINK')
     # End of Type Choices
 
     question_type = models.CharField(
