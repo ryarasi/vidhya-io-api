@@ -260,7 +260,8 @@ class Exercise(models.Model):
 
 
 class ExerciseFileAttachment(models.Model):
-    exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
+    exercise = models.ForeignKey(
+        Exercise, on_delete=CASCADE, related_name="files")
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=200, blank=True, null=True)
     active = models.BooleanField(default=True)
