@@ -911,7 +911,7 @@ class CreateCourseSection(graphene.Mutation):
         searchField = searchField.lower()
 
         course_section_instance = CourseSection(title=input.title, index=input.index, course_id=input.course_id,
-                                                 searchField=searchField)
+                                                searchField=searchField)
         course_section_instance.save()
 
         payload = {"course_section": course_section_instance,
@@ -944,7 +944,6 @@ class UpdateCourseSection(graphene.Mutation):
             course_section_instance.title = input.title if input.title is not None else course_section_instance.title
             course_section_instance.index = input.index if input.index is not None else course_section_instance.index
             course_section_instance.course_id = input.course_id if input.course_id is not None else course_section_instance.course_id
-
 
             searchField = input.title
             searchField = searchField.lower()
@@ -1456,7 +1455,7 @@ class CreateReport(graphene.Mutation):
         if len(error) > 0:
             raise GraphQLError(error)
         searchField = ""
-        searchField = searchField.lower()        
+        searchField = searchField.lower()
 
         report_instance = Report(participant_id=input.participant_id, course_id=input.course_id,
                                  completed=input.completed, score=input.score, searchField=searchField)
@@ -1495,7 +1494,6 @@ class UpdateReport(graphene.Mutation):
 
             searchField = ""
             report_instance.searchField = searchField.lower()
-
 
             report_instance.save()
             payload = {"report": report_instance,
@@ -1732,6 +1730,10 @@ class Mutation(graphene.ObjectType):
     create_chapter = CreateChapter.Field()
     update_chapter = UpdateChapter.Field()
     delete_chapter = DeleteChapter.Field()
+
+    create_exercise = CreateExercise.Field()
+    update_exercise = UpdateExercise.Field()
+    delete_exercise = DeleteExercise.Field()
 
     delete_chat = DeleteChat.Field()
     chat_with_member = ChatWithMember.Field()

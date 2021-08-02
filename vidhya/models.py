@@ -211,6 +211,7 @@ class CourseSection(models.Model):
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return self.title
 
@@ -252,6 +253,8 @@ class Exercise(models.Model):
         max_length=200, blank=True), blank=True, null=True)
     points = models.IntegerField(blank=True, null=True)
     active = models.BooleanField(default=True)
+    searchField = models.CharField(max_length=1000, blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -261,6 +264,7 @@ class ExerciseFileAttachment(models.Model):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=200, blank=True, null=True)
     active = models.BooleanField(default=True)
+    searchField = models.CharField(max_length=1000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -286,6 +290,7 @@ class ExerciseSubmission(models.Model):
     status = models.CharField(
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.DRAFT)
     active = models.BooleanField(default=True)
+    searchField = models.CharField(max_length=1000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -293,13 +298,14 @@ class ExerciseSubmission(models.Model):
 class Report(models.Model):
     participant = models.ForeignKey(User, on_delete=CASCADE)
     course = models.ForeignKey(Course, on_delete=CASCADE)
-    institution=models.ForeignKey(Institution, on_delete=CASCADE)
+    institution = models.ForeignKey(Institution, on_delete=CASCADE)
     # This will be calculated on grading by dividing the number of graded exercise submissions by required exercises * 100
     completed = models.IntegerField(default=0)
     score = models.IntegerField(default=0)
     active = models.BooleanField(default=True)
+    searchField = models.CharField(max_length=1000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)    
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Chat(models.Model):
