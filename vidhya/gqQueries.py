@@ -1,9 +1,9 @@
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseFileAttachment, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, Report, Chat, ChatMessage
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseFileAttachmentType, ExerciseSubmissionType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS
 
 
@@ -51,20 +51,15 @@ class Query(ObjectType):
 
     chapter = graphene.Field(ChapterType, id=graphene.ID())
     chapters = graphene.List(
-        ChapterType, course_id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        ChapterType, course_id=graphene.ID(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     exercise = graphene.Field(ExerciseType, id=graphene.ID())
     exercises = graphene.List(ExerciseType, chapter_id=graphene.ID(required=True), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
-    exercise_file_attachment = graphene.Field(
-        ExerciseFileAttachmentType, id=graphene.ID())
-    exercise_file_attachments = graphene.List(
-        ExerciseFileAttachmentType, exercise_id=graphene.ID(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-
     exercise_submission = graphene.Field(
         ExerciseSubmissionType, id=graphene.ID())
-    exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(),searchField=graphene.String(
+    exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     report = graphene.Field(ReportType, id=graphene.ID())
@@ -308,7 +303,8 @@ class Query(ObjectType):
     def resolve_course_sections(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
 
         if course_id is not None:
-            qs = CourseSection.objects.all().filter(active=True, course_id=course_id).order_by('-id')
+            qs = CourseSection.objects.all().filter(
+                active=True, course_id=course_id).order_by('-id')
 
             if searchField is not None:
                 filter = (
@@ -371,38 +367,8 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_exercises(root, info, chapter_id=None, searchField=None, limit=None, offset=None, **kwargs):
         if chapter_id is not None:
-            qs = Exercise.objects.all().filter(chapter_id=chapter_id, active=True).order_by('-id')
-
-            if searchField is not None:
-                filter = (
-                    Q(searchField__icontains=searchField)
-                )
-                qs = qs.filter(filter)
-
-            if offset is not None:
-                qs = qs[offset:]
-
-            if limit is not None:
-                qs = qs[:limit]
-
-            return qs
-        return None
-
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
-    def resolve_exercise_file_attachment(root, info, id, **kwargs):
-        exercise_file_attachment_instance = ExerciseFileAttachment.objects.get(
-            pk=id, active=True)
-        if exercise_file_attachment_instance is not None:
-            return exercise_file_attachment_instance
-        else:
-            return None
-
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
-    def resolve_exercise_file_attachments(root, info, exercise_id=None, searchField=None, limit=None, offset=None, **kwargs):
-        if exercise_id is not None:
-            qs = ExerciseFileAttachment.objects.all().filter(exercise_id=exercise_id, active=True).order_by('-id')
+            qs = Exercise.objects.all().filter(
+                chapter_id=chapter_id, active=True).order_by('-id')
 
             if searchField is not None:
                 filter = (
@@ -444,13 +410,13 @@ class Query(ObjectType):
             filter = (
                 Q(participant_id=participant_id)
             )
-            qs = qs.filter(filter)          
+            qs = qs.filter(filter)
 
         if status is not None:
             filter = (
                 Q(status=status)
             )
-            qs = qs.filter(filter)             
+            qs = qs.filter(filter)
 
         if searchField is not None:
             filter = (
@@ -477,7 +443,7 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['LIST']))
-    def resolve_reports(root, info, participant_id=None, course_id=None, institution_id=None,searchField=None, limit=None, offset=None, **kwargs):
+    def resolve_reports(root, info, participant_id=None, course_id=None, institution_id=None, searchField=None, limit=None, offset=None, **kwargs):
 
         qs = Report.objects.all().filter(active=True).order_by('-id')
 
@@ -485,19 +451,19 @@ class Query(ObjectType):
             filter = (
                 Q(participant_id=participant_id)
             )
-            qs = qs.filter(filter)         
+            qs = qs.filter(filter)
 
         if course_id is not None:
             filter = (
                 Q(course_id=course_id)
             )
-            qs = qs.filter(filter) 
+            qs = qs.filter(filter)
 
         if institution_id is not None:
             filter = (
                 Q(institution_id=institution_id)
             )
-            qs = qs.filter(filter)             
+            qs = qs.filter(filter)
 
         if searchField is not None:
             filter = (

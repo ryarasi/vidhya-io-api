@@ -259,17 +259,6 @@ class Exercise(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class ExerciseFileAttachment(models.Model):
-    exercise = models.ForeignKey(
-        Exercise, on_delete=CASCADE, related_name="files")
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=200, blank=True, null=True)
-    active = models.BooleanField(default=True)
-    searchField = models.CharField(max_length=1000, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
 class ExerciseSubmission(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
     participant = models.ForeignKey(User, on_delete=CASCADE)

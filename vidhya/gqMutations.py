@@ -1,10 +1,9 @@
-from django.contrib.auth import login
 import graphene
 from graphql import GraphQLError
-from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseFileAttachment, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseType, ExerciseFileAttachmentType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseFileAttachmentInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
-from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseFileAttachment, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 
 CREATE_METHOD = 'CREATE'
@@ -1215,111 +1214,6 @@ class DeleteExercise(graphene.Mutation):
                 payload=payload)
             return DeleteExercise(ok=ok, exercise=exercise_instance)
         return DeleteExercise(ok=ok, exercise=None)
-
-
-class CreateExerciseFileAttachment(graphene.Mutation):
-    class Meta:
-        description = "Mutation to create a new ExerciseFileAttachment"
-
-    class Arguments:
-        input = ExerciseFileAttachmentInput(required=True)
-
-    ok = graphene.Boolean()
-    exercise_file_attachment = graphene.Field(ExerciseFileAttachmentType)
-
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
-    def mutate(root, info, input=None):
-        ok = True
-        error = ""
-        if input.exiercise_id is None:
-            error += "Exercise is a required field<br />"
-        if input.name is None:
-            error += "Name is a required field<br />"
-
-        if len(error) > 0:
-            raise GraphQLError(error)
-        searchField = input.name
-        searchField += input.description if input.description is not None else ""
-        searchField = searchField.lower()
-
-        exercise_file_attachment_instance = ExerciseFileAttachment(name=input.name, description=input.description,
-                                                                   exercise_id=input.exercise_id, searchField=searchField)
-        exercise_file_attachment_instance.save()
-
-        payload = {"exercise_file_attachment": exercise_file_attachment_instance,
-                   "method": CREATE_METHOD}
-        NotifyExerciseFileAttachment.broadcast(
-            payload=payload)
-        return CreateExerciseFileAttachment(ok=ok, exercise_file_attachment=exercise_file_attachment_instance)
-
-
-class UpdateExerciseFileAttachment(graphene.Mutation):
-    class Meta:
-        description = "Mutation to update a ExerciseFileAttachment"
-
-    class Arguments:
-        id = graphene.ID(required=True)
-        input = ExerciseFileAttachmentInput(required=True)
-
-    ok = graphene.Boolean()
-    exercise_file_attachment = graphene.Field(ExerciseFileAttachmentType)
-
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
-    def mutate(root, info, id, input=None):
-        ok = False
-        exercise_file_attachment_instance = ExerciseFileAttachment.objects.get(
-            pk=id, active=True)
-        if exercise_file_attachment_instance:
-            ok = True
-            exercise_file_attachment_instance.name = input.name if input.name is not None else exercise_file_attachment_instance.name
-            exercise_file_attachment_instance.description = input.description if input.description is not None else exercise_file_attachment_instance.description
-            exercise_file_attachment_instance.exercise_id = input.exercise_id if input.exercise_id is not None else exercise_file_attachment_instance.exercise_id
-
-            searchField = input.name
-            searchField += input.description if input.description is not None else ""
-            exercise_file_attachment_instance.searchField = searchField.lower()
-
-            exercise_file_attachment_instance.save()
-            payload = {"exercise_file_attachment": exercise_file_attachment_instance,
-                       "method": UPDATE_METHOD}
-            NotifyExerciseFileAttachment.broadcast(
-                payload=payload)
-            return UpdateExerciseFileAttachment(ok=ok, exercise_file_attachment=exercise_file_attachment_instance)
-        return UpdateExerciseFileAttachment(ok=ok, exercise_file_attachment=None)
-
-
-class DeleteExerciseFileAttachment(graphene.Mutation):
-    class Meta:
-        description = "Mutation to mark a ExerciseFileAttachment as inactive"
-
-    class Arguments:
-        id = graphene.ID(required=True)
-
-    ok = graphene.Boolean()
-    exercise_file_attachment = graphene.Field(ExerciseFileAttachmentType)
-
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
-    def mutate(root, info, id):
-        ok = False
-        exercise_file_attachment_instance = ExerciseFileAttachment.objects.get(
-            pk=id, active=True)
-        if exercise_file_attachment_instance:
-            ok = True
-            exercise_file_attachment_instance.active = False
-
-            exercise_file_attachment_instance.save()
-            payload = {"exercise_file_attachment": exercise_file_attachment_instance,
-                       "method": DELETE_METHOD}
-            NotifyExerciseFileAttachment.broadcast(
-                payload=payload)
-            return DeleteExerciseFileAttachment(ok=ok, exercise_file_attachment=exercise_file_attachment_instance)
-        return DeleteExerciseFileAttachment(ok=ok, exercise_file_attachment=None)
 
 
 class CreateExerciseSubmission(graphene.Mutation):

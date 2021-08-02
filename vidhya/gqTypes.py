@@ -2,7 +2,7 @@ from django.db.models.deletion import DO_NOTHING
 import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
-from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseFileAttachment, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, Report, Chat, ChatMessage
 from django.db import models
 
 ##############
@@ -107,17 +107,6 @@ class ExerciseType(DjangoObjectType):
 
     class Meta:
         model = Exercise
-
-
-class ExerciseFileAttachmentType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = ExerciseFileAttachment.objects.all().filter(active=True).count()
-        return count
-
-    class Meta:
-        model = ExerciseFileAttachment
 
 
 class ExerciseSubmissionType(DjangoObjectType):
@@ -277,13 +266,6 @@ class ExerciseInput(graphene.InputObjectType):
     required = graphene.Boolean(required=True)
     options = graphene.List(graphene.String)
     points = graphene.Int()
-
-
-class ExerciseFileAttachmentInput(graphene.InputObjectType):
-    id = graphene.ID()
-    exercise_id = graphene.ID(name="exercise", required=True)
-    name = graphene.String(required=True)
-    description = graphene.String()
 
 
 class ExerciseSubmissionInput(graphene.InputObjectType):
