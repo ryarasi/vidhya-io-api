@@ -259,6 +259,19 @@ class Exercise(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+class ExerciseKey(models.Model):
+    exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
+    valid_option = models.CharField(
+        max_length=200, blank=True, null=True)
+    valid_answers = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
+    reference_link = models.CharField(max_length=5000, blank=True, null=True)
+    reference_images = ArrayField(models.CharField(
+        max_length=200, blank=True), blank=True, null=True)
+
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
 
 class ExerciseSubmission(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
@@ -266,7 +279,8 @@ class ExerciseSubmission(models.Model):
     option = models.CharField(
         max_length=200, blank=True, null=True)
     answer = models.CharField(max_length=500, blank=True, null=True)
-    files = ArrayField(models.CharField(
+    link = models.CharField(max_length=5000, blank=True, null=True)
+    images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
     points = models.DecimalField(
         max_digits=3, decimal_places=1, blank=True, null=True)

@@ -1,7 +1,7 @@
 import channels_graphql_ws
 import graphene
 from graphql_jwt.decorators import login_required
-from .gqTypes import InstitutionType, UserType, UserRoleType, GroupType, AnnouncementType, CourseType, CourseSectionType, ChapterType, ExerciseType, ExerciseSubmissionType, ReportType, ChatType, ChatMessageType
+from .gqTypes import InstitutionType, UserType, UserRoleType, GroupType, AnnouncementType, CourseType, CourseSectionType, ChapterType, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, ChatType, ChatMessageType
 
 
 class NotifyInstitution(channels_graphql_ws.Subscription):
@@ -147,6 +147,22 @@ class NotifyExercise(channels_graphql_ws.Subscription):
     def publish(payload, info):
         return NotifyExercise(exercise=payload["exercise"], method=payload["method"])
 
+class NotifyExerciseKey(channels_graphql_ws.Subscription):
+    exercise = graphene.Field(ExerciseKeyType)
+    method = graphene.String()
+    # class Arguments:
+
+    @staticmethod
+    @login_required
+    def subscribe(root, info):
+        return None
+
+    @staticmethod
+    @login_required
+    def publish(payload, info):
+        return NotifyExerciseKey(exercise=payload["exercise_key"], method=payload["method"])
+
+
 
 class NotifyExerciseSubmission(channels_graphql_ws.Subscription):
     exercise_submission = graphene.Field(ExerciseSubmissionType)
@@ -222,6 +238,7 @@ class Subscription(graphene.ObjectType):
     notify_course_section = NotifyCourseSection.Field()
     notify_chapter = NotifyChapter.Field()
     notify_exercise = NotifyExercise.Field()
+    notify_exercise_key = NotifyExerciseKey.Field()
     notify_exercise_submission = NotifyExerciseSubmission.Field()
     notify_report = NotifyReport.Field()
     notify_chat = NotifyChat.Field()

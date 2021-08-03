@@ -1,9 +1,9 @@
 import graphene
 from graphql import GraphQLError
-from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
-from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 
 CREATE_METHOD = 'CREATE'
@@ -1131,6 +1131,19 @@ class CreateExercise(graphene.Mutation):
             error += "Chapter is a required field<br />"
         if input.question_type is None:
             error += "Question type is a required field<br />"
+        else:
+            if input.question_type == Exercise.QuestionTypeChoices.OPTIONS:
+                if input.valid_option is None:
+                    error += "A valid option key is required"
+            if input.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
+                if len(input.valid_answers) == 0:
+                    error += "A valid answer key is required"
+            if input.question_type == Exercise.QuestionTypeChoices.IMAGE:
+                if len(input.reference_images) == 0:
+                    error += "At least one valid reference image is required"
+            if input.question_type ==  Exercise.QuestionTypeChoices.LINK:
+                if input.reference_link is None:
+                    error += "A valid link key is required"                                                            
         if input.required is None:
             error += "Required is a required field<br />"
         if len(error) > 0:
@@ -1141,6 +1154,10 @@ class CreateExercise(graphene.Mutation):
         exercise_instance = Exercise(prompt=input.prompt, chapter_id=input.chapter_id,
                                      question_type=input.question_type, required=input.required, options=input.options, points=input.points, searchField=searchField)
         exercise_instance.save()
+
+        exercise_key_instance = ExerciseKey(exercise=exercise_instance, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images)
+
+        exercise_key_instance.save()
 
         payload = {"exercise": exercise_instance,
                    "method": CREATE_METHOD}
@@ -1216,6 +1233,40 @@ class DeleteExercise(graphene.Mutation):
         return DeleteExercise(ok=ok, exercise=None)
 
 
+class UpdateExerciseKey(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Exercise Key"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = ExerciseKeyInput(required=True)
+
+    ok = graphene.Boolean()
+    exercise_key = graphene.Field(ExerciseKeyType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
+    def mutate(root, info, id, input=None):
+        ok = False
+        exercise_key_instance = ExerciseKey.objects.get(pk=id, active=True)
+        if exercise_key_instance:
+            ok = True
+            exercise_key_instance.exercise = input.exercise if input.exercise is not None else exercise_key_instance.exercise
+            exercise_key_instance.valid_option = input.valid_option if input.valid_option is not None else exercise_key_instance.valid_option
+            exercise_key_instance.valid_answers = input.valid_answers if input.valid_answers is not None else exercise_key_instance.valid_answers
+            exercise_key_instance.reference_link = input.reference_link if input.required is not None else exercise_key_instance.reference_link
+            exercise_key_instance.reference_images = input.reference_images if input.options is not None else exercise_key_instance.reference_images
+         
+            exercise_key_instance.save()
+            payload = {"exercise_key": exercise_key_instance,
+                       "method": UPDATE_METHOD}
+            NotifyExerciseKey.broadcast(
+                payload=payload)
+            return UpdateExerciseKey(ok=ok, exercise_key=exercise_key_instance)
+        return UpdateExerciseKey(ok=ok, exercise_key=None)
+
+
 class CreateExerciseSubmission(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new ExerciseSubmission"
@@ -1239,10 +1290,11 @@ class CreateExerciseSubmission(graphene.Mutation):
             raise GraphQLError(error)
         searchField = input.option
         searchField += input.answer if input.answer is not None else ""
+        searchField += input.link if input.link is not None else ""
         searchField = searchField.lower()
 
         exercise_submission_instance = ExerciseSubmission(exercise_id=input.exercise_id, option=input.option,
-                                                          answer=input.answer, files=input.files, points=input.points, status=input.status, searchField=searchField)
+                                                          answer=input.answer, link=input.link, images=input.images, points=input.points, status=input.status, searchField=searchField)
         exercise_submission_instance.save()
 
         payload = {"exercise_submission": exercise_submission_instance,
@@ -1275,12 +1327,14 @@ class UpdateExerciseSubmission(graphene.Mutation):
             exercise_submission_instance.exercise_id = input.exercise_id if input.exercise_id is not None else exercise_submission_instance.exercise_id
             exercise_submission_instance.option = input.option if input.option is not None else exercise_submission_instance.option
             exercise_submission_instance.answer = input.answer if input.answer is not None else exercise_submission_instance.answer
-            exercise_submission_instance.files = input.files if input.files is not None else exercise_submission_instance.files
+            exercise_submission_instance.link = input.link if input.link is not None else exercise_submission_instance.link
+            exercise_submission_instance.images = input.images if input.images is not None else exercise_submission_instance.images
             exercise_submission_instance.points = input.points if input.points is not None else exercise_submission_instance.points
             exercise_submission_instance.status = input.status if input.status is not None else exercise_submission_instance.status
 
             searchField = input.option
             searchField += input.answer if input.answer is not None else ""
+            searchField += input.link if input.link is not None else ""
             exercise_submission_instance.searchField = searchField.lower()
 
             exercise_submission_instance.save()
@@ -1628,6 +1682,8 @@ class Mutation(graphene.ObjectType):
     create_exercise = CreateExercise.Field()
     update_exercise = UpdateExercise.Field()
     delete_exercise = DeleteExercise.Field()
+
+    update_exercise_key = UpdateExerciseKey.Field()
 
     delete_chat = DeleteChat.Field()
     chat_with_member = ChatWithMember.Field()
