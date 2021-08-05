@@ -886,6 +886,42 @@ class DeleteCourse(graphene.Mutation):
         return DeleteCourse(ok=ok, course=None)
 
 
+class PublishCourse(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark an Course as published"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        publish_chapters = graphene.Boolean(required=True)
+
+    ok = graphene.Boolean()
+    course = graphene.Field(CourseType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['UPDATE']))
+    def mutate(root, info, id, input=None):
+        ok = False
+        course = Course.objects.get(pk=id, active=True)
+        course_instance = course
+        if course_instance:
+            ok = True
+            course_instance.status = Course.StatusChoices.PUBLISHED
+            if input.publish_chapters:
+                # write method to loop through chapters and mark them as published
+                pass
+
+            course_instance.save()
+
+            payload = {"course": course_instance,
+                       "method": UPDATE_METHOD}
+            NotifyCourse.broadcast(
+                payload=payload)
+
+            return PublishCourse(ok=ok, course=course_instance)
+        return PublishCourse(ok=ok, course=None)
+
+
 class CreateCourseSection(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new Course Section"
@@ -1113,6 +1149,38 @@ class DeleteChapter(graphene.Mutation):
 
             return DeleteChapter(ok=ok, chapter=chapter_instance)
         return DeleteChapter(ok=ok, chapter=None)
+
+class PublishChapter(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark an Chapter as published"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    chapter = graphene.Field(ChapterType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
+    def mutate(root, info, id):
+        ok = False
+        chapter = Chapter.objects.get(pk=id, active=True)
+        chapter_instance = chapter
+        if chapter_instance:
+            ok = True
+            chapter_instance.status = Chapter.StatusChoices.PUBLISHED
+
+            chapter_instance.save()
+
+            payload = {"chapter": chapter_instance,
+                       "method": UPDATE_METHOD}
+            NotifyChapter.broadcast(
+                payload=payload)
+
+            return PublishChapter(ok=ok, chapter=chapter_instance)
+        return PublishChapter(ok=ok, chapter=None)
+
 
 
 class CreateExercise(graphene.Mutation):
@@ -1680,10 +1748,12 @@ class Mutation(graphene.ObjectType):
     create_course = CreateCourse.Field()
     update_course = UpdateCourse.Field()
     delete_course = DeleteCourse.Field()
+    publish_course = PublishCourse.Field()
 
     create_chapter = CreateChapter.Field()
     update_chapter = UpdateChapter.Field()
     delete_chapter = DeleteChapter.Field()
+    publish_chapter = PublishChapter.Field()
 
     create_exercise = CreateExercise.Field()
     update_exercise = UpdateExercise.Field()

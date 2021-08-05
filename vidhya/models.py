@@ -181,6 +181,7 @@ class Course(models.Model):
     class StatusChoices(models.TextChoices):
         DRAFT = 'DR', _('DRAFT')
         PUBLISHED = "PU", _('PUBLISHED')
+        ARCHIVED = "AR", _('ARCHIVED')        
     # End of Type Choices
 
     status = models.CharField(
@@ -239,7 +240,7 @@ class Chapter(models.Model):
 
     class StatusChoices(models.TextChoices):
         DRAFT = 'DR', _('DRAFT')
-        PUBLISHED = "PU", _('PUBLISHED')
+        PUBLISHED = "PU", _('PUBLISHED')     
     # End of Type Choices
 
     status = models.CharField(
