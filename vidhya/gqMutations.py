@@ -900,14 +900,19 @@ class PublishCourse(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['UPDATE']))
-    def mutate(root, info, id, input=None):
+    def mutate(root, info, id, publish_chapters):
         ok = False
         course = Course.objects.get(pk=id, active=True)
         course_instance = course
         if course_instance:
             ok = True
             course_instance.status = Course.StatusChoices.PUBLISHED
-            if input.publish_chapters:
+            print('id', id, 'publish_chapters', publish_chapters)
+            if publish_chapters==True:
+                chapters = Chapter.objects.filter(course=id, active=True)
+                for chapter in chapters:
+                    chapter.status = Chapter.StatusChoices.PUBLISHED
+                    chapter.save()
                 # write method to loop through chapters and mark them as published
                 pass
 
