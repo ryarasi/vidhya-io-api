@@ -247,6 +247,7 @@ class CourseInput(graphene.InputObjectType):
     start_date = graphene.String()
     end_date = graphene.String()
     credit_hours = graphene.Int()
+    status = graphene.String()
 
 
 class CourseSectionInput(graphene.InputObjectType):
@@ -265,7 +266,7 @@ class ChapterInput(graphene.InputObjectType):
     prerequisite_ids = graphene.List(graphene.ID, name="prerequisites")
     due_date = graphene.String()
     points = graphene.Int()
-
+    status = graphene.String()
 
 class ExerciseInput(graphene.InputObjectType):
     id = graphene.ID()

@@ -756,6 +756,8 @@ class CreateCourse(graphene.Mutation):
             error += "Instructor is a required field<br />"
         if input.institution_ids is None:
             error += "Institution(s) is a required field<br />"
+        if input.status is None:
+            error += "Status is a required field<br />"
         if len(error) > 0:
             raise GraphQLError(error)
         searchField = input.title
@@ -764,7 +766,7 @@ class CreateCourse(graphene.Mutation):
         searchField = searchField.lower()
 
         course_instance = Course(title=input.title, blurb=input.blurb, description=input.description,
-                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, searchField=searchField)
+                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, status=input.status, searchField=searchField)
         course_instance.save()
 
         if input.institution_ids is not None:
@@ -816,6 +818,7 @@ class UpdateCourse(graphene.Mutation):
             course_instance.start_date = input.start_date if input.start_date is not None else course.start_date
             course_instance.end_date = input.end_date if input.end_date is not None else course.end_date
             course_instance.credit_hours = input.credit_hours if input.credit_hours is not None else course.credit_hours
+            course_instance.status = input.status if input.status is not None else course.status
 
             searchField = input.title
             searchField += input.blurb if input.blurb is not None else ""
@@ -1009,6 +1012,8 @@ class CreateChapter(graphene.Mutation):
             error += "Instructions is a required field<br />"
         if input.course_id is None:
             error += "Course is a required field<br />"
+        if input.status is None:
+            error += "Status is a required field<br />"
         if len(error) > 0:
             raise GraphQLError(error)
         searchField = input.title
@@ -1016,7 +1021,7 @@ class CreateChapter(graphene.Mutation):
         searchField = searchField.lower()
 
         chapter_instance = Chapter(title=input.title, instructions=input.instructions,
-                                   course_id=input.course_id, section_id=input.section_id, due_date=input.due_date, points=input.points, searchField=searchField)
+                                   course_id=input.course_id, section_id=input.section_id, due_date=input.due_date, points=input.points, status= input.status, searchField=searchField)
         chapter_instance.save()
 
         if input.prerequisite_ids is not None:
@@ -1057,6 +1062,7 @@ class UpdateChapter(graphene.Mutation):
             chapter_instance.section_id = input.section_id if input.section_id is not None else chapter.section_id
             chapter_instance.due_date = input.due_date if input.due_date is not None else chapter.due_date
             chapter_instance.points = input.points if input.points is not None else chapter.points
+            chapter_instance.status = input.status if input.status is not None else chapter.status
 
             searchField = input.title
             searchField += input.instructions if input.instructions is not None else ""

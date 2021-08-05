@@ -177,6 +177,16 @@ class Course(models.Model):
     start_date = models.CharField(max_length=100, blank=True, null=True)
     end_date = models.CharField(max_length=100, blank=True, null=True)
     credit_hours = models.IntegerField(blank=True, null=True)
+
+    class StatusChoices(models.TextChoices):
+        DRAFT = 'DR', _('DRAFT')
+        PUBLISHED = "PU", _('PUBLISHED')
+    # End of Type Choices
+
+    status = models.CharField(
+        max_length=2, choices=StatusChoices.choices, default=StatusChoices.DRAFT)
+
+
     searchField = models.CharField(max_length=1200, blank=True, null=True)
 
     active = models.BooleanField(default=True)
@@ -227,6 +237,14 @@ class Chapter(models.Model):
     due_date = models.CharField(max_length=100, blank=True, null=True)
     points = models.IntegerField(blank=True, null=True)
 
+    class StatusChoices(models.TextChoices):
+        DRAFT = 'DR', _('DRAFT')
+        PUBLISHED = "PU", _('PUBLISHED')
+    # End of Type Choices
+
+    status = models.CharField(
+        max_length=2, choices=StatusChoices.choices, default=StatusChoices.DRAFT)
+        
     searchField = models.CharField(max_length=1200, blank=True, null=True)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
