@@ -1208,6 +1208,8 @@ class CreateExercise(graphene.Mutation):
             error += "Prompt is a required field<br />"
         if input.chapter_id is None:
             error += "Chapter is a required field<br />"
+        if input.course_id is None:
+            error += "Course is a required field<br />"            
         if input.question_type is None:
             error += "Question type is a required field<br />"
         else:
@@ -1230,11 +1232,11 @@ class CreateExercise(graphene.Mutation):
         searchField = input.prompt
         searchField = searchField.lower()
 
-        exercise_instance = Exercise(prompt=input.prompt, chapter_id=input.chapter_id,
+        exercise_instance = Exercise(prompt=input.prompt, course_id=input.course_id, chapter_id=input.chapter_id,
                                      question_type=input.question_type, required=input.required, options=input.options, points=input.points, searchField=searchField)
         exercise_instance.save()
 
-        exercise_key_instance = ExerciseKey(exercise=exercise_instance, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images)
+        exercise_key_instance = ExerciseKey(exercise=exercise_instance, course_id=input.course_id, chapter_id=input.chapter_id, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images)
 
         exercise_key_instance.save()
 
@@ -1266,6 +1268,7 @@ class UpdateExercise(graphene.Mutation):
             ok = True
             exercise_instance.prompt = input.prompt if input.prompt is not None else exercise_instance.prompt
             exercise_instance.chapter_id = input.chapter_id if input.chapter_id is not None else exercise_instance.chapter_id
+            exercise_instance.course_id = input.course_id if input.course_id is not None else exercise_instance.course_id
             exercise_instance.question_type = input.question_type if input.question_type is not None else exercise_instance.question_type
             exercise_instance.required = input.required if input.required is not None else exercise_instance.required
             exercise_instance.options = input.options if input.options is not None else exercise_instance.options
@@ -1364,6 +1367,10 @@ class CreateExerciseSubmission(graphene.Mutation):
         error = ""
         if input.exercise_id is None:
             error += "Exercise is a required field<br />"
+        if input.chapter_id is None:
+            error += "Chapter is a required field<br />"
+        if input.course_id is None:
+            error += "Course is a required field<br />"   
 
         if len(error) > 0:
             raise GraphQLError(error)
@@ -1372,7 +1379,7 @@ class CreateExerciseSubmission(graphene.Mutation):
         searchField += input.link if input.link is not None else ""
         searchField = searchField.lower()
 
-        exercise_submission_instance = ExerciseSubmission(exercise_id=input.exercise_id, option=input.option,
+        exercise_submission_instance = ExerciseSubmission(exercise_id=input.exercise_id, course_id=input.course_id, chapter_id=input.chapter_id, option=input.option,
                                                           answer=input.answer, link=input.link, images=input.images, points=input.points, status=input.status, searchField=searchField)
         exercise_submission_instance.save()
 
@@ -1404,6 +1411,8 @@ class UpdateExerciseSubmission(graphene.Mutation):
         if exercise_submission_instance:
             ok = True
             exercise_submission_instance.exercise_id = input.exercise_id if input.exercise_id is not None else exercise_submission_instance.exercise_id
+            exercise_submission_instance.course_id = input.course_id if input.course_id is not None else exercise_submission_instance.course_id
+            exercise_submission_instance.chapter_id = input.chapter_id if input.chapter_id is not None else exercise_submission_instance.chapter_id
             exercise_submission_instance.option = input.option if input.option is not None else exercise_submission_instance.option
             exercise_submission_instance.answer = input.answer if input.answer is not None else exercise_submission_instance.answer
             exercise_submission_instance.link = input.link if input.link is not None else exercise_submission_instance.link

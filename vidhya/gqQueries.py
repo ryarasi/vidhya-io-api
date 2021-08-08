@@ -1,9 +1,9 @@
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS
 
 
@@ -29,7 +29,7 @@ class Query(ObjectType):
     users = graphene.List(
         UserType, searchField=graphene.String(), membership_status_not=graphene.String(), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
-    user_role = graphene.Field(UserRoleType, id=graphene.ID())
+    user_role = graphene.Field(UserRoleType, role_name=graphene.String())
     user_roles = graphene.List(
         UserRoleType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
@@ -59,7 +59,12 @@ class Query(ObjectType):
 
     exercise_submission = graphene.Field(
         ExerciseSubmissionType, id=graphene.ID())
-    exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
+    exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
+    ), limit=graphene.Int(), offset=graphene.Int())
+
+    exercise_key = graphene.Field(
+        ExerciseSubmissionType, id=graphene.ID())
+    exercise_keys = graphene.List(ExerciseKeyType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     report = graphene.Field(ReportType, id=graphene.ID())
@@ -168,8 +173,8 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['GET']))
-    def resolve_user_role(root, info, id, **kwargs):
-        user_role_instance = UserRole.objects.get(pk=id, active=True)
+    def resolve_user_role(root, info, role_name, **kwargs):
+        user_role_instance = UserRole.objects.get(pk=role_name, active=True)
         if user_role_instance is not None:
             return user_role_instance
         else:
@@ -178,7 +183,7 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['LIST']))
     def resolve_user_roles(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = UserRole.objects.all().filter(active=True).order_by('-id')
+        qs = UserRole.objects.all().filter(active=True).order_by('-name')
 
         if searchField is not None:
             filter = (
@@ -397,7 +402,7 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
-    def resolve_exercise_submissions(root, info, exercise_id=None, participant_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
+    def resolve_exercise_submissions(root, info, exercise_id=None, chapter_id=None, course_id=None, participant_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
         qs = ExerciseSubmission.objects.all().filter(active=True).order_by('-id')
 
         if exercise_id is not None:
@@ -412,11 +417,71 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
 
+        if chapter_id is not None:
+            filter = (
+                Q(chapter_id=chapter_id)
+            )
+            qs = qs.filter(filter)
+
+        if course_id is not None:
+            filter = (
+                Q(course_id=course_id)
+            )
+            qs = qs.filter(filter)
+
         if status is not None:
             filter = (
                 Q(status=status)
             )
             qs = qs.filter(filter)
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        return qs
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_KEY'], ACTIONS['GET']))
+    def resolve_exercise_key(root, info, id, **kwargs):
+        exercise_key_instance = ExerciseKey.objects.get(
+            pk=id, active=True)
+        if exercise_key_instance is not None:
+            return exercise_key_instance
+        else:
+            return None
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_KEY'], ACTIONS['LIST']))
+    def resolve_exercise_keys(root, info, exercise_id=None, chapter_id=None, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
+        qs = ExerciseKey.objects.all().filter(active=True).order_by('-id')
+
+        if exercise_id is not None:
+            filter = (
+                Q(exercise_id=exercise_id)
+            )
+            qs = qs.filter(filter)
+
+        if chapter_id is not None:
+            filter = (
+                Q(chapter_id=chapter_id)
+            )
+            qs = qs.filter(filter)
+
+        if course_id is not None:
+            filter = (
+                Q(course_id=course_id)
+            )
+            qs = qs.filter(filter)
+
 
         if searchField is not None:
             filter = (

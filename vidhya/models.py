@@ -4,7 +4,6 @@ from django.core.validators import MinLengthValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.db.models.fields import IntegerField
-from django.db.models.deletion import CASCADE
 from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
@@ -258,7 +257,8 @@ class Chapter(models.Model):
 class Exercise(models.Model):
     prompt = models.CharField(max_length=300)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
-
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
     class QuestionTypeChoices(models.TextChoices):
         OPTIONS = 'OP', _('OPTIONS')
         DESCRIPTION = "DE", _('DESCRIPTION')
@@ -279,7 +279,9 @@ class Exercise(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class ExerciseKey(models.Model):
-    exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
     valid_option = models.CharField(
         max_length=200, blank=True, null=True)
     valid_answers = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
@@ -293,8 +295,10 @@ class ExerciseKey(models.Model):
     
 
 class ExerciseSubmission(models.Model):
-    exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
-    participant = models.ForeignKey(User, on_delete=CASCADE)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
     option = models.CharField(
         max_length=200, blank=True, null=True)
     answer = models.CharField(max_length=500, blank=True, null=True)
@@ -320,9 +324,9 @@ class ExerciseSubmission(models.Model):
 
 
 class Report(models.Model):
-    participant = models.ForeignKey(User, on_delete=CASCADE)
-    course = models.ForeignKey(Course, on_delete=CASCADE)
-    institution = models.ForeignKey(Institution, on_delete=CASCADE)
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
     # This will be calculated on grading by dividing the number of graded exercise submissions by required exercises * 100
     completed = models.IntegerField(default=0)
     score = models.IntegerField(default=0)

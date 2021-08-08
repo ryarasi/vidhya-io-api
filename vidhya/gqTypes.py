@@ -116,7 +116,7 @@ class ExerciseKeyType(DjangoObjectType):
         return count
 
     class Meta:
-        model = Exercise
+        model = ExerciseKey
 
 class ExerciseSubmissionType(DjangoObjectType):
     total_count = graphene.Int()
@@ -272,6 +272,7 @@ class ExerciseInput(graphene.InputObjectType):
     id = graphene.ID()
     prompt = graphene.String(required=True)
     chapter_id = graphene.ID(name="chapter", required=True)
+    course_id = graphene.ID(name="course", required=True)
     question_type = graphene.String(required=True)
     required = graphene.Boolean(required=True)
     options = graphene.List(graphene.String)
@@ -283,7 +284,9 @@ class ExerciseInput(graphene.InputObjectType):
 
 class ExerciseKeyInput(graphene.InputObjectType):
     id = graphene.ID()
-    exercise_id = graphene.ID(name="exercise", required=True)    
+    exercise_id = graphene.ID(name="exercise", required=True) 
+    chapter_id = graphene.ID(name="chapter", required=True)
+    course_id = graphene.ID(name="course", required=True)       
     valid_option = graphene.String()
     valid_answers = graphene.List(graphene.String)
     reference_link = graphene.String()
@@ -292,6 +295,8 @@ class ExerciseKeyInput(graphene.InputObjectType):
 class ExerciseSubmissionInput(graphene.InputObjectType):
     id = graphene.ID()
     exercise_id = graphene.ID(name="exercise", required=True)
+    chapter_id = graphene.ID(name="chapter", required=True)
+    course_id = graphene.ID(name="course", required=True) 
     option = graphene.String()
     answer = graphene.String()
     link = graphene.String()
