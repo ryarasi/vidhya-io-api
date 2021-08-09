@@ -204,7 +204,6 @@ class UserInput(graphene.InputObjectType):
 
 
 class UserRoleInput(graphene.InputObjectType):
-    id = graphene.ID()
     name = graphene.String(required=True)
     description = graphene.String(required=True)
     priority = graphene.Int(required=True)

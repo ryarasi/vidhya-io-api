@@ -403,7 +403,7 @@ class UpdateUserRole(graphene.Mutation):
         description = "Mutation to update a User Role"
 
     class Arguments:
-        role_name = graphene.ID(required=True)
+        role_name = graphene.String(required=True)
         input = UserRoleInput(required=True)
 
     ok = graphene.Boolean()
