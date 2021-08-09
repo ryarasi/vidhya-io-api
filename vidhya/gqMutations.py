@@ -1240,10 +1240,18 @@ class CreateExercise(graphene.Mutation):
 
         exercise_key_instance.save()
 
+        # Notifying creation of Exercise
         payload = {"exercise": exercise_instance,
                    "method": CREATE_METHOD}
         NotifyExercise.broadcast(
             payload=payload)
+
+        #Notifying creation of Exercise Key
+        exercise_key_payload = {"exerciseKey": exercise_key_instance,
+                   "method": CREATE_METHOD}
+        NotifyExerciseKey.broadcast(
+            payload=exercise_key_payload)        
+
         return CreateExercise(ok=ok, exercise=exercise_instance)
 
 
@@ -1278,11 +1286,14 @@ class UpdateExercise(graphene.Mutation):
             exercise_instance.searchField = searchField.lower()
 
             exercise_instance.save()
+
+            # Notifying updating of Exercise
             payload = {"exercise": exercise_instance,
                        "method": UPDATE_METHOD}
             NotifyExercise.broadcast(
                 payload=payload)
-            return UpdateExercise(ok=ok, exercise=exercise_instance)
+
+            return UpdateExercise(ok=ok, exercise=exercise_instance)            
         return UpdateExercise(ok=ok, exercise=None)
 
 

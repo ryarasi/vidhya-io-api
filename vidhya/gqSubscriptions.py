@@ -148,7 +148,7 @@ class NotifyExercise(channels_graphql_ws.Subscription):
         return NotifyExercise(exercise=payload["exercise"], method=payload["method"])
 
 class NotifyExerciseKey(channels_graphql_ws.Subscription):
-    exercise = graphene.Field(ExerciseKeyType)
+    exerciseKey = graphene.Field(ExerciseKeyType)
     method = graphene.String()
     # class Arguments:
 
@@ -160,7 +160,7 @@ class NotifyExerciseKey(channels_graphql_ws.Subscription):
     @staticmethod
     @login_required
     def publish(payload, info):
-        return NotifyExerciseKey(exercise=payload["exercise_key"], method=payload["method"])
+        return NotifyExerciseKey(exerciseKey=payload["exercise_key"], method=payload["method"])
 
 
 
