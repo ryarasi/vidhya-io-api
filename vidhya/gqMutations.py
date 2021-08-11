@@ -298,7 +298,7 @@ class ApproveUser(graphene.Mutation):
 
     class Arguments:
         user_id = graphene.ID(required=True)
-        role_name = graphene.ID(required=True)
+        role_name = graphene.String(required=True)
 
     ok = graphene.Boolean()
     user = graphene.Field(UserType)
