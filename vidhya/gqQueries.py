@@ -157,12 +157,7 @@ class Query(ObjectType):
             qs = qs.exclude(membership_status=membership_status_not)
 
         if role_name is not None:
-            try:
-                role = UserRole.objects.get(active=True, pk=role_name)
-                print('role with role_name', role)
-                qs = qs.filter(role=role)
-            except UserRole.DoesNotExist:
-                pass
+            qs = qs.filter(role=role_name)
 
         if offset is not None:
             qs = qs[offset:]
