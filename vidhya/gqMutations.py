@@ -2,7 +2,7 @@ import graphene
 from graphql import GraphQLError
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseSubmissionsInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 
@@ -1373,12 +1373,12 @@ class DeleteExercise(graphene.Mutation):
     #     return UpdateExerciseKey(ok=ok, exercise_key=None)
 
 
-class CreateExerciseSubmission(graphene.Mutation):
+class CreateExerciseSubmissions(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new ExerciseSubmission"
 
     class Arguments:
-        input = ExerciseSubmissionInput(required=True)
+        input = ExerciseSubmissionsInput(required=True)
 
     ok = graphene.Boolean()
     exercise_submission = graphene.Field(ExerciseSubmissionType)
@@ -1796,6 +1796,8 @@ class Mutation(graphene.ObjectType):
     create_exercise = CreateExercise.Field()
     update_exercise = UpdateExercise.Field()
     delete_exercise = DeleteExercise.Field()
+
+    create_exercise_submissions = CreateExerciseSubmissions.Field()
 
     delete_chat = DeleteChat.Field()
     chat_with_member = ChatWithMember.Field()

@@ -303,6 +303,8 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     points = graphene.Decimal()
     status = graphene.String()
 
+class ExerciseSubmissionsInput(graphene.InputObjectType):
+    input = graphene.List(ExerciseSubmissionInput, required=True)
 
 class ReportInput(graphene.InputObjectType):
     id = graphene.ID()
