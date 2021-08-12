@@ -1247,7 +1247,7 @@ class CreateExercise(graphene.Mutation):
             payload=payload)
 
         #Notifying creation of Exercise Key
-        exercise_key_payload = {"exerciseKey": exercise_key_instance,
+        exercise_key_payload = {"exercise_key": exercise_key_instance,
                    "method": CREATE_METHOD}
         NotifyExerciseKey.broadcast(
             payload=exercise_key_payload)        
@@ -1272,7 +1272,8 @@ class UpdateExercise(graphene.Mutation):
     def mutate(root, info, id, input=None):
         ok = False
         exercise_instance = Exercise.objects.get(pk=id, active=True)
-        if exercise_instance:
+        exercise_key_instance = ExerciseKey.objects.get(exercise=exercise_instance, active=True)
+        if exercise_instance and exercise_key_instance:
             ok = True
             exercise_instance.prompt = input.prompt if input.prompt is not None else exercise_instance.prompt
             exercise_instance.chapter_id = input.chapter_id if input.chapter_id is not None else exercise_instance.chapter_id
@@ -1292,6 +1293,18 @@ class UpdateExercise(graphene.Mutation):
                        "method": UPDATE_METHOD}
             NotifyExercise.broadcast(
                 payload=payload)
+
+            exercise_key_instance.valid_option = input.valid_option if input.valid_option is not None else exercise_key_instance.valid_option
+            exercise_key_instance.valid_answers = input.valid_answers if input.valid_answers is not None else exercise_key_instance.valid_answers
+            exercise_key_instance.reference_link = input.reference_link if input.reference_link is not None else exercise_key_instance.reference_link
+            exercise_key_instance.reference_images = input.reference_images if input.reference_images is not None else exercise_key_instance.reference_images
+         
+            exercise_key_instance.save()
+            payload = {"exercise_key": exercise_key_instance,
+                       "method": UPDATE_METHOD}
+            NotifyExerciseKey.broadcast(
+                payload=payload)            
+
 
             return UpdateExercise(ok=ok, exercise=exercise_instance)            
         return UpdateExercise(ok=ok, exercise=None)
@@ -1326,38 +1339,38 @@ class DeleteExercise(graphene.Mutation):
         return DeleteExercise(ok=ok, exercise=None)
 
 
-class UpdateExerciseKey(graphene.Mutation):
-    class Meta:
-        description = "Mutation to update a Exercise Key"
+# class UpdateExerciseKey(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to update a Exercise Key"
 
-    class Arguments:
-        id = graphene.ID(required=True)
-        input = ExerciseKeyInput(required=True)
+#     class Arguments:
+#         id = graphene.ID(required=True)
+#         input = ExerciseKeyInput(required=True)
 
-    ok = graphene.Boolean()
-    exercise_key = graphene.Field(ExerciseKeyType)
+#     ok = graphene.Boolean()
+#     exercise_key = graphene.Field(ExerciseKeyType)
 
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
-    def mutate(root, info, id, input=None):
-        ok = False
-        exercise_key_instance = ExerciseKey.objects.get(pk=id, active=True)
-        if exercise_key_instance:
-            ok = True
-            exercise_key_instance.exercise = input.exercise if input.exercise is not None else exercise_key_instance.exercise
-            exercise_key_instance.valid_option = input.valid_option if input.valid_option is not None else exercise_key_instance.valid_option
-            exercise_key_instance.valid_answers = input.valid_answers if input.valid_answers is not None else exercise_key_instance.valid_answers
-            exercise_key_instance.reference_link = input.reference_link if input.required is not None else exercise_key_instance.reference_link
-            exercise_key_instance.reference_images = input.reference_images if input.options is not None else exercise_key_instance.reference_images
+    # @staticmethod
+    # @login_required
+    # @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
+    # def mutate(root, info, id, input=None):
+    #     ok = False
+    #     exercise_key_instance = ExerciseKey.objects.get(pk=id, active=True)
+    #     if exercise_key_instance:
+    #         ok = True
+    #         exercise_key_instance.exercise = input.exercise if input.exercise is not None else exercise_key_instance.exercise
+    #         exercise_key_instance.valid_option = input.valid_option if input.valid_option is not None else exercise_key_instance.valid_option
+    #         exercise_key_instance.valid_answers = input.valid_answers if input.valid_answers is not None else exercise_key_instance.valid_answers
+    #         exercise_key_instance.reference_link = input.reference_link if input.reference_link is not None else exercise_key_instance.reference_link
+    #         exercise_key_instance.reference_images = input.reference_images if input.reference_images is not None else exercise_key_instance.reference_images
          
-            exercise_key_instance.save()
-            payload = {"exercise_key": exercise_key_instance,
-                       "method": UPDATE_METHOD}
-            NotifyExerciseKey.broadcast(
-                payload=payload)
-            return UpdateExerciseKey(ok=ok, exercise_key=exercise_key_instance)
-        return UpdateExerciseKey(ok=ok, exercise_key=None)
+    #         exercise_key_instance.save()
+    #         payload = {"exercise_key": exercise_key_instance,
+    #                    "method": UPDATE_METHOD}
+    #         NotifyExerciseKey.broadcast(
+    #             payload=payload)
+    #         return UpdateExerciseKey(ok=ok, exercise_key=exercise_key_instance)
+    #     return UpdateExerciseKey(ok=ok, exercise_key=None)
 
 
 class CreateExerciseSubmission(graphene.Mutation):
@@ -1783,8 +1796,6 @@ class Mutation(graphene.ObjectType):
     create_exercise = CreateExercise.Field()
     update_exercise = UpdateExercise.Field()
     delete_exercise = DeleteExercise.Field()
-
-    update_exercise_key = UpdateExerciseKey.Field()
 
     delete_chat = DeleteChat.Field()
     chat_with_member = ChatWithMember.Field()
