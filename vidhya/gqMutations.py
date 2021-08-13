@@ -2,7 +2,7 @@ import graphene
 from graphql import GraphQLError
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseSubmissionsInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 
@@ -1378,40 +1378,69 @@ class CreateExerciseSubmissions(graphene.Mutation):
         description = "Mutation to create a new ExerciseSubmission"
 
     class Arguments:
-        input = ExerciseSubmissionsInput(required=True)
+        exercise_submissions = graphene.List(ExerciseSubmissionInput, required=True)
 
     ok = graphene.Boolean()
-    exercise_submission = graphene.Field(ExerciseSubmissionType)
 
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
-    def mutate(root, info, input=None):
-        ok = True
+    def mutate(root, info, exercise_submissions=None):
+        ok = False
         error = ""
-        if input.exercise_id is None:
-            error += "Exercise is a required field<br />"
-        if input.chapter_id is None:
-            error += "Chapter is a required field<br />"
-        if input.course_id is None:
-            error += "Course is a required field<br />"   
+        for submission in exercise_submissions:
+            exercise_instance = Exercise.objects.get(pk=submission.exercise_id, active=True)
+            if submission.exercise_id is None:
+                error += "Exercise is a required field<br />"
+            if submission.chapter_id is None:
+                error += "Chapter is a required field<br />"
+            if submission.course_id is None:
+                error += "Course is a required field<br />"            
+            if exercise_instance.question_type is None:
+                error += "Question type is a required field<br />"
+            if exercise_instance.required == True:
+                if exercise_instance.question_type == Exercise.QuestionTypeChoices.OPTIONS:
+                    if submission.option is None:
+                        error += "A valid option is required"
+                if exercise_instance.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
+                    if len(submission.answer) == 0:
+                        error += "A valid answer is required"
+                if exercise_instance.question_type == Exercise.QuestionTypeChoices.IMAGE:
+                    if len(submission.images) == 0:
+                        error += "At least one image is required"
+                if exercise_instance.question_type ==  Exercise.QuestionTypeChoices.LINK:
+                    if submission.link is None:
+                        error += "A link is required"    
+            if len(error) > 0:
+                raise GraphQLError(error)
+        for submission in exercise_submissions:
+            ok = True
+            exercise = Exercise.objects.get(pk=submission.exercise_id, active=True)
+            exercise_key = ExerciseKey.objects.get(exercise=exercise, active=True)
+            searchField = submission.option if submission.option is not None else ""
+            searchField += submission.answer if submission.answer is not None else ""
+            searchField += submission.link if submission.link is not None else ""
+            searchField = searchField.lower()
+            status = ExerciseSubmission.StatusChoices.SUBMITTED
+            points = None
+            if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
+                if submission.answer in exercise_key.valid_answers:
+                    points = exercise.points
+                    status = ExerciseSubmission.StatusChoices['GRADED']
+            if exercise.question_type == Exercise.QuestionTypeChoices.OPTIONS:
+                if submission.option == exercise_key.valid_option:
+                    points = exercise.points
+                    status = ExerciseSubmission.StatusChoices.GRADED
 
-        if len(error) > 0:
-            raise GraphQLError(error)
-        searchField = input.option
-        searchField += input.answer if input.answer is not None else ""
-        searchField += input.link if input.link is not None else ""
-        searchField = searchField.lower()
+            exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
+                                                            answer=submission.answer, link=submission.link, images=submission.images, points=points, status=status, searchField=searchField)
+            exercise_submission_instance.save()
 
-        exercise_submission_instance = ExerciseSubmission(exercise_id=input.exercise_id, course_id=input.course_id, chapter_id=input.chapter_id, option=input.option,
-                                                          answer=input.answer, link=input.link, images=input.images, points=input.points, status=input.status, searchField=searchField)
-        exercise_submission_instance.save()
-
-        payload = {"exercise_submission": exercise_submission_instance,
-                   "method": CREATE_METHOD}
-        NotifyExerciseSubmission.broadcast(
-            payload=payload)
-        return CreateExerciseSubmission(ok=ok, exercise_submission=exercise_submission_instance)
+            payload = {"exercise_submission": exercise_submission_instance,
+                    "method": CREATE_METHOD}
+            NotifyExerciseSubmission.broadcast(
+                payload=payload)
+        return CreateExerciseSubmissions(ok=ok)
 
 
 class UpdateExerciseSubmission(graphene.Mutation):

@@ -296,15 +296,13 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     exercise_id = graphene.ID(name="exercise", required=True)
     chapter_id = graphene.ID(name="chapter", required=True)
     course_id = graphene.ID(name="course", required=True) 
+    participant_id = graphene.ID(name="participant", required=True)
     option = graphene.String()
     answer = graphene.String()
     link = graphene.String()
     images = graphene.List(graphene.String)
     points = graphene.Decimal()
     status = graphene.String()
-
-class ExerciseSubmissionsInput(graphene.InputObjectType):
-    input = graphene.List(ExerciseSubmissionInput, required=True)
 
 class ReportInput(graphene.InputObjectType):
     id = graphene.ID()
