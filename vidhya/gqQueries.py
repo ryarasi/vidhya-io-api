@@ -21,6 +21,11 @@ class ExerciseAndSubmissionType(graphene.ObjectType):
     exercises = graphene.List(ExerciseType)
     submissions = graphene.List(ExerciseSubmissionType)
 
+class ExerciseSubmissionGroup(graphene.ObjectType):
+    title = graphene.String()
+    subtitle = graphene.String()
+    count = graphene.Int()
+
 class Query(ObjectType):
     institution_by_invitecode = graphene.Field(
         InstitutionType, invitecode=graphene.String())
@@ -62,6 +67,7 @@ class Query(ObjectType):
 
     exercise_submission = graphene.Field(
         ExerciseSubmissionType, id=graphene.ID())
+    exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), limit=graphene.Int(), offset=graphene.Int())
     exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
@@ -403,6 +409,25 @@ class Query(ObjectType):
             return exercise_submission_instance
         else:
             return None
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
+    def resolve_exercise_submission_groups(root, info, group_by=None, limit=None, offset=None, **kwargs):
+        qs = ExerciseSubmission.objects.all().filter(active=True).order_by('-id')
+
+        if group_by == RESOURCES['EXERCISE_SUBMISSION']:
+            qs = ExerciseSubmission.objects.values_list('exercise', flat=True).distinct().order_by()
+            print('list of submissions by unique exercise', qs)
+            
+            groups = 
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        return qs        
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
