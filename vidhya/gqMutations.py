@@ -1415,7 +1415,8 @@ class CreateExerciseSubmissions(graphene.Mutation):
                 raise GraphQLError(error)
         for submission in exercise_submissions:
             ok = True
-            exercise = Exercise.objects.get(pk=submission.exercise_id, active=True)
+            exercise = Exercise.objects.get(pk=submission.exercise_id, active=True)       
+
             exercise_key = ExerciseKey.objects.get(exercise=exercise, active=True)
             searchField = submission.option if submission.option is not None else ""
             searchField += submission.answer if submission.answer is not None else ""
@@ -1431,13 +1432,40 @@ class CreateExerciseSubmissions(graphene.Mutation):
                 if submission.option == exercise_key.valid_option:
                     points = exercise.points
                     status = ExerciseSubmission.StatusChoices.GRADED
+            submission.points = points
+            submission.status = status 
 
-            exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
-                                                            answer=submission.answer, link=submission.link, images=submission.images, points=points, status=status, searchField=searchField)
+            existing_submission = None
+            method = CREATE_METHOD
+            try:
+                existing_submission = ExerciseSubmission.objects.get(participant_id=submission.participant_id, exercise_id=submission.exercise_id, active=True)
+                if existing_submission is not None:
+                    exercise_submission_instance = existing_submission
+                    method = UPDATE_METHOD
+            except:
+                pass                                           
+
+            if existing_submission is None:
+                exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
+                                                            answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, status=submission.status, searchField=searchField)
+            else:
+                exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
+                exercise_submission_instance.course_id = submission.course_id if submission.course_id is not None else exercise_submission_instance.course_id
+                exercise_submission_instance.chapter_id = submission.chapter_id if submission.chapter_id is not None else exercise_submission_instance.chapter_id
+                exercise_submission_instance.option = submission.option if submission.option is not None else exercise_submission_instance.option
+                exercise_submission_instance.answer = submission.answer if submission.answer is not None else exercise_submission_instance.answer
+                exercise_submission_instance.link = submission.link if submission.link is not None else exercise_submission_instance.link
+                exercise_submission_instance.images = submission.images if submission.images is not None else exercise_submission_instance.images
+                exercise_submission_instance.points = submission.points if submission.points is not None else exercise_submission_instance.points
+                exercise_submission_instance.status = submission.status if submission.status is not None else exercise_submission_instance.status
+
+                exercise_submission_instance.searchField = searchField
+
+
             exercise_submission_instance.save()
 
             payload = {"exercise_submission": exercise_submission_instance,
-                    "method": CREATE_METHOD}
+                    "method": method}
             NotifyExerciseSubmission.broadcast(
                 payload=payload)
         return CreateExerciseSubmissions(ok=ok)
