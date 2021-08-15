@@ -1424,16 +1424,21 @@ class CreateExerciseSubmissions(graphene.Mutation):
             searchField = searchField.lower()
             status = ExerciseSubmission.StatusChoices.SUBMITTED
             points = None
+            remarks = None
             if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
                 if submission.answer in exercise_key.valid_answers:
-                    points = exercise.points
                     status = ExerciseSubmission.StatusChoices['GRADED']
+                    points = exercise.points
             if exercise.question_type == Exercise.QuestionTypeChoices.OPTIONS:
+                status = ExerciseSubmission.StatusChoices.GRADED
                 if submission.option == exercise_key.valid_option:
                     points = exercise.points
-                    status = ExerciseSubmission.StatusChoices.GRADED
+                else:
+                    points = 0
+                    remarks = 'Correct Option is "' + exercise_key.valid_option + '"'
             submission.points = points
             submission.status = status 
+            submission.remarks = remarks
 
             existing_submission = None
             method = CREATE_METHOD
@@ -1458,6 +1463,7 @@ class CreateExerciseSubmissions(graphene.Mutation):
                 exercise_submission_instance.images = submission.images if submission.images is not None else exercise_submission_instance.images
                 exercise_submission_instance.points = submission.points if submission.points is not None else exercise_submission_instance.points
                 exercise_submission_instance.status = submission.status if submission.status is not None else exercise_submission_instance.status
+                exercise_submission_instance.remarks = submission.remarks if submission.remarks is not None else exercise_submission_instance.remarks
 
                 exercise_submission_instance.searchField = searchField
 
