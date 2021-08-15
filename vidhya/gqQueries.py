@@ -17,6 +17,9 @@ class ChatSearchResults(graphene.ObjectType):
     groups = graphene.List(GroupType)
     chat_messages = graphene.List(ChatMessageType)
 
+class ExerciseAndSubmissionType(graphene.ObjectType):
+    exercises = graphene.List(ExerciseType)
+    submissions = graphene.List(ExerciseSubmissionType)
 
 class Query(ObjectType):
     institution_by_invitecode = graphene.Field(
@@ -54,7 +57,7 @@ class Query(ObjectType):
         ChapterType, course_id=graphene.ID(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     exercise = graphene.Field(ExerciseType, id=graphene.ID())
-    exercises = graphene.List(ExerciseType, chapter_id=graphene.ID(required=True), searchField=graphene.String(
+    exercises = graphene.Field(ExerciseAndSubmissionType, chapter_id=graphene.ID(required=True), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     exercise_submission = graphene.Field(
@@ -366,9 +369,12 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_exercises(root, info, chapter_id=None, searchField=None, limit=None, offset=None, **kwargs):
+        current_user = info.context.user
         if chapter_id is not None:
             qs = Exercise.objects.all().filter(
                 chapter_id=chapter_id, active=True).order_by('-id')
+
+            submissions = ExerciseSubmission.objects.all().filter(chapter_id = chapter_id, participant_id = current_user.id, active=True).order_by('-id')
 
             if searchField is not None:
                 filter = (
@@ -378,12 +384,15 @@ class Query(ObjectType):
 
             if offset is not None:
                 qs = qs[offset:]
+                submissions = submissions[offset:]
 
             if limit is not None:
                 qs = qs[:limit]
+                submissions = submissions[:limit]
 
-            return qs
+            return ExerciseAndSubmissionType(exercises=qs, submissions=submissions)
         return None
+
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
