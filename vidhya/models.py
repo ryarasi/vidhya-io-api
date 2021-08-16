@@ -310,7 +310,7 @@ class ExerciseSubmission(models.Model):
 
     class StatusChoices(models.TextChoices):
         DRAFT = 'DR', _('DRAFT')
-        SUBMITTED = "CO", _('SUBMITTED')
+        SUBMITTED = "SU", _('SUBMITTED')
         GRADED = "GR", _('GRADED')
         RETURNED = "RE", _('RETURNED')
     # End of Type Choices
