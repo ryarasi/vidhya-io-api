@@ -22,6 +22,8 @@ class ExerciseAndSubmissionType(graphene.ObjectType):
     submissions = graphene.List(ExerciseSubmissionType)
 
 class ExerciseSubmissionGroup(graphene.ObjectType):
+    id = graphene.ID()
+    type = graphene.String()
     title = graphene.String()
     subtitle = graphene.String()
     count = graphene.Int()
@@ -413,21 +415,39 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
     def resolve_exercise_submission_groups(root, info, group_by=None, limit=None, offset=None, **kwargs):
-        qs = ExerciseSubmission.objects.all().filter(active=True).order_by('-id')
+        groups = []
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
-            qs = ExerciseSubmission.objects.values_list('exercise', flat=True).distinct().order_by()
-            print('list of submissions by unique exercise', qs)
-            
-            groups = 
+            unique_exercises = ExerciseSubmission.objects.values_list('exercise', flat=True).distinct().order_by()
+            for exercise_id in unique_exercises:
+                exercise = Exercise.objects.get(pk=exercise_id)
+                count = ExerciseSubmission.objects.all().filter(exercise=exercise).count()
+                card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise.prompt, subtitle=exercise.course.title, count=count)
+                groups.append(card)
+        
+        if group_by == RESOURCES['CHAPTER']:
+            unique_chapters = ExerciseSubmission.objects.values_list('chapter', flat=True).distinct().order_by()
+            for chapter_id in unique_chapters:
+                chapter = Chapter.objects.get(pk=chapter_id)
+                count = ExerciseSubmission.objects.all().filter(chapter=chapter).count()
+                card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter.title, subtitle=chapter.course.title, count=count)
+                groups.append(card)        
+
+        if group_by == RESOURCES['COURSE']:
+            unique_courses = ExerciseSubmission.objects.values_list('course', flat=True).distinct().order_by()
+            for course_id in unique_courses:
+                course = Course.objects.get(pk=course_id)
+                count = ExerciseSubmission.objects.all().filter(course=course).count()
+                card = ExerciseSubmissionGroup(id=course_id, type=group_by, title=course.title, subtitle=course.blurb, count=count)
+                groups.append(card)                
 
         if offset is not None:
-            qs = qs[offset:]
+            groups = groups[offset:]
 
         if limit is not None:
-            qs = qs[:limit]
+            groups = groups[:limit]
 
-        return qs        
+        return groups      
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
