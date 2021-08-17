@@ -1422,9 +1422,9 @@ class CreateExerciseSubmissions(graphene.Mutation):
             searchField += submission.answer if submission.answer is not None else ""
             searchField += submission.link if submission.link is not None else ""
             searchField = searchField.lower()
-            status = ExerciseSubmission.StatusChoices.SUBMITTED
-            points = None
-            remarks = None
+            status = submission.status if submission.status is not None else ExerciseSubmission.StatusChoices.SUBMITTED
+            points = submission.points if submission.points is not None else None
+            remarks = submission.remarks if submission.remarks is not None else None
             if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
                 if submission.answer in exercise_key.valid_answers:
                     status = ExerciseSubmission.StatusChoices['GRADED']
