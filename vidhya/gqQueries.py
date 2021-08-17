@@ -74,7 +74,7 @@ class Query(ObjectType):
     ), limit=graphene.Int(), offset=graphene.Int())
 
     exercise_key = graphene.Field(
-        ExerciseSubmissionType, id=graphene.ID())
+        ExerciseKeyType, exercise_id=graphene.ID())
     exercise_keys = graphene.List(ExerciseKeyType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
@@ -500,9 +500,9 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_KEY'], ACTIONS['GET']))
-    def resolve_exercise_key(root, info, id, **kwargs):
+    def resolve_exercise_key(root, info, exercise_id, **kwargs):
         exercise_key_instance = ExerciseKey.objects.get(
-            pk=id, active=True)
+            exercise=exercise_id, active=True)
         if exercise_key_instance is not None:
             return exercise_key_instance
         else:
