@@ -303,6 +303,7 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     images = graphene.List(graphene.String)
     points = graphene.Decimal()
     status = graphene.String()
+    remarks = graphene.String()
 
 class ReportInput(graphene.InputObjectType):
     id = graphene.ID()
