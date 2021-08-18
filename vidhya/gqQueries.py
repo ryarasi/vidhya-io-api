@@ -28,6 +28,19 @@ class ExerciseSubmissionGroup(graphene.ObjectType):
     subtitle = graphene.String()
     count = graphene.Int()
 
+class AssignmentType(graphene.ObjectType):
+    id = graphene.ID()
+    title = graphene.String()
+    course = graphene.String()
+    section = graphene.String()
+    status = graphene.String()
+    dueDate = graphene.String()
+    exerciseCount = graphene.Int()    
+    submittedCount = graphene.Int()    
+    gradedCount = graphene.Int()    
+    pointsScored = graphene.Int()    
+    totalPoints = graphene.Int()    
+
 class Query(ObjectType):
     institution_by_invitecode = graphene.Field(
         InstitutionType, invitecode=graphene.String())
@@ -69,9 +82,11 @@ class Query(ObjectType):
 
     exercise_submission = graphene.Field(
         ExerciseSubmissionType, id=graphene.ID())
-    exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), limit=graphene.Int(), offset=graphene.Int())
     exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
+
+    exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), limit=graphene.Int(), offset=graphene.Int())
+    assignments = graphene.List(AssignmentType, status=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     exercise_key = graphene.Field(
         ExerciseKeyType, exercise_id=graphene.ID())
@@ -410,44 +425,7 @@ class Query(ObjectType):
         if exercise_submission_instance is not None:
             return exercise_submission_instance
         else:
-            return None
-
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
-    def resolve_exercise_submission_groups(root, info, group_by=None, status=None, limit=None, offset=None, **kwargs):
-        groups = []
-
-        if group_by == RESOURCES['EXERCISE_SUBMISSION']:
-            unique_exercises = ExerciseSubmission.objects.filter(status=status).values_list('exercise', flat=True).distinct().order_by()
-            for exercise_id in unique_exercises:
-                exercise = Exercise.objects.get(pk=exercise_id)
-                count = ExerciseSubmission.objects.all().filter(exercise=exercise).count()
-                card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise.prompt, subtitle=exercise.course.title, count=count)
-                groups.append(card)
-        
-        if group_by == RESOURCES['CHAPTER']:
-            unique_chapters = ExerciseSubmission.objects.filter(status=status).values_list('chapter', flat=True).distinct().order_by()
-            for chapter_id in unique_chapters:
-                chapter = Chapter.objects.get(pk=chapter_id)
-                count = ExerciseSubmission.objects.all().filter(chapter=chapter).count()
-                card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter.title, subtitle=chapter.course.title, count=count)
-                groups.append(card)        
-
-        if group_by == RESOURCES['COURSE']:
-            unique_courses = ExerciseSubmission.objects.filter(status=status).values_list('course', flat=True).distinct().order_by()
-            for course_id in unique_courses:
-                course = Course.objects.get(pk=course_id)
-                count = ExerciseSubmission.objects.all().filter(course=course).count()
-                card = ExerciseSubmissionGroup(id=course_id, type=group_by, title=course.title, subtitle=course.blurb, count=count)
-                groups.append(card)                
-
-        if offset is not None:
-            groups = groups[offset:]
-
-        if limit is not None:
-            groups = groups[:limit]
-
-        return groups      
+            return None   
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
@@ -497,6 +475,102 @@ class Query(ObjectType):
             qs = qs[:limit]
 
         return qs
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
+    def resolve_exercise_submission_groups(root, info, group_by=None, status=None, limit=None, offset=None, **kwargs):
+        groups = []
+
+        if group_by == RESOURCES['EXERCISE_SUBMISSION']:
+            unique_exercises = ExerciseSubmission.objects.filter(status=status).values_list('exercise', flat=True).distinct().order_by()
+            for exercise_id in unique_exercises:
+                exercise = Exercise.objects.get(pk=exercise_id)
+                count = ExerciseSubmission.objects.all().filter(exercise=exercise).count()
+                card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise.prompt, subtitle=exercise.course.title, count=count)
+                groups.append(card)
+        
+        if group_by == RESOURCES['CHAPTER']:
+            unique_chapters = ExerciseSubmission.objects.filter(status=status).values_list('chapter', flat=True).distinct().order_by()
+            for chapter_id in unique_chapters:
+                chapter = Chapter.objects.get(pk=chapter_id)
+                count = ExerciseSubmission.objects.all().filter(chapter=chapter).count()
+                card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter.title, subtitle=chapter.course.title, count=count)
+                groups.append(card)        
+
+        if group_by == RESOURCES['COURSE']:
+            unique_courses = ExerciseSubmission.objects.filter(status=status).values_list('course', flat=True).distinct().order_by()
+            for course_id in unique_courses:
+                course = Course.objects.get(pk=course_id)
+                count = ExerciseSubmission.objects.all().filter(course=course).count()
+                card = ExerciseSubmissionGroup(id=course_id, type=group_by, title=course.title, subtitle=course.blurb, count=count)
+                groups.append(card)                
+
+        if offset is not None:
+            groups = groups[offset:]
+
+        if limit is not None:
+            groups = groups[:limit]
+
+        return groups   
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['LIST']))    
+    def resolve_assignments(root, info, status=None, limit=None, offset=None, **kwargs):
+        assignments = []
+
+        current_user = info.context.user
+
+        courses = Course.objects.filter(participants__in=[current_user.id])
+        print('list of courses', courses)
+
+
+        course_ids = courses.values_list('id')
+        print('list of course ids', course_ids)
+
+        chapters = []
+        for course_id in course_ids:
+            chapters += Chapter.objects.filter(course__in=[course_id]).order_by('-id')
+       
+        print('before the first for loop', chapters)
+        for chapter in chapters:
+            chapter = Chapter.objects.get(pk=chapter.id)
+            course = chapter.course.title 
+            section = chapter.section.title if chapter.section is not None else None
+            dueDate = chapter.due_date
+            exerciseCount = Exercise.objects.all().filter(chapter=chapter.id).count()
+            submittedCount = ExerciseSubmission.objects.all().filter(participant=current_user.id, chapter=chapter.id, status=ExerciseSubmission.StatusChoices.SUBMITTED).count()
+            gradedCount = ExerciseSubmission.objects.all().filter(participant=current_user.id, chapter=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED).count()
+            totalPoints = chapter.points
+            pointsScored = 0
+            exercise_submissions = ExerciseSubmission.objects.all().filter(participant=current_user.id, chapter=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED)
+            status = ExerciseSubmission.StatusChoices.PENDING
+            for submission in exercise_submissions:
+                if submission.points is not None:
+                    pointsScored += submission.points
+                if submission.status == ExerciseSubmission.StatusChoices.RETURNED:
+                    status = ExerciseSubmission.StatusChoices.RETURNED
+
+            if submittedCount == exerciseCount:
+                status = ExerciseSubmission.StatusChoices.SUBMITTED
+            if gradedCount == exerciseCount:
+                status = ExerciseSubmission.StatusChoices.GRADED
+            
+            card = AssignmentType(id=chapter.id, title=chapter.title, course=course, section=section, status=status, dueDate=dueDate, exerciseCount=exerciseCount, submittedCount=submittedCount, gradedCount=gradedCount, totalPoints = totalPoints, pointsScored=pointsScored)
+            assignments.append(card)        
+
+        print('before the filtering',assignments)
+
+        if status is not None:
+            assignments = [assignment for assignment in assignments if assignment.status == status]
+
+        if offset is not None:
+            assignments = assignments[offset:]
+
+        if limit is not None:
+            assignments = assignments[:limit]
+
+        print('after the filtering',assignments)
+        
+        return assignments   
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_KEY'], ACTIONS['GET']))
