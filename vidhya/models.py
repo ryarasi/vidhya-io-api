@@ -309,14 +309,14 @@ class ExerciseSubmission(models.Model):
         max_digits=3, decimal_places=1, blank=True, null=True)
 
     class StatusChoices(models.TextChoices):
-        DRAFT = 'DR', _('DRAFT')
+        PENDING = 'PE', _('PENDING')
         SUBMITTED = "SU", _('SUBMITTED')
         GRADED = "GR", _('GRADED')
         RETURNED = "RE", _('RETURNED')
     # End of Type Choices
 
     status = models.CharField(
-        max_length=2, choices=StatusChoices.choices, default=StatusChoices.DRAFT)
+        max_length=2, choices=StatusChoices.choices, default=StatusChoices.PENDING)
     remarks = models.CharField(max_length=200, blank=True, null=True)
     active = models.BooleanField(default=True)
     searchField = models.CharField(max_length=1000, blank=True, null=True)
