@@ -519,7 +519,7 @@ class Query(ObjectType):
 
         current_user = info.context.user
 
-        courses = Course.objects.filter(participants__in=[current_user.id])
+        courses = Course.objects.filter(participants__in=[current_user.id], active=True)
         print('list of courses', courses)
 
 
@@ -528,7 +528,7 @@ class Query(ObjectType):
 
         chapters = []
         for course_id in course_ids:
-            chapters += Chapter.objects.filter(course__in=[course_id]).order_by('-id')
+            chapters += Chapter.objects.filter(course__in=[course_id], active=True).order_by('-id')
        
         print('before the first for loop', chapters)
         for chapter in chapters:
@@ -541,23 +541,23 @@ class Query(ObjectType):
             gradedCount = ExerciseSubmission.objects.all().filter(participant=current_user.id, chapter=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED).count()
             totalPoints = chapter.points
             pointsScored = 0
-            exercise_submissions = ExerciseSubmission.objects.all().filter(participant=current_user.id, chapter=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED)
-            status = ExerciseSubmission.StatusChoices.PENDING
+            exercise_submissions = ExerciseSubmission.objects.all().filter(participant=current_user.id, chapter=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED, active=True)
+            chapter_status = ExerciseSubmission.StatusChoices.PENDING
             for submission in exercise_submissions:
                 if submission.points is not None:
                     pointsScored += submission.points
                 if submission.status == ExerciseSubmission.StatusChoices.RETURNED:
-                    status = ExerciseSubmission.StatusChoices.RETURNED
+                    chapter_status = ExerciseSubmission.StatusChoices.RETURNED
 
             if submittedCount == exerciseCount:
-                status = ExerciseSubmission.StatusChoices.SUBMITTED
+                chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
             if gradedCount == exerciseCount:
-                status = ExerciseSubmission.StatusChoices.GRADED
+                chapter_status = ExerciseSubmission.StatusChoices.GRADED
             
-            card = AssignmentType(id=chapter.id, title=chapter.title, course=course, section=section, status=status, dueDate=dueDate, exerciseCount=exerciseCount, submittedCount=submittedCount, gradedCount=gradedCount, totalPoints = totalPoints, pointsScored=pointsScored)
+            card = AssignmentType(id=chapter.id, title=chapter.title, course=course, section=section, status=chapter_status, dueDate=dueDate, exerciseCount=exerciseCount, submittedCount=submittedCount, gradedCount=gradedCount, totalPoints = totalPoints, pointsScored=pointsScored)
             assignments.append(card)        
 
-        print('before the filtering',assignments)
+        print('before the filtering',assignments, status)
 
         if status is not None:
             assignments = [assignment for assignment in assignments if assignment.status == status]
