@@ -562,6 +562,14 @@ class Query(ObjectType):
         if status is not None:
             assignments = [assignment for assignment in assignments if assignment.status == status]
 
+        # Sorting them
+        pending = [assignment for assignment in assignments if assignment.status == ExerciseSubmission.StatusChoices.PENDING]
+        returned = [assignment for assignment in assignments if assignment.status == ExerciseSubmission.StatusChoices.RETURNED]
+        submitted = [assignment for assignment in assignments if assignment.status == ExerciseSubmission.StatusChoices.SUBMITTED]
+        graded = [assignment for assignment in assignments if assignment.status == ExerciseSubmission.StatusChoices.GRADED]
+
+        assignments = pending + returned + submitted + graded
+
         if offset is not None:
             assignments = assignments[offset:]
 
