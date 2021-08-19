@@ -307,6 +307,7 @@ class ExerciseSubmission(models.Model):
         max_length=200, blank=True), blank=True, null=True)
     points = models.DecimalField(
         max_digits=4, decimal_places=1, blank=True, null=True)
+    percentage = models.IntegerField(blank=True, null=True)
 
     class StatusChoices(models.TextChoices):
         PENDING = 'PE', _('PENDING')
@@ -330,7 +331,7 @@ class Report(models.Model):
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
     # This will be calculated on grading by dividing the number of graded exercise submissions by required exercises * 100
     completed = models.IntegerField(default=0)
-    score = models.IntegerField(default=0)
+    percentage = models.IntegerField(default=0)
     active = models.BooleanField(default=True)
     searchField = models.CharField(max_length=1000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
