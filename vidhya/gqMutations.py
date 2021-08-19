@@ -1,3 +1,4 @@
+from enum import unique
 import graphene
 from graphql import GraphQLError
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
@@ -5,6 +6,7 @@ from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
+
 
 CREATE_METHOD = 'CREATE'
 UPDATE_METHOD = 'UPDATE'
@@ -1428,7 +1430,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             searchField += submission.link if submission.link is not None else ""
             searchField = searchField.lower()
             status = submission.status if submission.status is not None else ExerciseSubmission.StatusChoices.SUBMITTED
-            points = submission.points if submission.points is not None else None
+            points = submission.points if submission.points is not None else 0
             remarks = submission.remarks if submission.remarks is not None else None
             if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
                 if submission.answer in exercise_key.valid_answers:
@@ -1444,7 +1446,8 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             submission.points = points
             submission.status = status 
             submission.remarks = remarks
-            submission.percentage = submission.points * 100 / exercise.points
+            totalPoints = exercise.points if exercise.points is not None else 0
+            submission.percentage = submission.points * 100 / totalPoints if totalPoints > 0 else 100 # If total points is 0, then they get 100%
 
             existing_submission = None
             method = CREATE_METHOD
@@ -1476,8 +1479,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
             exercise_submission_instance.save()
 
-            UpdateReport.recalculate(exercise_submission_instance) # updating the reports
-
             finalSubmissions.append(exercise_submission_instance)
 
             if method == CREATE_METHOD:
@@ -1487,6 +1488,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                         "method": method}
                 NotifyExerciseSubmission.broadcast(
                     payload=payload)
+        UpdateReport.recalculate(finalSubmissions) # updating the reports
         return CreateUpdateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
 
 
@@ -1615,40 +1617,60 @@ class UpdateReport(graphene.Mutation):
     ok = graphene.Boolean()
     report = graphene.Field(ReportType)
 
+    def remove_duplicate_submissions(all_submissions):
+        unique_submissions = []
+        for submission in all_submissions:
+            if len(unique_submissions):
+                for entry in unique_submissions:
+                    if submission.participant_id == entry.participant_id and submission.course_id == entry.course_id:
+                        pass
+                    else:
+                        unique_submissions.append(submission)
+            else:
+                unique_submissions.append(submission)
+        return unique_submissions
+
     # This is the method used to update grading every time grading happens
-    def recalculate(submission):
-        ok = False
-        report_instance = None
-        method = CREATE_METHOD
-        participant_id = submission.participant_id
-        course_id = submission.course_id
-        if participant_id is not None and course_id is not None:
-            ok = True
-            submissions = ExerciseSubmission.objects.all().filter(participant=participant_id, course_id=course_id)
-            percentage = 0
-            for submission in submissions:
-                percentage = (percentage + submission.percentage)/2
-            completed = 0
-            exercise_count = Exercise.objects.all().filter(course_id=course_id).count()
-            exercise_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=participant_id, course_id=course_id).count()
-            if exercise_count is not None and exercise_submissions_count is not None:
-                completed =exercise_submissions_count*100/exercise_count
-            try:
-                report_instance = Report.objects.get(
-                    participant_id=participant_id, course_id=course_id)
-                method = UPDATE_METHOD
-            except:            
-                report_instance = Report(participant_id=participant_id, course_id=course_id,
-                                    completed=completed, percentage=percentage)
+    def recalculate(all_submissions):
+        unique_submissions = UpdateReport.remove_duplicate_submissions(all_submissions)
+        for submission in unique_submissions:
+            ok = False
+            report_instance = None
+            method = CREATE_METHOD
+            participant_id = submission.participant_id
+            course_id = submission.course_id
+            if participant_id is not None and course_id is not None:
+                ok = True
+                submissions = ExerciseSubmission.objects.all().filter(participant_id=participant_id, course_id=course_id,active=True)
+                total_percentage = 0
+                for submission in submissions:
+                    submission_percentage = submission.percentage if submission.percentage is not None else 0
+                    total_percentage = total_percentage + submission_percentage
+                percentage = total_percentage/len(submissions)
+                completed = 0
+                exercise_count = Exercise.objects.all().filter(course_id=course_id, active=True).count()
+                exercise_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=participant_id, course_id=course_id, active=True).count()
+                if exercise_count is not None and exercise_submissions_count is not None:
+                    completed =exercise_submissions_count*100/exercise_count
+                try:
+                    report_instance = Report.objects.get(
+                        participant_id=participant_id, course_id=course_id, active=True)
+                    report_instance.percentage = percentage
+                    report_instance.completed = completed
+                    method = UPDATE_METHOD
+                except:            
+                    participant = User.objects.all().get(pk=participant_id)
+                    report_instance = Report(participant_id=participant_id, course_id=course_id, institution_id=participant.id,
+                                        completed=completed, percentage=percentage)
 
-            report_instance.save()
-            payload = {"report": report_instance,
-                       "method": method}
-            NotifyReport.broadcast(
-                payload=payload)
+                report_instance.save()
+                payload = {"report": report_instance,
+                        "method": method}
+                NotifyReport.broadcast(
+                    payload=payload)
+                return UpdateReport(ok=ok, report=report_instance)
+
             return UpdateReport(ok=ok, report=report_instance)
-
-        return UpdateReport(ok=ok, report=report_instance)
 
     @staticmethod
     @login_required
