@@ -1234,8 +1234,10 @@ class CreateExercise(graphene.Mutation):
         searchField = input.prompt
         searchField = searchField.lower()
 
+        points = input.points if input.points is not None else 0
+
         exercise_instance = Exercise(prompt=input.prompt, course_id=input.course_id, chapter_id=input.chapter_id,
-                                     question_type=input.question_type, required=input.required, options=input.options, points=input.points, searchField=searchField)
+                                     question_type=input.question_type, required=input.required, options=input.options, points=points, searchField=searchField)
         exercise_instance.save()
 
         exercise_key_instance = ExerciseKey(exercise=exercise_instance, course_id=input.course_id, chapter_id=input.chapter_id, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images)
