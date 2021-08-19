@@ -223,19 +223,19 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['GET']))
     def resolve_group(root, info, id, **kwargs):
         current_user = info.context.user
-        group_instance = Group.objects.get(Q(members__in=[current_user]) | Q(
-            admins__in=[current_user]), pk=id, active=True)
-        if group_instance is not None:
-            return group_instance
-        else:
-            return None
+        group_instance = Group.objects.get(pk=id, active=True)
+        # Checking if the user requesting the group is not a member or an admin
+        if current_user.id not in group_instance.members.values_list('id',flat=True) and current_user.id not in group_instance.admins.values_list('id',flat=True):
+            group_instance = None
+            
+        return group_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['LIST']))
     def resolve_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
         qs = Group.objects.all().filter(
-            Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).order_by('-id')
+            Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).distinct().order_by('-id')
 
         if searchField is not None:
             filter = (
