@@ -1381,6 +1381,7 @@ class CreateExerciseSubmissions(graphene.Mutation):
         exercise_submissions = graphene.List(ExerciseSubmissionInput, required=True)
 
     ok = graphene.Boolean()
+    exercise_submissions = graphene.List(ExerciseSubmissionType)
 
     @staticmethod
     @login_required
@@ -1388,6 +1389,7 @@ class CreateExerciseSubmissions(graphene.Mutation):
     def mutate(root, info, exercise_submissions=None):
         ok = False
         error = ""
+        finalSubmissions = []
         for submission in exercise_submissions:
             exercise_instance = Exercise.objects.get(pk=submission.exercise_id, active=True)
             if submission.exercise_id is None:
@@ -1467,14 +1469,17 @@ class CreateExerciseSubmissions(graphene.Mutation):
 
                 exercise_submission_instance.searchField = searchField
 
-
             exercise_submission_instance.save()
+            finalSubmissions.append(exercise_submission_instance)
 
-            payload = {"exercise_submission": exercise_submission_instance,
-                    "method": method}
-            NotifyExerciseSubmission.broadcast(
-                payload=payload)
-        return CreateExerciseSubmissions(ok=ok)
+            if method == CREATE_METHOD:
+                # Publishing only create methods because on update, 
+                # we update the UI state using the exercise_submissions in the return value
+                payload = {"exercise_submission": exercise_submission_instance,
+                        "method": method}
+                NotifyExerciseSubmission.broadcast(
+                    payload=payload)
+        return CreateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
 
 
 class UpdateExerciseSubmission(graphene.Mutation):
