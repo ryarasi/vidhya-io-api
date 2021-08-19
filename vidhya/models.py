@@ -306,7 +306,7 @@ class ExerciseSubmission(models.Model):
     images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
     points = models.DecimalField(
-        max_digits=3, decimal_places=1, blank=True, null=True)
+        max_digits=4, decimal_places=1, blank=True, null=True)
 
     class StatusChoices(models.TextChoices):
         PENDING = 'PE', _('PENDING')
