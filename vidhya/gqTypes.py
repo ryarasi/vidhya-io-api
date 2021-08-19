@@ -302,6 +302,7 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     link = graphene.String()
     images = graphene.List(graphene.String)
     points = graphene.Decimal()
+    percentage = graphene.Int()
     status = graphene.String()
     remarks = graphene.String()
 
