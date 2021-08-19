@@ -1373,7 +1373,7 @@ class DeleteExercise(graphene.Mutation):
     #     return UpdateExerciseKey(ok=ok, exercise_key=None)
 
 
-class CreateExerciseSubmissions(graphene.Mutation):
+class CreateUpdateExerciseSubmissions(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new ExerciseSubmission"
 
@@ -1383,13 +1383,8 @@ class CreateExerciseSubmissions(graphene.Mutation):
     ok = graphene.Boolean()
     exercise_submissions = graphene.List(ExerciseSubmissionType)
 
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
-    def mutate(root, info, exercise_submissions=None):
-        ok = False
+    def check_errors(exercise_submissions=None):
         error = ""
-        finalSubmissions = []
         for submission in exercise_submissions:
             exercise_instance = Exercise.objects.get(pk=submission.exercise_id, active=True)
             if submission.exercise_id is None:
@@ -1415,6 +1410,14 @@ class CreateExerciseSubmissions(graphene.Mutation):
                         error += "A link is required"    
             if len(error) > 0:
                 raise GraphQLError(error)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
+    def mutate(root, info, exercise_submissions=None):
+        ok = False
+        CreateUpdateExerciseSubmissions.check_errors(exercise_submissions) # validating the input
+        finalSubmissions = []
         for submission in exercise_submissions:
             ok = True
             exercise = Exercise.objects.get(pk=submission.exercise_id, active=True)       
@@ -1441,6 +1444,7 @@ class CreateExerciseSubmissions(graphene.Mutation):
             submission.points = points
             submission.status = status 
             submission.remarks = remarks
+            submission.percentage = submission.points * 100 / exercise.points
 
             existing_submission = None
             method = CREATE_METHOD
@@ -1454,7 +1458,7 @@ class CreateExerciseSubmissions(graphene.Mutation):
 
             if existing_submission is None:
                 exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
-                                                            answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, status=submission.status, searchField=searchField)
+                                                            answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, remarks=submission.remarks, searchField=searchField)
             else:
                 exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
                 exercise_submission_instance.course_id = submission.course_id if submission.course_id is not None else exercise_submission_instance.course_id
@@ -1464,12 +1468,16 @@ class CreateExerciseSubmissions(graphene.Mutation):
                 exercise_submission_instance.link = submission.link if submission.link is not None else exercise_submission_instance.link
                 exercise_submission_instance.images = submission.images if submission.images is not None else exercise_submission_instance.images
                 exercise_submission_instance.points = submission.points if submission.points is not None else exercise_submission_instance.points
+                exercise_submission_instance.percentage = submission.percentage if submission.percentage is not None else exercise_submission_instance.percentage
                 exercise_submission_instance.status = submission.status if submission.status is not None else exercise_submission_instance.status
                 exercise_submission_instance.remarks = submission.remarks if submission.remarks is not None else exercise_submission_instance.remarks
 
                 exercise_submission_instance.searchField = searchField
 
             exercise_submission_instance.save()
+
+            UpdateReport.recalculate(exercise_submission_instance) # updating the reports
+
             finalSubmissions.append(exercise_submission_instance)
 
             if method == CREATE_METHOD:
@@ -1479,81 +1487,81 @@ class CreateExerciseSubmissions(graphene.Mutation):
                         "method": method}
                 NotifyExerciseSubmission.broadcast(
                     payload=payload)
-        return CreateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
+        return CreateUpdateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
 
 
-class UpdateExerciseSubmission(graphene.Mutation):
-    class Meta:
-        description = "Mutation to update a ExerciseSubmission"
+# class UpdateExerciseSubmission(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to update a ExerciseSubmission"
 
-    class Arguments:
-        id = graphene.ID(required=True)
-        input = ExerciseSubmissionInput(required=True)
+#     class Arguments:
+#         id = graphene.ID(required=True)
+#         input = ExerciseSubmissionInput(required=True)
 
-    ok = graphene.Boolean()
-    exercise_submission = graphene.Field(ExerciseSubmissionType)
+#     ok = graphene.Boolean()
+#     exercise_submission = graphene.Field(ExerciseSubmissionType)
 
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
-    def mutate(root, info, id, input=None):
-        ok = False
-        exercise_submission_instance = ExerciseSubmission.objects.get(
-            pk=id, active=True)
-        if exercise_submission_instance:
-            ok = True
-            exercise_submission_instance.exercise_id = input.exercise_id if input.exercise_id is not None else exercise_submission_instance.exercise_id
-            exercise_submission_instance.course_id = input.course_id if input.course_id is not None else exercise_submission_instance.course_id
-            exercise_submission_instance.chapter_id = input.chapter_id if input.chapter_id is not None else exercise_submission_instance.chapter_id
-            exercise_submission_instance.option = input.option if input.option is not None else exercise_submission_instance.option
-            exercise_submission_instance.answer = input.answer if input.answer is not None else exercise_submission_instance.answer
-            exercise_submission_instance.link = input.link if input.link is not None else exercise_submission_instance.link
-            exercise_submission_instance.images = input.images if input.images is not None else exercise_submission_instance.images
-            exercise_submission_instance.points = input.points if input.points is not None else exercise_submission_instance.points
-            exercise_submission_instance.status = input.status if input.status is not None else exercise_submission_instance.status
+#     @staticmethod
+#     @login_required
+#     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
+#     def mutate(root, info, id, input=None):
+#         ok = False
+#         exercise_submission_instance = ExerciseSubmission.objects.get(
+#             pk=id, active=True)
+#         if exercise_submission_instance:
+#             ok = True
+#             exercise_submission_instance.exercise_id = input.exercise_id if input.exercise_id is not None else exercise_submission_instance.exercise_id
+#             exercise_submission_instance.course_id = input.course_id if input.course_id is not None else exercise_submission_instance.course_id
+#             exercise_submission_instance.chapter_id = input.chapter_id if input.chapter_id is not None else exercise_submission_instance.chapter_id
+#             exercise_submission_instance.option = input.option if input.option is not None else exercise_submission_instance.option
+#             exercise_submission_instance.answer = input.answer if input.answer is not None else exercise_submission_instance.answer
+#             exercise_submission_instance.link = input.link if input.link is not None else exercise_submission_instance.link
+#             exercise_submission_instance.images = input.images if input.images is not None else exercise_submission_instance.images
+#             exercise_submission_instance.points = input.points if input.points is not None else exercise_submission_instance.points
+#             exercise_submission_instance.status = input.status if input.status is not None else exercise_submission_instance.status
 
-            searchField = input.option
-            searchField += input.answer if input.answer is not None else ""
-            searchField += input.link if input.link is not None else ""
-            exercise_submission_instance.searchField = searchField.lower()
+#             searchField = input.option
+#             searchField += input.answer if input.answer is not None else ""
+#             searchField += input.link if input.link is not None else ""
+#             exercise_submission_instance.searchField = searchField.lower()
 
-            exercise_submission_instance.save()
-            payload = {"exercise_submission": exercise_submission_instance,
-                       "method": UPDATE_METHOD}
-            NotifyExerciseSubmission.broadcast(
-                payload=payload)
-            return UpdateExerciseSubmission(ok=ok, exercise_submission=exercise_submission_instance)
-        return UpdateExerciseSubmission(ok=ok, exercise_submission=None)
+#             exercise_submission_instance.save()
+#             payload = {"exercise_submission": exercise_submission_instance,
+#                        "method": UPDATE_METHOD}
+#             NotifyExerciseSubmission.broadcast(
+#                 payload=payload)
+#             return UpdateExerciseSubmission(ok=ok, exercise_submission=exercise_submission_instance)
+#         return UpdateExerciseSubmission(ok=ok, exercise_submission=None)
 
 
-class DeleteExerciseSubmission(graphene.Mutation):
-    class Meta:
-        description = "Mutation to mark a ExerciseSubmission as inactive"
+# class DeleteExerciseSubmission(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to mark a ExerciseSubmission as inactive"
 
-    class Arguments:
-        id = graphene.ID(required=True)
+#     class Arguments:
+#         id = graphene.ID(required=True)
 
-    ok = graphene.Boolean()
-    exercise_submission = graphene.Field(ExerciseSubmissionType)
+#     ok = graphene.Boolean()
+#     exercise_submission = graphene.Field(ExerciseSubmissionType)
 
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
-    def mutate(root, info, id):
-        ok = False
-        exercise_submission_instance = ExerciseSubmission.objects.get(
-            pk=id, active=True)
-        if exercise_submission_instance:
-            ok = True
-            exercise_submission_instance.active = False
+#     @staticmethod
+#     @login_required
+#     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['DELETE']))
+#     def mutate(root, info, id):
+#         ok = False
+#         exercise_submission_instance = ExerciseSubmission.objects.get(
+#             pk=id, active=True)
+#         if exercise_submission_instance:
+#             ok = True
+#             exercise_submission_instance.active = False
 
-            exercise_submission_instance.save()
-            payload = {"exercise_submission": exercise_submission_instance,
-                       "method": DELETE_METHOD}
-            NotifyExerciseSubmission.broadcast(
-                payload=payload)
-            return DeleteExerciseSubmission(ok=ok, exercise_submission=exercise_submission_instance)
-        return DeleteExerciseSubmission(ok=ok, exercise_submission=None)
+#             exercise_submission_instance.save()
+#             payload = {"exercise_submission": exercise_submission_instance,
+#                        "method": DELETE_METHOD}
+#             NotifyExerciseSubmission.broadcast(
+#                 payload=payload)
+#             return DeleteExerciseSubmission(ok=ok, exercise_submission=exercise_submission_instance)
+#         return DeleteExerciseSubmission(ok=ok, exercise_submission=None)
 
 
 class CreateReport(graphene.Mutation):
@@ -1606,6 +1614,41 @@ class UpdateReport(graphene.Mutation):
 
     ok = graphene.Boolean()
     report = graphene.Field(ReportType)
+
+    # This is the method used to update grading every time grading happens
+    def recalculate(submission):
+        ok = False
+        report_instance = None
+        method = CREATE_METHOD
+        participant_id = submission.participant_id
+        course_id = submission.course_id
+        if participant_id is not None and course_id is not None:
+            ok = True
+            submissions = ExerciseSubmission.objects.all().filter(participant=participant_id, course_id=course_id)
+            percentage = 0
+            for submission in submissions:
+                percentage = (percentage + submission.percentage)/2
+            completed = 0
+            exercise_count = Exercise.objects.all().filter(course_id=course_id).count()
+            exercise_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=participant_id, course_id=course_id).count()
+            if exercise_count is not None and exercise_submissions_count is not None:
+                completed =exercise_submissions_count*100/exercise_count
+            try:
+                report_instance = Report.objects.get(
+                    participant_id=participant_id, course_id=course_id)
+                method = UPDATE_METHOD
+            except:            
+                report_instance = Report(participant_id=participant_id, course_id=course_id,
+                                    completed=completed, percentage=percentage)
+
+            report_instance.save()
+            payload = {"report": report_instance,
+                       "method": method}
+            NotifyReport.broadcast(
+                payload=payload)
+            return UpdateReport(ok=ok, report=report_instance)
+
+        return UpdateReport(ok=ok, report=report_instance)
 
     @staticmethod
     @login_required
@@ -1865,7 +1908,7 @@ class Mutation(graphene.ObjectType):
     update_exercise = UpdateExercise.Field()
     delete_exercise = DeleteExercise.Field()
 
-    create_exercise_submissions = CreateExerciseSubmissions.Field()
+    create_update_exercise_submissions = CreateUpdateExerciseSubmissions.Field()
 
     delete_chat = DeleteChat.Field()
     chat_with_member = ChatWithMember.Field()
