@@ -19,6 +19,6 @@ ADD . /shuddhi/
 COPY requirements.txt ./
 
 # collect static files
-RUN python manage.py collectstatic --noinput
+RUN python3 manage.py collectstatic --noinput
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
