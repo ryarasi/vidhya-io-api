@@ -2,6 +2,15 @@
 # We Use an official Python runtime as a parent image
 FROM python:3.8
 
+## Using virtual env
+RUN virtualenv env
+# activating environment
+ENV VIRTUAL_ENV /env        
+# activating environment             
+ENV PATH /env/bin:$PATH                 
+ # -> /env/bin/python
+RUN which python                        
+
 # The enviroment variable ensures that the python output is set straight
 # to the terminal with out buffering it first
 ENV PYTHONUNBUFFERED 1
