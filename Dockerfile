@@ -17,4 +17,8 @@ ADD . /shuddhi/
 
 # Install any needed packages specified in requirements.txt
 COPY requirements.txt ./
+
+# collect static files
+RUN python manage.py collectstatic --noinput
+
 RUN pip install --no-cache-dir -r requirements.txt
