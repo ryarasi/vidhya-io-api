@@ -3,6 +3,7 @@
 FROM python:3.8
 
 ## Using virtual env
+RUN pip3 install virtualenv
 RUN virtualenv env
 # activating environment
 ENV VIRTUAL_ENV /env        
