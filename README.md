@@ -3,15 +3,17 @@
 This repo contains the Django-based Graphql API for the Vidhya.io app. This README file details everything you need to know about this project.
 
 ## Versions
-* Python 3.8.5
-* pip 20.0.2 (Python 3.8)
-* Docker 20.10.6, build 370c289
-* Docker Compose 1.29.1, build c34c88b2
+
+- Python 3.8.5
+- pip 20.0.2 (Python 3.8)
+- Docker 20.10.6, build 370c289
+- Docker Compose 1.29.1, build c34c88b2
+
 ## Environment Setup
 
 The following instructions assumes that you are attempting to setup the project on an Ubuntu 20.04 machine. The responsibility of making necessary adjustments to the steps below rests on the follower of these instructions.
 
-1. [Setup Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)   
+1. [Setup Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 2. [Setup Docker Compose](https://docs.docker.com/compose/install/)
 3. [Setup Python](https://www.python.org/downloads/)
 
@@ -23,57 +25,58 @@ The following instructions assumes that you are attempting to setup the project 
    3. `docker-compose.yml`
    4. `requirements.txt`
 2. Create a new isolated virtual python environment
-    `python -m venv venv`
+   `python -m venv venv`
 3. Activate the virtual environment
-    `source venv/bin/activate`
+   `source venv/bin/activate`
 4. Install all the requirements in the virtual environment with `pip install -r requirements.txt`
 5. Create a new Django project `django-admin startproject shuddhi .`
 6. Create a new app called vidhya inside the shuddhi project folder with `django-admin startapp vidhya`
 7. Update the `DATABASES` variable in `settings.py` file with the contents of that variable from the `settings.py` file in this repo.
-8.  Create a postgres database and a database user inside Docker with the following commands:-
-    1.  `docker pull postgres:alpine` to create postgres docker image. We use the alipne version because its lighter.
-    2.  `docker images` to check if it shows the newly created docker image.
-    3.  `docker run --name shuddhi-db -e POSTGRES_PASSWORD=password -d -p 5432:5432 postgres:alpine` to create a docker container named shuddhi-db with the docker image we just pulled.
-    4.  `docker ps` should list the newly created container.
-    5.  `docker exec -it shuddhi-db bash` to enter the container.
-    6.  `psql -U postgres` to enter psql.
-    7.  `CREATE DATABASE shuddhidb;`
-    8.  `CREATE USER shuddhiadmin WITH PASSWORD 'password';`
-    9.  `ALTER ROLE shuddhiadmin SET client_encoding TO 'utf8';`
-    10. `ALTER ROLE shuddhiadmin SET default_transaction_isolation TO 'read committed';`
-    11. `ALTER ROLE shuddhiadmin SET timezone TO 'UTC';`
-    12. `GRANT ALL PRIVILEGES ON DATABASE shuddhidb TO shuddhiadmin;`
-    13. `\q`
-    14. `exit`
-9.  Create a new file called `database.env` with the following content (feel free to use your own values if needed):-
-    1. POSTGRES_USER='shuddhiadmin'
-    2. POSTGRES_PASSWORD='password'
-    3. POSTGRES_DB='shuddhidb'
+8. Create a postgres database and a database user inside Docker with the following commands:-
+   1. `docker pull postgres:alpine` to create postgres docker image. We use the alipne version because its lighter.
+   2. `docker images` to check if it shows the newly created docker image.
+   3. `docker run --name shuddhi-db -e POSTGRES_PASSWORD=password -d -p 5432:5432 postgres:alpine` to create a docker container named shuddhi-db with the docker image we just pulled.
+   4. `docker ps` should list the newly created container.
+   5. `docker exec -it shuddhi-db bash` to enter the container.
+   6. `psql -U postgres` to enter psql.
+   7. `CREATE DATABASE shuddhidb;`
+   8. `CREATE USER shuddhiadmin WITH PASSWORD 'password';`
+   9. `ALTER ROLE shuddhiadmin SET client_encoding TO 'utf8';`
+   10. `ALTER ROLE shuddhiadmin SET default_transaction_isolation TO 'read committed';`
+   11. `ALTER ROLE shuddhiadmin SET timezone TO 'UTC';`
+   12. `GRANT ALL PRIVILEGES ON DATABASE shuddhidb TO shuddhiadmin;`
+   13. `\q`
+   14. `exit`
+9. Create a new file called `database.env` with the following content (feel free to use your own values if needed):-
+   1. POSTGRES_USER='shuddhiadmin'
+   2. POSTGRES_PASSWORD='password'
+   3. POSTGRES_DB='shuddhidb'
 10. Create your superuser in django (different from the db user created above) that will be used for the admin console in the backend with `docker-compose run web python manage.py createsuperuser` and follow prompts to setup username and password. You can use the credentials to login to the admin console at `http://localhost:8000/admin/login/`.
 11. Test setup type in the following commands:-
-    1.  Start the postgres docker container with `docker start shuddhi-db`
-            1.  If this says that ports are already in use, then shut down postgres and try again `sudo service postgresql stop`
-    2.  Once the postgres container is up and running, start the docker for the project with `docker-compose up`
-    3.  Visit `localhost:8000` or `localhost:8000/graphql` to check if setup has worked.
+    1. Start the postgres docker container with `docker start shuddhi-db` 1. If this says that ports are already in use, then shut down postgres and try again `sudo service postgresql stop`
+    2. Once the postgres container is up and running, start the docker for the project with `docker-compose up`
+    3. Visit `localhost:8000` or `localhost:8000/graphql` to check if setup has worked.
 12. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
 13. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
-    1.  Choose your username and password.
-    2.  Now you can go to `localhost:8000/admin` to log into the console
-14. While installing new packages follow these steps:-
-        1.  Make sure you've activated the virtual environment with `source venv/bin/activate`
-        2.  Install the package with `pip install <package_name>`
-        3.  Update the `requirements.txt` file with `pip freeze > requirements.txt`
-        4.  If the docker doesn't recognize the newly installed package, ensure that the docker container is rebuilt and try again.
+    1. Choose your username and password.
+    2. Now you can go to `localhost:8000/admin` to log into the console
+14. While installing new packages follow these steps:- 1. Make sure you've activated the virtual environment with `source venv/bin/activate` 2. Install the package with `pip install <package_name>` 3. Update the `requirements.txt` file with `pip freeze > requirements.txt` 4. If the docker doesn't recognize the newly installed package, ensure that the docker container is rebuilt and try again.
 15. Using pgAdmin:-
-    1.  During first time set up, add a new server with the hostname `db` and port `5432` and username and password as given in the `database.env` file.
-    2.  The database can be explored and modified by visiting `localhost:5000` in the browser. 
-    3.  The email and password are available in the `docker-compose.yml` file under `environment` in `pgadmin4`. 
+    1. During first time set up, add a new server with the hostname `db` and port `5432` and username and password as given in the `database.env` file.
+    2. The database can be explored and modified by visiting `localhost:5000` in the browser.
+    3. The email and password are available in the `docker-compose.yml` file under `environment` in `pgadmin4`.
 16. Using data fixtures:-
-    1.  In order to get a JSON file of the data in a table, use `docker-compose run web python manage.py dumpdata vidhya.UserRole > ./vidhya/fixtures/roles.json`
-    2.  In order to load the data from the file to a table use `docker-compose run web python manage.py loaddata ./vidhya/fixtures/roles.json`
+    1. In order to get a JSON file of the data in a table, use `docker-compose run web python manage.py dumpdata vidhya.UserRole > ./vidhya/fixtures/roles.json`
+    2. In order to load the data from the file to a table use `docker-compose run web python manage.py loaddata ./vidhya/fixtures/roles.json`
 
+## Deployment:-
+
+1. Heroku deployment requires the `heroku.yml` file and some modifications in the `Dockerfile`, `docker-compose.yml` and `settings.py`, all of which are already taken care of in this repo. Only other step is to add a Postgres add-on on Heroku, which is required for the application initiate.
+2. Once deployed it is required to ensure that the database has some starting entries. Eg. a super admin user and also an intstitution for which the invite code is known.
+3. [Some tips for setting up the Dockerfile and troubleshooting tips](https://stackoverflow.com/a/46229012/7981162)
 
 ## Troubleshooting:-
+
 1. If docker-compose up keeps crashing, [rebuild the container](https://vsupalov.com/docker-compose-runs-old-containers/#the-quick-workaround)
    1. Use `docker-compose down && docker-compose build && docker-compose up`
    2. or use `docker-compose rm -f && docker-compose pull && docker-compose up`
@@ -81,13 +84,14 @@ The following instructions assumes that you are attempting to setup the project 
 2. If there are issues with migration conflicts, and simple solutions fail, reset the migrations with these commands:-
    1. Delete all files inside the `migrations` folder except `__init__.py`
    2. Delete the database file, in our case `./data`
-   3. Run `docker-compose up` 
+   3. Run `docker-compose up`
 3. If you have issues with connecting to the docker database on pgadmin, try the following step:-
    1. Stop docker and start it again with `docker-compose down && docker-compose up`
    2. If the above step doesn't help, try restarting postgresql. First stop it with `sudo service postgresql stop`
    3. and then start it up again with `sudo service postgresql start`
 
 ## Useful Links:-
+
 1. [Docker & Django](https://docs.docker.com/samples/django/)
 2. [Docker & PostgreSQL](https://www.youtube.com/watch?v=aHbE3pTyG-Q)
 3. [Autogenerate the requirements.txt file](https://stackoverflow.com/a/33468993/7981162)
