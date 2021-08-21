@@ -51,21 +51,29 @@ The following instructions assumes that you are attempting to setup the project 
    1. POSTGRES_USER='shuddhiadmin'
    2. POSTGRES_PASSWORD='password'
    3. POSTGRES_DB='shuddhidb'
-10. Create your superuser in django (different from the db user created above) that will be used for the admin console in the backend with `docker-compose run web python manage.py createsuperuser` and follow prompts to setup username and password. You can use the credentials to login to the admin console at `http://localhost:8000/admin/login/`.
-11. Test setup type in the following commands:-
+10. Create a new .env file with the following values listed:-
+    1. DJANGO_SECRET_KEY='django-insecure-)3@2sm6lgn_p83_t(l-44hd16ou5-qbk=rso!$b1#$fu\*n2^rq' # This can be any long random string. Recommended to have a length of at least 50 characters.
+    2. DJANGO_DEBUG=TRUE
+    3. DJANGO_ALLOWED_HOSTS="localhost"
+11. Create your superuser in django (different from the db user created above) that will be used for the admin console in the backend with `docker-compose run web python manage.py createsuperuser` and follow prompts to setup username and password. You can use the credentials to login to the admin console at `http://localhost:8000/admin/login/`.
+12. Test setup type in the following commands:-
     1. Start the postgres docker container with `docker start shuddhi-db` 1. If this says that ports are already in use, then shut down postgres and try again `sudo service postgresql stop`
     2. Once the postgres container is up and running, start the docker for the project with `docker-compose up`
     3. Visit `localhost:8000` or `localhost:8000/graphql` to check if setup has worked.
-12. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
-13. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
+13. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
+14. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
     1. Choose your username and password.
     2. Now you can go to `localhost:8000/admin` to log into the console
-14. While installing new packages follow these steps:- 1. Make sure you've activated the virtual environment with `source venv/bin/activate` 2. Install the package with `pip install <package_name>` 3. Update the `requirements.txt` file with `pip freeze > requirements.txt` 4. If the docker doesn't recognize the newly installed package, ensure that the docker container is rebuilt and try again.
-15. Using pgAdmin:-
+15. While installing new packages follow these steps:-
+    1. Make sure you've activated the virtual environment with `source venv/bin/activate`
+    2. Install the package with `pip install <package_name>`
+    3. Update the `requirements.txt` file with `pip freeze > requirements.txt`
+    4. If the docker doesn't recognize the newly installed package, ensure that the docker container is rebuilt and try again.
+16. Using pgAdmin:-
     1. During first time set up, add a new server with the hostname `db` and port `5432` and username and password as given in the `database.env` file.
     2. The database can be explored and modified by visiting `localhost:5000` in the browser.
     3. The email and password are available in the `docker-compose.yml` file under `environment` in `pgadmin4`.
-16. Using data fixtures:-
+17. Using data fixtures:-
     1. In order to get a JSON file of the data in a table, use `docker-compose run web python manage.py dumpdata vidhya.UserRole > ./vidhya/fixtures/roles.json`
     2. In order to load the data from the file to a table use `docker-compose run web python manage.py loaddata ./vidhya/fixtures/roles.json`
 
@@ -102,3 +110,4 @@ The following instructions assumes that you are attempting to setup the project 
 4. [Implementing authentication using JWT in Django/Graphene GraphQL API](https://www.youtube.com/watch?v=pyV2_F9wlk8)
 5. [Connect to the postgres table in the Docker container with pgAdmin](https://stackoverflow.com/a/62749875/7981162)
 6. [How to uninstall all packages in a python project](https://stackoverflow.com/a/67379806/7981162)
+7. [Setting up secure 12factor Django app with Docker and Environ, for different environemnts](https://medium.com/swlh/setting-up-a-secure-django-project-repository-with-docker-and-django-environ-4af72ce037f0)
