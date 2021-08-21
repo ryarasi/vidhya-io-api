@@ -72,8 +72,12 @@ The following instructions assumes that you are attempting to setup the project 
 ## Deployment:-
 
 1. Heroku deployment requires the `heroku.yml` file and some modifications in the `Dockerfile`, `docker-compose.yml` and `settings.py`, all of which are already taken care of in this repo. Only other step is to add a Postgres add-on on Heroku, which is required for the application initiate.
-2. Once deployed it is required to ensure that the database has some starting entries. Eg. a super admin user and also an intstitution for which the invite code is known.
-3. [Some tips for setting up the Dockerfile and troubleshooting tips](https://stackoverflow.com/a/46229012/7981162)
+2. Get setup with the [heroku-cli](https://devcenter.heroku.com/articles/heroku-cli)
+3. User `heroku create` to set up a new heroku project
+4. Set the heroku stack to container with `heroku stack:set container`
+5. Use automatic deployment through git so that pushing to the production branch will automatically build and deploy. But pushing to heroku git by default also works.
+6. Once deployed it is required to ensure that the database has some starting entries. Eg. a super admin user and also an intstitution for which the invite code is known.
+7. [Some tips for setting up the Dockerfile and troubleshooting tips](https://stackoverflow.com/a/46229012/7981162)
 
 ## Troubleshooting:-
 
