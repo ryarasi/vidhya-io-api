@@ -42,8 +42,9 @@ CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
 SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 # setting default email for sending email through sendgrid
 DEFAULT_FROM_EMAIL = env('FROM_EMAIL_ID')
+# Lets us set the domain of the site via environment variable
+FRONTEND_DOMAIN_RUL = env('FRONTEND_DOMAIN_URL')
 
-SENDGRID_SANDBOX_MODE_IN_DEBUG= env.bool('SENDGRID_SANDBOX_MODE_IN_DEBUG')
 # Application definition
 
 

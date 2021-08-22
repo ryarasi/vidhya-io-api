@@ -104,8 +104,7 @@ DJANGO_CORS_ORIGIN_ALLOW_ALL=true
    3. Run `docker-compose up`
 3. If you have issues with connecting to the docker database on pgadmin, try the following step:-
    1. Stop docker and start it again with `docker-compose down && docker-compose up`
-   2. If the above step doesn't help, try restarting postgresql. First stop it with `sudo service postgresql stop`
-   3. and then start it up again with `sudo service postgresql start`
+   2. If the above step doesn't help, try restarting postgresql. First stop it with `sudo service postgresql stop` and then start it up again with `sudo service postgresql start`
 
 ## Useful Links:-
 
