@@ -43,7 +43,9 @@ SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 # setting default email for sending email through sendgrid
 DEFAULT_FROM_EMAIL = env('FROM_EMAIL_ID')
 # Lets us set the domain of the site via environment variable
-FRONTEND_DOMAIN_RUL = env('FRONTEND_DOMAIN_URL')
+FRONTEND_DOMAIN_URL = env('FRONTEND_DOMAIN_URL')
+# This is for the migration that sets the domain name
+SITE_ID = 1
 
 # Application definition
 
@@ -63,6 +65,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites', # This is for altering the domain name in the migration
     'vidhya',
     'graphene_django',
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
