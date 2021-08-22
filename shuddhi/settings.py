@@ -33,7 +33,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 # DEBUG = True
 DEBUG = env('DJANGO_DEBUG', default=False)
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS').split(' ')
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 
 CORS_ORIGIN_ALLOW_ALL = True
 
