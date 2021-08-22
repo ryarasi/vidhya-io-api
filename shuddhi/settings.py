@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # This is to import the environment variables in the .env file
 env = Env()                      
 
-# env.read_env(os.path.join(BASE_DIR, '.env'))  # This reads the environment variables from the .env file
+env.read_env(os.path.join(BASE_DIR, '.env'))  # This reads the environment variables from the .env file
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -33,7 +33,8 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 # DEBUG = True
 DEBUG = env('DJANGO_DEBUG', default=False)
 
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
+# ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
+ALLOWED_HOSTS = ["*"]
 
 CORS_ORIGIN_ALLOW_ALL = True
 
