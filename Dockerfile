@@ -20,7 +20,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # This is to create the collectstatic folder for whitenoise
-ADD . /shuddhi/static/ 
+RUN mkdir /shuddhi/static/ 
 CMD python3 manage.py collectstatic
 
 # Running the server
