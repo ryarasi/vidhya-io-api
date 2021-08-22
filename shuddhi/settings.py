@@ -31,12 +31,12 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
-DEBUG = env('DJANGO_DEBUG', default=False)
+DEBUG = env.bool('DJANGO_DEBUG', default=False)
 
 # ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 
-CORS_ORIGIN_ALLOW_ALL = env('DJANGO_CORS_ORIGIN_ALLOW_ALL')
+CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
 
 # Application definition
 
