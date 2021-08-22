@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # This is to import the environment variables in the .env file
 env = Env()                      
 
-env.read_env(os.path.join(BASE_DIR, '.env'))  # This reads the environment variables from the .env file
+# env.read_env(os.path.join(BASE_DIR, '.env'))  # This reads the environment variables from the .env file
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
