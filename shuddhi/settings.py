@@ -34,7 +34,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DJANGO_DEBUG', default=False)
 
 # ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['localhost', 'vidhya-io-staging.herokuapp.com']
 
 CORS_ORIGIN_ALLOW_ALL = True
 
