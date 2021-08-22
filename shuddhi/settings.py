@@ -34,7 +34,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DJANGO_DEBUG', default=False)
 
 # ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
-ALLOWED_HOSTS = ['localhost', 'vidhya-io-staging.herokuapp.com']
+ALLOWED_HOSTS = ['0.0.0.0','localhost', 'vidhya-io-staging.herokuapp.com']
 
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -209,7 +209,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-# STATICFILES_STORAGE =  'django.contrib.staticfiles.storage.StaticFilesStorage' 
+STATICFILES_STORAGE =  'django.contrib.staticfiles.storage.StaticFilesStorage' 
 
 # Media files
 MEDIA_URL = '/media/'
