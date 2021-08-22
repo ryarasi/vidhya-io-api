@@ -51,10 +51,15 @@ The following instructions assumes that you are attempting to setup the project 
    1. POSTGRES_USER='shuddhiadmin'
    2. POSTGRES_PASSWORD='password'
    3. POSTGRES_DB='shuddhidb'
-10. Create a new .env file with the following values listed:-
-    1. DJANGO_SECRET_KEY='django-insecure-)3@2sm6lgn_p83_t(l-44hd16ou5-qbk=rso!$b1#$fu\*n2^rq' # This can be any long random string. Recommended to have a length of at least 50 characters.
-    2. DJANGO_DEBUG=TRUE
-    3. DJANGO_ALLOWED_HOSTS="localhost"
+10. Create a new .env file with the following values listed for local env:-
+
+```
+DJANGO_SECRET_KEY='django-insecure-)3@2sm6lgn_p83_t(l-44hd16ou5-qbk=rso!$b1#$fu*n2^rq'
+DJANGO_DEBUG=true
+DJANGO_ALLOWED_HOSTS=0.0.0.0,localhost
+DJANGO_CORS_ORIGIN_ALLOW_ALL=true
+```
+
 11. Create your superuser in django (different from the db user created above) that will be used for the admin console in the backend with `docker-compose run web python manage.py createsuperuser` and follow prompts to setup username and password. You can use the credentials to login to the admin console at `http://localhost:8000/admin/login/`.
 12. Test setup type in the following commands:-
     1. Start the postgres docker container with `docker start shuddhi-db` 1. If this says that ports are already in use, then shut down postgres and try again `sudo service postgresql stop`
