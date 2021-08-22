@@ -89,8 +89,15 @@ DJANGO_CORS_ORIGIN_ALLOW_ALL=true
 3. User `heroku create` to set up a new heroku project
 4. Set the heroku stack to container with `heroku stack:set container`
 5. Use automatic deployment through git so that pushing to the production branch will automatically build and deploy. But pushing to heroku git by default also works.
-6. Once deployed it is required to ensure that the database has some starting entries. Eg. a super admin user and also an intstitution for which the invite code is known.
-7. [Some tips for setting up the Dockerfile and troubleshooting tips](https://stackoverflow.com/a/46229012/7981162)
+6. [Some tips for setting up the Dockerfile and troubleshooting tips](https://stackoverflow.com/a/46229012/7981162)
+
+## Initial Setup Post deployment:-
+
+1. First step after deployment and testing that the build succeeded is to make migrations - `heroku run python manage.py makemigrations -a <heroku_app_name>`
+2. Second step is to migrate the database - `heroku run python manage.py migrate -a <heroku_app_name>`
+3. The migrations automatically load some essential initial data. The next step is to create a super user - `heroku run python manage.py createsuperuser -a <heroku_app_name>`. Make sure to set a very secure password. Also select a functional email ID in order to be able to receive activation email.
+4. Once the super user is created, go to the Django admin console and set the institution, role and update thes status to approved.
+5. Login to the app from the front end to receive the activation email and once activated, it should complete the initial setup.
 
 ## Troubleshooting:-
 
