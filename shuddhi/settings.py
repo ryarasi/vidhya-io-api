@@ -26,19 +26,33 @@ env.read_env(os.path.join(BASE_DIR, '.env'))  # This reads the environment varia
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
+# # # # # # # # # 
+# Loading all environemtn Variables
+# # # # # # # # 
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('DJANGO_SECRET_KEY')
-
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
 DEBUG = env.bool('DJANGO_DEBUG', default=False)
-
-# ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
+# Authorized origins
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
-
+# Whether or not requests from other origins are allowed
 CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
+# Twilio Sendgrid API key
+SENDGRID_API_KEY = env('SENDGRID_API_KEY')
+# setting default email for sending email through sendgrid
+DEFAULT_FROM_EMAIL = env('FROM_EMAIL_ID')
 
+SENDGRID_SANDBOX_MODE_IN_DEBUG= env.bool('SENDGRID_SANDBOX_MODE_IN_DEBUG')
 # Application definition
+
+
+# Sendgrid Mail Settings
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
 INSTALLED_APPS = [
     'corsheaders',
@@ -104,7 +118,7 @@ GRAPHQL_JWT = {
     "JWT_LONG_RUNNING_REFRESH_TOKEN": True
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 ROOT_URLCONF = 'shuddhi.urls'
 
