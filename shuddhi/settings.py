@@ -15,8 +15,10 @@ import dj_database_url
 
 # This is to import the environment variables in the .env file
 from environ import Env              
-env = Env()                          
-env.read_env(env_file='.env')  # This reads the environment variables from the .env file
+env = Env()                      
+   
+if settings.DEBUG: 
+    env.read_env(env_file='.env')  # This reads the environment variables from the .env file
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
