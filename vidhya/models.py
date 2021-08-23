@@ -49,7 +49,7 @@ class User(AbstractUser):
 class UserRole(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
     description = models.CharField(max_length=500,)
-    priority = models.IntegerField()
+    priority = models.IntegerField() # Lower the number higher the priority
 
     def default_permissions():
         return {}

@@ -215,7 +215,10 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['LIST']))
     def resolve_user_roles(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = UserRole.objects.all().filter(active=True).order_by('-name')
+        current_user = info.context.user
+        current_user_role = UserRole.objects.all().get(name=current_user.role, active=True)
+        current_user_role_priority = current_user_role.priority
+        qs = UserRole.objects.all().filter(priority__gte=current_user_role_priority, active=True).order_by('-name')
 
         if searchField is not None:
             filter = (
