@@ -5,7 +5,7 @@ from vidhya.models import Institution, User, UserRole, Group, Announcement, Cour
 from django.db.models import Q
 from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS
-
+from django.conf import settings
 
 class ActiveChats(graphene.ObjectType):
     chats = graphene.List(ChatType)
@@ -156,13 +156,14 @@ class Query(ObjectType):
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=None, role_name=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-
         current_user_role_name = current_user.role.name
-        print('user role name => ', current_user_role_name)
-        print('suer admin role name constant => ',
-              USER_ROLES_NAMES["SUPER_ADMIN"])
-        if current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]:
-            print('User is super admin')
+        admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
+
+        # print('user role name => ', current_user_role_name)
+        # print('suer admin role name constant => ',
+        #       USER_ROLES_NAMES["SUPER_ADMIN"])
+        if admin_user:
+            # print('User is super admin')
             # if the user is super user then they
             qs = User.objects.all().filter(active=True).order_by('-id')
         else:
@@ -185,12 +186,22 @@ class Query(ObjectType):
         if role_name is not None:
             qs = qs.filter(role=role_name)
 
+        redacted_qs = []
+        if admin_user:
+            redacted_qs = qs
+        else:
+            # Replacing the user avatar if the requesting user is not of the same institution and is not a super admin
+            for user in qs:
+                if user.institution_id != current_user.institution_id:
+                    user.avatar = settings.DEFAULT_AVATARS['USER']
+                redacted_qs.append(user)
+
         if offset is not None:
-            qs = qs[offset:]
+            redacted_qs = redacted_qs[offset:]
 
         if limit is not None:
-            qs = qs[:limit]
-        return qs
+            redacted_qs = redacted_qs[:limit]
+        return redacted_qs
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['GET']))
