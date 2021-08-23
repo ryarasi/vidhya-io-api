@@ -47,6 +47,11 @@ FRONTEND_DOMAIN_URL = env('FRONTEND_DOMAIN_URL')
 # This is for the migration that sets the domain name
 SITE_ID = 1
 
+DEFAULT_AVATARS = {
+    'USER': 'https://i.imgur.com/KHtECqa.png',
+    'INSTITUTION': 'https://i.imgur.com/dPO1MlY.png',
+    'GROUP': 'https://i.imgur.com/hNdMk4c.png'
+}
 # Application definition
 
 
@@ -56,6 +61,11 @@ EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
 EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 INSTALLED_APPS = [
     'corsheaders',
@@ -121,8 +131,6 @@ GRAPHQL_JWT = {
     "JWT_VERIFY_EXPIRATION": True,
     "JWT_LONG_RUNNING_REFRESH_TOKEN": True
 }
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 ROOT_URLCONF = 'shuddhi.urls'
 

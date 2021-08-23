@@ -7,13 +7,13 @@ from django.db.models.fields import IntegerField
 from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
+from django.conf import settings
 # from django.db.models import JSONField
-
 
 class User(AbstractUser):
     email = models.EmailField(blank=False, max_length=255, unique=True)
     avatar = models.CharField(max_length=250, blank=True,
-                              null=True, default="https://i.imgur.com/KHtECqa.png")
+                              null=True, default=settings.DEFAULT_AVATARS['USER'])
     institution = models.ForeignKey(
         'Institution', on_delete=models.PROTECT, blank=True, null=True)
     role = models.ForeignKey(
@@ -70,7 +70,7 @@ class Institution(models.Model):
     website = models.CharField(max_length=100, blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
     logo = models.CharField(
-        max_length=250, blank=True, null=True, default="https://i.imgur.com/dPO1MlY.png")
+        max_length=250, blank=True, null=True, default=settings.DEFAULT_AVATARS['INSTITUTION'])
     bio = models.CharField(max_length=300, blank=True, null=True)
 
     def generate_invitecode():
@@ -92,7 +92,7 @@ class Group(models.Model):
     description = models.CharField(max_length=250)
     institution = models.ForeignKey(Institution, on_delete=models.PROTECT)
     avatar = models.CharField(
-        max_length=250, blank=True, null=True, default="https://i.imgur.com/hNdMk4c.png")
+        max_length=250, blank=True, null=True, default=settings.DEFAULT_AVATARS['GROUP'])
     searchField = models.CharField(max_length=400, blank=True, null=True)
 
     # Type Choices
