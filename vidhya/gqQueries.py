@@ -192,11 +192,11 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
 
-        if len(membership_status_not) > 0:
+        if bool(membership_status_not):
             qs = qs.exclude(membership_status__in=membership_status_not)
 
-        if len(membership_status_is) > 0:
-            qs = qs.filter(~Q(membership_status__in=membership_status_is))
+        if bool(membership_status_is):
+            qs = qs.filter(membership_status__in=membership_status_is)
         if role_name is not None:
             qs = qs.filter(role=role_name)
 
@@ -235,10 +235,10 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
 
-        if len(membership_status_not) > 0:
+        if bool(membership_status_not):
             qs = qs.exclude(membership_status__in=membership_status_not)
 
-        if len(membership_status_is) > 0:
+        if bool(membership_status_is):
             qs = qs.filter(~Q(membership_status__in=membership_status_is))
         if role_name is not None:
             qs = qs.filter(role=role_name)
