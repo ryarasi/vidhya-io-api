@@ -224,7 +224,39 @@ class Query(ObjectType):
         return qs
 
     def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], role_name=None, limit=None, offset=None, **kwargs):   
-        qs = Query.process_users(root, info, searchField, membership_status_not, membership_status_is, role_name, limit, offset, **kwargs)
+        current_user = info.context.user
+
+        qs = User.objects.all().filter(active=True).order_by('-id')
+
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if len(membership_status_not) > 0:
+            qs = qs.exclude(membership_status__in=membership_status_not)
+
+        if len(membership_status_is) > 0:
+            qs = qs.filter(~Q(membership_status__in=membership_status_is))
+        if role_name is not None:
+            qs = qs.filter(role=role_name)
+
+        redacted_qs = []
+
+        # Replacing the user avatar if the requesting user is not of the same institution and is not a super admin
+        for user in qs:
+            if user.institution_id != current_user.institution_id:
+                user.avatar = settings.DEFAULT_AVATARS['USER']
+            redacted_qs.append(user)
+
+        if offset is not None:
+            redacted_qs = redacted_qs[offset:]
+
+        if limit is not None:
+            redacted_qs = redacted_qs[:limit]
+     
         public_users = []
         for user in qs:
             new_user = PublicUserType(id=user.id, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution.name)
