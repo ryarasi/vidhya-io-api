@@ -215,6 +215,8 @@ class Query(ObjectType):
 
         if limit is not None:
             redacted_qs = redacted_qs[:limit]
+        
+        return redacted_qs
 
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], role_name=None, limit=None, offset=None, **kwargs):
