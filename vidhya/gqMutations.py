@@ -759,8 +759,6 @@ class CreateCourse(graphene.Mutation):
             error += "Instructor is a required field<br />"
         if input.institution_ids is None:
             error += "Institution(s) is a required field<br />"
-        if input.status is None:
-            error += "Status is a required field<br />"
         if len(error) > 0:
             raise GraphQLError(error)
         searchField = input.title
@@ -769,7 +767,7 @@ class CreateCourse(graphene.Mutation):
         searchField = searchField.lower()
 
         course_instance = Course(title=input.title, blurb=input.blurb, description=input.description,
-                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, status=input.status, searchField=searchField)
+                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, searchField=searchField)
         course_instance.save()
 
         if input.institution_ids is not None:
