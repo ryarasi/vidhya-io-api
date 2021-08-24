@@ -41,6 +41,15 @@ class AssignmentType(graphene.ObjectType):
     pointsScored = graphene.Int()    
     totalPoints = graphene.Int()    
 
+class PublicUserType(graphene.ObjectType):
+    id = graphene.ID()
+    name = graphene.String()
+    title = graphene.String()
+    bio = graphene.String()
+    avatar = graphene.String()
+    institution = graphene.String()
+
+
 class Query(ObjectType):
     institution_by_invitecode = graphene.Field(
         InstitutionType, invitecode=graphene.String())
@@ -50,7 +59,10 @@ class Query(ObjectType):
 
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.List(
-        UserType, searchField=graphene.String(), membership_status_not=graphene.String(), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        UserType, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    public_users = graphene.List(
+        PublicUserType, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     user_role = graphene.Field(UserRoleType, role_name=graphene.String())
     user_roles = graphene.List(
@@ -153,8 +165,8 @@ class Query(ObjectType):
         else:
             return None
 
-    @login_required
-    def resolve_users(root, info, searchField=None, membership_status_not=None, role_name=None, limit=None, offset=None, **kwargs):
+
+    def process_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], role_name=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
         current_user_role_name = current_user.role.name
         admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
@@ -180,9 +192,11 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
 
-        if membership_status_not is not None:
-            qs = qs.exclude(membership_status=membership_status_not)
+        if len(membership_status_not) > 0:
+            qs = qs.exclude(membership_status__in=membership_status_not)
 
+        if len(membership_status_is) > 0:
+            qs = qs.filter(~Q(membership_status__in=membership_status_is))
         if role_name is not None:
             qs = qs.filter(role=role_name)
 
@@ -201,7 +215,19 @@ class Query(ObjectType):
 
         if limit is not None:
             redacted_qs = redacted_qs[:limit]
-        return redacted_qs
+
+    @login_required
+    def resolve_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], role_name=None, limit=None, offset=None, **kwargs):
+        qs = Query.process_users(root, info, searchField, membership_status_not, membership_status_is, role_name, limit, offset, **kwargs)
+        return qs
+
+    def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], role_name=None, limit=None, offset=None, **kwargs):   
+        qs = Query.process_users(root, info, searchField, membership_status_not, membership_status_is, role_name, limit, offset, **kwargs)
+        public_users = []
+        for user in qs:
+            new_user = PublicUserType(id=user.id, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution.name)
+            public_users.append(new_user)
+        return public_users
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['GET']))
