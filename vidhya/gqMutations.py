@@ -236,6 +236,7 @@ class UpdateUser(graphene.Mutation):
             ok = True
             user_instance.first_name = input.first_name if input.first_name is not None else user.first_name
             user_instance.last_name = input.last_name if input.last_name is not None else user.last_name
+            user_instance.name = user_instance.first_name + ' ' + user_instance.last_name if user_instance.first_name is not None and user_instance.last_name is not None else ""
             user_instance.avatar = input.avatar if input.avatar is not None else user.avatar
             user_instance.institution_id = input.institution_id if input.institution_id is not None else user.institution_id
             user_instance.role_id = input.role_id if input.role_id is not None else user.role_id
@@ -245,7 +246,7 @@ class UpdateUser(graphene.Mutation):
             # Updatiing the membership status to Pending if the user is currently Uninitialized and
             # they provide first name, last name and institution to set up their profile
             if user_instance.membership_status == 'UI':
-                if len(user_instance.first_name) > 0 and len(user_instance.last_name) > 0 and user_instance.institution_id is not None:
+                if len(user_instance.name) > 1 and user_instance.institution_id is not None:
                     user_instance.membership_status = 'PE'
 
             searchField = user_instance.first_name if user_instance.first_name is not None else ""
