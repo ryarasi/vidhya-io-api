@@ -45,6 +45,7 @@ DEFAULT_FROM_EMAIL = env('FROM_EMAIL_ID')
 # Lets us set the domain of the site via environment variable
 FRONTEND_DOMAIN_URL = env('FRONTEND_DOMAIN_URL')
 # This is for the migration that sets the domain name
+REDIS_URL = env('REDIS_URL')
 SITE_ID = 1
 
 DEFAULT_AVATARS = {
@@ -180,14 +181,39 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 db_from_env = dj_database_url.config(default=DATABASE_URL, conn_max_age=500, ssl_require=True)
 DATABASES['default'].update(db_from_env)
 
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("redis", 6379)],
+#         },
+#     },
+# }
+
+
+hosts = [REDIS_URL]
+
+if DEBUG:
+    hosts = [('redis', 6379)]
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis", 6379)],
+            "hosts": hosts,
         },
     },
 }
+
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": [REDIS_URL],
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient"
+#         }
+#     }
+# }
 
 
 # Password validation
