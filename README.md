@@ -84,9 +84,11 @@ DJANGO_CORS_ORIGIN_ALLOW_ALL=true
 
 ## Deployment:-
 
-1. Heroku deployment requires the `heroku.yml` file and some modifications in the `Dockerfile`, `docker-compose.yml` and `settings.py`, all of which are already taken care of in this repo. Only other step is to add a Postgres add-on on Heroku, which is required for the application initiate.
+1. Heroku deployment requires the `heroku.yml` file and some modifications in the `Dockerfile`, `docker-compose.yml` and `settings.py`, all of which are already taken care of in this repo.
 2. Get setup with the [heroku-cli](https://devcenter.heroku.com/articles/heroku-cli)
-3. User `heroku create` to set up a new heroku project
+3. User `heroku create` to set up a new heroku project. From the GUI add the following addons to the Heroku project:-
+   1. Heroku Postgres - For the database (This automatically adds the DATABASE_URL to the project's config variables)
+   2. Heroku Redis - For the redis server (This automatically adds the REDIS_URL to the project's config variables)
 4. Set the heroku stack to container with `heroku stack:set container`
 5. Use automatic deployment through git so that pushing to the production branch will automatically build and deploy. But pushing to heroku git by default also works.
 6. [Some tips for setting up the Dockerfile and troubleshooting tips](https://stackoverflow.com/a/46229012/7981162)
