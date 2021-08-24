@@ -45,8 +45,9 @@ DEFAULT_FROM_EMAIL = env('FROM_EMAIL_ID')
 # Lets us set the domain of the site via environment variable
 FRONTEND_DOMAIN_URL = env('FRONTEND_DOMAIN_URL')
 # This is for the migration that sets the domain name
-REDIS_URL = env('REDIS_URL')
 SITE_ID = 1
+# This is the URL for the redis server
+REDIS_URL = env('REDIS_URL')
 
 DEFAULT_AVATARS = {
     'USER': 'https://i.imgur.com/KHtECqa.png',
