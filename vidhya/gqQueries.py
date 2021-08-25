@@ -374,6 +374,9 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
         qs = Course.objects.all().filter(active=True).order_by('-id')
+        current_user = info.context.user
+        qs = Group.objects.all().filter(
+            Q(participants__in=[current_user]) | Q(instructor_id=current_user.id), active=True).distinct().order_by('-id')
 
         if searchField is not None:
             filter = (
