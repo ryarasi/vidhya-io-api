@@ -39,6 +39,7 @@ class AssignmentType(graphene.ObjectType):
     submittedCount = graphene.Int()    
     gradedCount = graphene.Int()    
     pointsScored = graphene.Int()    
+    percentage = graphene.Int()
     totalPoints = graphene.Int()    
 
 class PublicUserType(graphene.ObjectType):
@@ -373,10 +374,14 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Course.objects.all().filter(active=True).order_by('-id')
         current_user = info.context.user
-        qs = Group.objects.all().filter(
-            Q(participants__in=[current_user]) | Q(instructor_id=current_user.id), active=True).distinct().order_by('-id')
+        status = Course.StatusChoices.PUBLISHED
+        if has_access(current_user, RESOURCES['COURSE'], ACTIONS['CREATE'], True):
+            qs = Course.objects.all().filter(
+                Q(participants__in=[current_user]) | Q(instructor_id=current_user.id), active=True).distinct().order_by('-id')
+        else:
+            qs = Course.objects.all().filter(
+                Q(participants__in=[current_user]) | Q(instructor_id=current_user.id), status=status, active=True).distinct().order_by('-id')
 
         if searchField is not None:
             filter = (
@@ -436,7 +441,14 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_chapters(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Chapter.objects.all().filter(active=True).order_by('-id')
+        current_user = info.context.user
+        status = Course.StatusChoices.PUBLISHED
+        if has_access(current_user, RESOURCES['CHAPTER'], ACTIONS['CREATE'], True):
+            qs = Chapter.objects.all().filter(active=True).order_by('-id')
+        else:
+            qs = Chapter.objects.all().filter(active=True, status=status).order_by('-id')
+
+        
         if course_id is not None:
             filter = (
                 Q(course_id=course_id)
@@ -470,7 +482,18 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_exercises(root, info, chapter_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
+    
         if chapter_id is not None:
+            try:
+                chapter = Chapter.objects.get(pk=chapter_id, active=True)
+            except Chapter.DoesNotExist:
+                return None
+            status = Course.StatusChoices.PUBLISHED
+            if chapter.status != status:
+                has_access(current_user,RESOURCES['CREATE'], ACTIONS['CREATE'])
+            else:
+                pass
+             
             qs = Exercise.objects.all().filter(
                 chapter_id=chapter_id, active=True).order_by('-id')
 
@@ -495,7 +518,7 @@ class Query(ObjectType):
 
 
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['GET']))
     def resolve_exercise_submission(root, info, id, **kwargs):
         exercise_submission_instance = ExerciseSubmission.objects.get(
             pk=id, active=True)
@@ -505,7 +528,7 @@ class Query(ObjectType):
             return None   
 
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['LIST']))
     def resolve_exercise_submissions(root, info, exercise_id=None, chapter_id=None, course_id=None, participant_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
         qs = ExerciseSubmission.objects.all().filter(active=True).order_by('-id')
 
@@ -605,7 +628,7 @@ class Query(ObjectType):
 
         chapters = []
         for course_id in course_ids:
-            chapters += Chapter.objects.filter(course__in=[course_id], active=True).order_by('-id')
+            chapters += Chapter.objects.filter(course__in=[course_id], status=Chapter.StatusChoices.PUBLISHED, active=True).order_by('-id')
        
         print('before the first for loop', chapters)
         for chapter in chapters:
@@ -613,25 +636,41 @@ class Query(ObjectType):
             course = chapter.course.title 
             section = chapter.section.title if chapter.section is not None else None
             dueDate = chapter.due_date
-            exerciseCount = Exercise.objects.all().filter(chapter=chapter.id).count()
-            submittedCount = ExerciseSubmission.objects.all().filter(participant=current_user.id, chapter=chapter.id, status=ExerciseSubmission.StatusChoices.SUBMITTED).count()
-            gradedCount = ExerciseSubmission.objects.all().filter(participant=current_user.id, chapter=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED).count()
+            exerciseCount = Exercise.objects.all().filter(chapter_id=chapter.id,active=True).count()
+            submittedCount = ExerciseSubmission.objects.all().filter(participant_id=current_user.id, chapter_id=chapter.id, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True).count()
+            gradedCount = ExerciseSubmission.objects.all().filter(participant_id=current_user.id, chapter_id=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED,active=True).count()
             totalPoints = chapter.points
             pointsScored = 0
-            exercise_submissions = ExerciseSubmission.objects.all().filter(participant=current_user.id, chapter=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED, active=True)
+            percentage = 0
+            exercises = Exercise.objects.all().filter(chapter_id=chapter.id, active=True)
+            # exercise_submissions = ExerciseSubmission.objects.all().filter(participant_id=current_user.id, chapter_id=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED, active=True)
+            print('username ', current_user.username)
+            print('chapter', chapter.title)
+            print('exercises for participant ', exercises)
+            print('exercisecount => ', exerciseCount)
+            print('submittedCount => ', submittedCount)
+            print('gradedCount => ', gradedCount)
             chapter_status = ExerciseSubmission.StatusChoices.PENDING
-            for submission in exercise_submissions:
-                if submission.points is not None:
-                    pointsScored += submission.points
-                if submission.status == ExerciseSubmission.StatusChoices.RETURNED:
-                    chapter_status = ExerciseSubmission.StatusChoices.RETURNED
-
-            if submittedCount == exerciseCount:
+            for exercise in exercises:
+                try:
+                    submission = ExerciseSubmission.objects.all().get(participant_id=current_user.id, exercise_id=exercise.id,active=True)
+                    if submission.points is not None:
+                        pointsScored += submission.points
+                    if submission.percentage is not None:
+                        percentage  += submission.percentage
+                    if submission.status == ExerciseSubmission.StatusChoices.RETURNED:
+                        chapter_status = ExerciseSubmission.StatusChoices.RETURNED                    
+                except:
+                    pass
+            
+            percentageCount = gradedCount + submittedCount
+            percentage = percentage/percentageCount if percentageCount > 0 else 0
+            percentage = percentage if exerciseCount > 0 else 100 # Giving them 100% if there are no exercises in the chapter
+            if submittedCount == exerciseCount - gradedCount:
                 chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
             if gradedCount == exerciseCount:
                 chapter_status = ExerciseSubmission.StatusChoices.GRADED
-            
-            card = AssignmentType(id=chapter.id, title=chapter.title, course=course, section=section, status=chapter_status, dueDate=dueDate, exerciseCount=exerciseCount, submittedCount=submittedCount, gradedCount=gradedCount, totalPoints = totalPoints, pointsScored=pointsScored)
+            card = AssignmentType(id=chapter.id, title=chapter.title, course=course, section=section, status=chapter_status, dueDate=dueDate, exerciseCount=exerciseCount, submittedCount=submittedCount, gradedCount=gradedCount, totalPoints = totalPoints, percentage=percentage,pointsScored=pointsScored)
             assignments.append(card)        
 
         print('before the filtering',assignments, status)

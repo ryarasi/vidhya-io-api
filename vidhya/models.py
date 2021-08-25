@@ -258,7 +258,6 @@ class Chapter(models.Model):
 class Exercise(models.Model):
     prompt = models.CharField(max_length=300)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
-    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     class QuestionTypeChoices(models.TextChoices):
         OPTIONS = 'OP', _('OPTIONS')

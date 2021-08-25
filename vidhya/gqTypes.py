@@ -309,6 +309,7 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
 class ReportInput(graphene.InputObjectType):
     id = graphene.ID()
     participant_id = graphene.ID(name="participant", required=True)
+    institution_id = graphene.ID(name="institution", required=True)
     course_id = graphene.ID(name="course", required=True)
     completed = graphene.Int(required=True)
     score = graphene.Int(required=True)
