@@ -767,7 +767,7 @@ class CreateCourse(graphene.Mutation):
         searchField += input.description if input.description is not None else ""
         searchField = searchField.lower()
 
-        course_instance = Course(title=input.title, index=input.index, blurb=input.blurb, description=input.description,
+        course_instance = Course(title=input.title, blurb=input.blurb, description=input.description,
                                  instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, searchField=searchField)
         course_instance.save()
 
@@ -814,7 +814,6 @@ class UpdateCourse(graphene.Mutation):
         if course_instance:
             ok = True
             course_instance.title = input.title if input.title is not None else course.title
-            course_instance.title = input.index if input.index is not None else course.index
             course_instance.blurb = input.blurb if input.blurb is not None else course.blurb
             course_instance.description = input.description if input.description is not None else course.description
             course_instance.instructor_id = input.instructor_id if input.instructor_id is not None else course.instructor_id
