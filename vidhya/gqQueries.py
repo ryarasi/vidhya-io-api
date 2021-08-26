@@ -709,7 +709,7 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_KEY'], ACTIONS['LIST']))
     def resolve_exercise_keys(root, info, exercise_id=None, chapter_id=None, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
-        qs = ExerciseKey.objects.all().filter(active=True).order_by('index')
+        qs = ExerciseKey.objects.all().filter(active=True).order_by('id')
 
         if exercise_id is not None:
             filter = (

@@ -281,7 +281,6 @@ class Exercise(models.Model):
 
 class ExerciseKey(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
-    index = models.IntegerField(default=-1)    
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     valid_option = models.CharField(

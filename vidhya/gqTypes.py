@@ -273,6 +273,7 @@ class ChapterInput(graphene.InputObjectType):
 class ExerciseInput(graphene.InputObjectType):
     id = graphene.ID()
     prompt = graphene.String(required=True)
+    index = graphene.Int()
     chapter_id = graphene.ID(name="chapter", required=True)
     course_id = graphene.ID(name="course", required=True)
     question_type = graphene.String(required=True)

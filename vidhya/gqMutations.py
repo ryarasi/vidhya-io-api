@@ -1244,7 +1244,7 @@ class CreateExercise(graphene.Mutation):
                                      question_type=input.question_type, required=input.required, options=input.options, points=points, searchField=searchField)
         exercise_instance.save()
 
-        exercise_key_instance = ExerciseKey(exercise=exercise_instance, index=exercise_instance.index, course_id=input.course_id, chapter_id=input.chapter_id, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images)
+        exercise_key_instance = ExerciseKey(exercise=exercise_instance, course_id=input.course_id, chapter_id=input.chapter_id, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images)
 
         exercise_key_instance.save()
 
@@ -1302,7 +1302,6 @@ class UpdateExercise(graphene.Mutation):
                        "method": UPDATE_METHOD}
             NotifyExercise.broadcast(
                 payload=payload)
-            exercise_key_instance.index = exercise_instance.index
             exercise_key_instance.valid_option = input.valid_option if input.valid_option is not None else exercise_key_instance.valid_option
             exercise_key_instance.valid_answers = input.valid_answers if input.valid_answers is not None else exercise_key_instance.valid_answers
             exercise_key_instance.reference_link = input.reference_link if input.reference_link is not None else exercise_key_instance.reference_link
@@ -1962,14 +1961,10 @@ class ReorderExercises(graphene.Mutation):
                 exercise = Exercise.objects.get(pk=indexObject.id, active=True)
                 exercise.index = indexObject.index
                 exercise.save()
-                exercise_key = ExerciseKey.objects.get(exercise_id=exercise.id, active=True)
-                exercise_key.index = indexObject.index
-                exercise_key.save()
                 payload = {"exercise": exercise,
                         "method": UPDATE_METHOD}
                 NotifyExercise.broadcast(
                     payload=payload)                
-                exercises.append(exercise)
             except:
                 ok=False
                 pass
