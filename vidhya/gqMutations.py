@@ -751,6 +751,8 @@ class CreateCourse(graphene.Mutation):
         error = ""
         if input.title is None:
             error += "Title is a required field<br />"
+        if input.index is None:
+            error += "Index is a required field<br />"                 
         if input.blurb is None:
             error += "Blurb is a required field<br />"
         if input.description is None:
@@ -766,7 +768,7 @@ class CreateCourse(graphene.Mutation):
         searchField += input.description if input.description is not None else ""
         searchField = searchField.lower()
 
-        course_instance = Course(title=input.title, blurb=input.blurb, description=input.description,
+        course_instance = Course(title=input.title, index=input.index, blurb=input.blurb, description=input.description,
                                  instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, searchField=searchField)
         course_instance.save()
 
@@ -813,6 +815,7 @@ class UpdateCourse(graphene.Mutation):
         if course_instance:
             ok = True
             course_instance.title = input.title if input.title is not None else course.title
+            course_instance.title = input.index if input.index is not None else course.index
             course_instance.blurb = input.blurb if input.blurb is not None else course.blurb
             course_instance.description = input.description if input.description is not None else course.description
             course_instance.instructor_id = input.instructor_id if input.instructor_id is not None else course.instructor_id
@@ -1050,6 +1053,8 @@ class CreateChapter(graphene.Mutation):
         error = ""
         if input.title is None:
             error += "Title is a required field<br />"
+        if input.index is None:
+            error += "Index is a required field<br />"            
         if input.instructions is None:
             error += "Instructions is a required field<br />"
         if input.course_id is None:
@@ -1062,7 +1067,7 @@ class CreateChapter(graphene.Mutation):
         searchField += input.instructions if input.instructions is not None else ""
         searchField = searchField.lower()
 
-        chapter_instance = Chapter(title=input.title, instructions=input.instructions,
+        chapter_instance = Chapter(title=input.title, index=input.index, instructions=input.instructions,
                                    course_id=input.course_id, section_id=input.section_id, due_date=input.due_date, points=input.points, status= input.status, searchField=searchField)
         chapter_instance.save()
 
@@ -1099,6 +1104,7 @@ class UpdateChapter(graphene.Mutation):
         if chapter_instance:
             ok = True
             chapter_instance.title = input.title if input.title is not None else chapter.title
+            chapter_instance.index = input.index if input.index is not None else chapter.index
             chapter_instance.instructions = input.instructions if input.instructions is not None else chapter.instructions
             chapter_instance.course_id = input.course_id if input.course_id is not None else chapter.course_id
             chapter_instance.section_id = input.section_id if input.section_id is not None else chapter.section_id
@@ -1207,6 +1213,8 @@ class CreateExercise(graphene.Mutation):
         error = ""
         if input.prompt is None:
             error += "Prompt is a required field<br />"
+        if input.index is None:
+            error += "Index is a required field<br />"                 
         if input.chapter_id is None:
             error += "Chapter is a required field<br />"
         if input.course_id is None:
@@ -1235,7 +1243,7 @@ class CreateExercise(graphene.Mutation):
 
         points = input.points if input.points is not None else 0
 
-        exercise_instance = Exercise(prompt=input.prompt, course_id=input.course_id, chapter_id=input.chapter_id,
+        exercise_instance = Exercise(prompt=input.prompt, index=input.index, course_id=input.course_id, chapter_id=input.chapter_id,
                                      question_type=input.question_type, required=input.required, options=input.options, points=points, searchField=searchField)
         exercise_instance.save()
 
@@ -1279,6 +1287,7 @@ class UpdateExercise(graphene.Mutation):
         if exercise_instance and exercise_key_instance:
             ok = True
             exercise_instance.prompt = input.prompt if input.prompt is not None else exercise_instance.prompt
+            exercise_instance.index = input.index if input.index is not None else exercise_instance.index
             exercise_instance.chapter_id = input.chapter_id if input.chapter_id is not None else exercise_instance.chapter_id
             exercise_instance.course_id = input.course_id if input.course_id is not None else exercise_instance.course_id
             exercise_instance.question_type = input.question_type if input.question_type is not None else exercise_instance.question_type

@@ -216,8 +216,7 @@ class CourseParticipant(models.Model):
 
 class CourseSection(models.Model):
     title = models.CharField(max_length=80)
-    index = models.DecimalField(
-        max_digits=4, decimal_places=2, blank=True, null=True)
+    index = models.IntegerField()
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -230,6 +229,7 @@ class CourseSection(models.Model):
 class Chapter(models.Model):
     title = models.CharField(max_length=80)
     instructions = models.CharField(max_length=1000)
+    index = models.IntegerField()
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     section = models.ForeignKey(
         CourseSection, on_delete=models.DO_NOTHING, blank=True, null=True)
@@ -257,6 +257,7 @@ class Chapter(models.Model):
 
 class Exercise(models.Model):
     prompt = models.CharField(max_length=300)
+    index = models.IntegerField()
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     class QuestionTypeChoices(models.TextChoices):

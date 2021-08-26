@@ -233,6 +233,7 @@ class AnnouncementInput(graphene.InputObjectType):
 class CourseInput(graphene.InputObjectType):
     id = graphene.ID()
     title = graphene.String(required=True)
+    index = graphene.Int(required=True)
     blurb = graphene.String(required=True)
     description = graphene.String(required=True)
     instructor_id = graphene.ID(name="instructor", required=True)
@@ -252,13 +253,14 @@ class CourseInput(graphene.InputObjectType):
 class CourseSectionInput(graphene.InputObjectType):
     id = graphene.ID()
     title = graphene.String(required=True)
-    index = graphene.Decimal()
+    index = graphene.Int(required=True)
     course_id = graphene.ID(name="course", required=True)
 
 
 class ChapterInput(graphene.InputObjectType):
     id = graphene.ID()
     title = graphene.String(required=True)
+    index = graphene.Int(required=True)    
     instructions = graphene.String(required=True)
     course_id = graphene.ID(name="course", required=True)
     section_id = graphene.ID(name="section")
