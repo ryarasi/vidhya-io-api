@@ -179,6 +179,7 @@ class ChatSearchType(DjangoObjectType):
 ##############
 
 
+
 class InstitutionInput(graphene.InputObjectType):
     id = graphene.ID()
     name = graphene.String(required=True)
@@ -322,3 +323,7 @@ class ChatMessageInput(graphene.InputObjectType):
     chat_id = graphene.ID(name="chat")
     message = graphene.String(required=True)
     author_id = graphene.ID(name="author", required=True)
+
+class IndexListInputType(graphene.InputObjectType):
+    id = graphene.ID()
+    index = graphene.Int()

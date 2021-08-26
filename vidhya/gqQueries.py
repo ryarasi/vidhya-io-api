@@ -444,9 +444,9 @@ class Query(ObjectType):
         current_user = info.context.user
         status = Course.StatusChoices.PUBLISHED
         if has_access(current_user, RESOURCES['CHAPTER'], ACTIONS['CREATE'], True):
-            qs = Chapter.objects.all().filter(active=True).order_by('-id')
+            qs = Chapter.objects.all().filter(active=True).order_by('index')
         else:
-            qs = Chapter.objects.all().filter(active=True, status=status).order_by('-id')
+            qs = Chapter.objects.all().filter(active=True, status=status).order_by('index')
 
         
         if course_id is not None:
@@ -495,9 +495,9 @@ class Query(ObjectType):
                 pass
              
             qs = Exercise.objects.all().filter(
-                chapter_id=chapter_id, active=True).order_by('-id')
+                chapter_id=chapter_id, active=True).order_by('index')
 
-            submissions = ExerciseSubmission.objects.all().filter(chapter_id = chapter_id, participant_id = current_user.id, active=True).order_by('-id')
+            submissions = ExerciseSubmission.objects.all().filter(chapter_id = chapter_id, participant_id = current_user.id, active=True)
 
             if searchField is not None:
                 filter = (
@@ -709,7 +709,7 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_KEY'], ACTIONS['LIST']))
     def resolve_exercise_keys(root, info, exercise_id=None, chapter_id=None, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
-        qs = ExerciseKey.objects.all().filter(active=True).order_by('-id')
+        qs = ExerciseKey.objects.all().filter(active=True).order_by('index')
 
         if exercise_id is not None:
             filter = (

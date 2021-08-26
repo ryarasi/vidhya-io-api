@@ -3,7 +3,7 @@ import graphene
 from graphql import GraphQLError
 from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 
@@ -751,8 +751,7 @@ class CreateCourse(graphene.Mutation):
         error = ""
         if input.title is None:
             error += "Title is a required field<br />"
-        if input.index is None:
-            error += "Index is a required field<br />"                 
+          
         if input.blurb is None:
             error += "Blurb is a required field<br />"
         if input.description is None:
@@ -1053,8 +1052,7 @@ class CreateChapter(graphene.Mutation):
         error = ""
         if input.title is None:
             error += "Title is a required field<br />"
-        if input.index is None:
-            error += "Index is a required field<br />"            
+          
         if input.instructions is None:
             error += "Instructions is a required field<br />"
         if input.course_id is None:
@@ -1213,8 +1211,7 @@ class CreateExercise(graphene.Mutation):
         error = ""
         if input.prompt is None:
             error += "Prompt is a required field<br />"
-        if input.index is None:
-            error += "Index is a required field<br />"                 
+          
         if input.chapter_id is None:
             error += "Chapter is a required field<br />"
         if input.course_id is None:
@@ -1247,7 +1244,7 @@ class CreateExercise(graphene.Mutation):
                                      question_type=input.question_type, required=input.required, options=input.options, points=points, searchField=searchField)
         exercise_instance.save()
 
-        exercise_key_instance = ExerciseKey(exercise=exercise_instance, course_id=input.course_id, chapter_id=input.chapter_id, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images)
+        exercise_key_instance = ExerciseKey(exercise=exercise_instance, index=exercise_instance.index, course_id=input.course_id, chapter_id=input.chapter_id, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images)
 
         exercise_key_instance.save()
 
@@ -1305,7 +1302,7 @@ class UpdateExercise(graphene.Mutation):
                        "method": UPDATE_METHOD}
             NotifyExercise.broadcast(
                 payload=payload)
-
+            exercise_key_instance.index = exercise_instance.index
             exercise_key_instance.valid_option = input.valid_option if input.valid_option is not None else exercise_key_instance.valid_option
             exercise_key_instance.valid_answers = input.valid_answers if input.valid_answers is not None else exercise_key_instance.valid_answers
             exercise_key_instance.reference_link = input.reference_link if input.reference_link is not None else exercise_key_instance.reference_link
@@ -1916,6 +1913,99 @@ class DeleteChatMessage(graphene.Mutation):
         return DeleteChatMessage(ok=ok, chat_message=None)
 
 
+class ReorderChapters(graphene.Mutation):
+    class Meta:
+        description = "Mutation to reorder the chapters"
+
+    class Arguments:
+        indexList = graphene.List(IndexListInputType, required=True)
+
+    ok = graphene.Boolean()
+    chapters = graphene.List(ChapterType)
+
+    @staticmethod
+    def mutate(root, info, indexList=[]):
+        ok = True
+        chapters = []
+        for indexObject in indexList:
+            try:
+                chapter = Chapter.objects.get(pk=indexObject.id, active=True)
+                chapter.index = indexObject.index
+                chapter.save()
+                payload = {"chapter": chapter,
+                        "method": UPDATE_METHOD}
+                NotifyChapter.broadcast(
+                    payload=payload)                
+                chapters.append(chapter)
+            except:
+                ok = False
+                pass
+ 
+        return ReorderChapters(ok=ok, chapters=chapters)
+
+class ReorderExercises(graphene.Mutation):
+    class Meta:
+        description = "Mutation to reorder the exercises"
+
+    class Arguments:
+        indexList = graphene.List(IndexListInputType, required=True)
+
+    ok = graphene.Boolean()
+    exercises = graphene.List(ExerciseType)
+
+    @staticmethod
+    def mutate(root, info, indexList=[]):
+        ok = True
+        exercises = []
+        for indexObject in indexList:
+            try:
+                exercise = Exercise.objects.get(pk=indexObject.id, active=True)
+                exercise.index = indexObject.index
+                exercise.save()
+                exercise_key = ExerciseKey.objects.get(exercise_id=exercise.id, active=True)
+                exercise_key.index = indexObject.index
+                exercise_key.save()
+                payload = {"exercise": exercise,
+                        "method": UPDATE_METHOD}
+                NotifyExercise.broadcast(
+                    payload=payload)                
+                exercises.append(exercise)
+            except:
+                ok=False
+                pass
+
+        return ReorderExercises(ok=ok, exercises=exercises)
+
+class ReorderCourseSections(graphene.Mutation):
+    class Meta:
+        description = "Mutation to reorder the course sections"
+
+    class Arguments:
+        indexList = graphene.List(IndexListInputType, required=True)
+
+    ok = graphene.Boolean()
+    course_sections = graphene.List(CourseSectionType)
+
+    @staticmethod
+    def mutate(root, info, indexList=[]):
+        ok = True
+        course_sections = []
+        for indexObject in indexList:
+            try:
+                course_section = CourseSection.objects.get(pk=indexObject.id, active=True)
+                course_section.index = indexObject.index
+                course_section.save()
+                payload = {"course_section": course_section,
+                        "method": UPDATE_METHOD}
+                NotifyCourseSection.broadcast(
+                    payload=payload)                
+                course_sections.append(course_section)
+            except:
+                ok = False
+                pass
+ 
+        return ReorderCourseSections(ok=ok, course_sections=course_sections)
+
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
@@ -1964,3 +2054,7 @@ class Mutation(graphene.ObjectType):
     create_chat_message = CreateChatMessage.Field()
     update_chat_message = UpdateChatMessage.Field()
     delete_chat_message = DeleteChatMessage.Field()
+
+    reorder_chapters = ReorderChapters.Field()
+    reorder_exercises = ReorderExercises.Field()
+    reorder_course_sections = ReorderCourseSections.Field()
