@@ -1893,6 +1893,7 @@ class DeleteChatMessage(graphene.Mutation):
     chat_message = graphene.Field(ChatMessageType)
 
     @staticmethod
+    @login_required
     def mutate(root, info, id, input=None):
         ok = False
         chat_message = ChatMessage.objects.get(pk=id, active=True)
@@ -1923,6 +1924,8 @@ class ReorderChapters(graphene.Mutation):
     chapters = graphene.List(ChapterType)
 
     @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
     def mutate(root, info, indexList=[]):
         ok = True
         chapters = []
@@ -1953,6 +1956,8 @@ class ReorderExercises(graphene.Mutation):
     exercises = graphene.List(ExerciseType)
 
     @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE'], ACTIONS['UPDATE']))    
     def mutate(root, info, indexList=[]):
         ok = True
         exercises = []
@@ -1982,6 +1987,8 @@ class ReorderCourseSections(graphene.Mutation):
     course_sections = graphene.List(CourseSectionType)
 
     @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['UPDATE']))
     def mutate(root, info, indexList=[]):
         ok = True
         course_sections = []
