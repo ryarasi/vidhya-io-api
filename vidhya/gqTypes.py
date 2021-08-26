@@ -234,7 +234,6 @@ class AnnouncementInput(graphene.InputObjectType):
 class CourseInput(graphene.InputObjectType):
     id = graphene.ID()
     title = graphene.String(required=True)
-    index = graphene.Int(required=True)
     blurb = graphene.String(required=True)
     description = graphene.String(required=True)
     instructor_id = graphene.ID(name="instructor", required=True)
