@@ -260,7 +260,7 @@ class CourseSectionInput(graphene.InputObjectType):
 class ChapterInput(graphene.InputObjectType):
     id = graphene.ID()
     title = graphene.String(required=True)
-    index = graphene.Int(required=True)    
+    index = graphene.Int()    
     instructions = graphene.String(required=True)
     course_id = graphene.ID(name="course", required=True)
     section_id = graphene.ID(name="section")
