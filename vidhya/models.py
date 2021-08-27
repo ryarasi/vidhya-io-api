@@ -33,8 +33,8 @@ class User(AbstractUser):
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.UNINITIALIZED)
     invitecode = models.CharField(max_length=10, validators=[
                                   MinLengthValidator(10)], blank=True, null=True)
-    chapters = models.ManyToManyField('Chapter', related_name="completedChapters", through='CompletedChapters', through_fields=('participant', 'chapter'), blank=True)
-    courses = models.ManyToManyField('Course', related_name="completedCourses", through='CompletedCourses', through_fields=('participant', 'course'), blank=True)
+    chapters = models.ManyToManyField('Chapter', through='CompletedChapters', through_fields=('participant', 'chapter'), blank=True)
+    courses = models.ManyToManyField('Course', through='CompletedCourses', through_fields=('participant', 'course'), blank=True)
     searchField = models.CharField(max_length=600, blank=True, null=True)
     last_active = models.DateTimeField(
         blank=True, null=True, default=timezone.now)
@@ -186,9 +186,9 @@ class Course(models.Model):
     participants = models.ManyToManyField(
         User, through="CourseParticipant", related_name="participants", through_fields=('course', 'participant'), blank=True)
     mandatory_prerequisites = models.ManyToManyField(
-        'Course', related_name="required", blank=True)
+        'Course', related_name="required_courses",through='MandatoryRequiredCourses', through_fields=('course', 'requirement'), blank=True)
     recommended_prerequisites = models.ManyToManyField(
-        'Course', related_name="optional", blank=True)
+        'Course', related_name="optional_courses",through='OptionalRequiredCourses',  through_fields=('course', 'optional'), blank=True)
     start_date = models.CharField(max_length=100, blank=True, null=True)
     end_date = models.CharField(max_length=100, blank=True, null=True)
     credit_hours = models.IntegerField(blank=True, null=True)
@@ -211,6 +211,14 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
+
+class MandatoryRequiredCourses(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    requirement = models.ForeignKey(Course, related_name="requirement", on_delete=models.CASCADE)
+
+class OptionalRequiredCourses(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    optional = models.ForeignKey(Course, related_name="optional", on_delete=models.CASCADE)
 
 
 class CourseInstitution(models.Model):
@@ -249,7 +257,7 @@ class Chapter(models.Model):
     section = models.ForeignKey(
         CourseSection, on_delete=models.DO_NOTHING, blank=True, null=True)
     prerequisites = models.ManyToManyField(
-        'Chapter', related_name="required", blank=True)
+        'Chapter', related_name="required",through='MandatoryChapters', through_fields=('chapter', 'requirement'), blank=True)        
     due_date = models.CharField(max_length=100, blank=True, null=True)
     points = models.IntegerField(blank=True, null=True)
 
@@ -269,6 +277,9 @@ class Chapter(models.Model):
     def __str__(self):
         return self.title
 
+class MandatoryChapters(models.Model):
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    requirement = models.ForeignKey(Chapter, related_name="requirement", on_delete=models.CASCADE)
 
 class Exercise(models.Model):
     prompt = models.CharField(max_length=300)

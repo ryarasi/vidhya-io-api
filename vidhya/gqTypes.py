@@ -2,7 +2,7 @@ from django.db.models.deletion import DO_NOTHING
 import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
-from vidhya.models import User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CompletedCourses, MandatoryChapters, MandatoryRequiredCourses, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from django.db import models
 
 ##############
@@ -67,10 +67,24 @@ class AnnouncementType(DjangoObjectType):
 
 class CourseType(DjangoObjectType):
     total_count = graphene.Int()
+    locked = graphene.Boolean()
 
     def resolve_total_count(self, info):
         count = Course.objects.all().filter(active=True).count()
         return count
+
+    def resolve_locked(self, info):
+        locked = False
+        user = info.context.user
+        completed_courses = CompletedCourses.objects.all().filter(participant_id=user.id)
+        required_courses = MandatoryRequiredCourses.objects.all().filter(course_id=self.id)
+        required_course_ids = required_courses.values_list('requirement_id',flat=True)
+        completed_course_ids = completed_courses.values_list('course_id',flat=True)
+
+        if required_course_ids:
+            if not set(required_course_ids).issubset(set(completed_course_ids)):
+                locked = True
+        return locked
 
     class Meta:
         model = Course
@@ -89,10 +103,24 @@ class CourseSectionType(DjangoObjectType):
 
 class ChapterType(DjangoObjectType):
     total_count = graphene.Int()
+    locked = graphene.Boolean()
 
     def resolve_total_count(self, info):
         count = Chapter.objects.all().filter(active=True).count()
         return count
+
+    def resolve_locked(self, info):
+        locked = False
+        user = info.context.user
+        completed_chapters = CompletedChapters.objects.all().filter(participant_id=user.id)
+        required_chapters = MandatoryChapters.objects.all().filter(chapter_id=self.id)
+        required_chapter_ids = required_chapters.values_list('requirement_id',flat=True)
+        completed_chapter_ids = completed_chapters.values_list('chapter_id',flat=True)
+
+        if required_chapter_ids:
+            if not set(required_chapter_ids).issubset(set(completed_chapter_ids)):
+                locked = True
+        return locked        
 
     class Meta:
         model = Chapter
