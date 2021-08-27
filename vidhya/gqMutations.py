@@ -1650,10 +1650,22 @@ class UpdateReport(graphene.Mutation):
                 unique_submissions.append(submission)
         return unique_submissions
 
+    def markCompletedCoursesChapters(submission):
+        chapter_exercises_count = Exercise.objects.all().filter(chapter_id=submission.chapter.id, active=True).count()
+        chapter_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, chapter_id=submission.chapter.id,active=True).count()
+        course_exercises_count = Exercise.objects.all().filter(course_id=submission.course.id, active=True).count()
+        course_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, course_id=submission.course.id,active=True).count()        
+        if chapter_exercises_count == chapter_submissions_count:
+            submission.participant.chapters.add(submission.chapter.id)
+        if course_exercises_count == course_submissions_count:
+            submission.participant.courses.add(submission.chapter.id)            
+
+
     # This is the method used to update grading every time grading happens
     def recalculate(all_submissions):
         unique_submissions = UpdateReport.remove_duplicate_submissions(all_submissions)
         for submission in unique_submissions:
+            UpdateReport.markCompletedCoursesChapters(submission) # This is to mark the courses and chapters completed for the participant            
             ok = False
             report_instance = None
             method = CREATE_METHOD

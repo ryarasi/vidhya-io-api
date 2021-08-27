@@ -33,6 +33,8 @@ class User(AbstractUser):
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.UNINITIALIZED)
     invitecode = models.CharField(max_length=10, validators=[
                                   MinLengthValidator(10)], blank=True, null=True)
+    chapters = models.ManyToManyField('Chapter', related_name="completedChapters", through='CompletedChapters', through_fields=('participant', 'chapter'), blank=True)
+    courses = models.ManyToManyField('Course', related_name="completedCourses", through='CompletedCourses', through_fields=('participant', 'course'), blank=True)
     searchField = models.CharField(max_length=600, blank=True, null=True)
     last_active = models.DateTimeField(
         blank=True, null=True, default=timezone.now)
@@ -44,8 +46,21 @@ class User(AbstractUser):
     EMAIL_FIELD = 'email'
 
     def __str__(self):
-        return self.username
+        return self.name
 
+class CompletedChapters(models.Model):
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
+    chapter = models.ForeignKey('Chapter', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.chapter.title
+
+class CompletedCourses(models.Model):
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.course.title
 
 class UserRole(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
