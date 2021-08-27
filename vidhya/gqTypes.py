@@ -76,6 +76,11 @@ class CourseType(DjangoObjectType):
     def resolve_locked(self, info):
         locked = False
         user = info.context.user
+        # Checking if the user is the author of the course
+        if self.instructor.id == user.id:
+            # If yes, we mark it as unlocked
+            locked = False
+            return locked        
         completed_courses = CompletedCourses.objects.all().filter(participant_id=user.id)
         required_courses = MandatoryRequiredCourses.objects.all().filter(course_id=self.id)
         required_course_ids = required_courses.values_list('requirement_id',flat=True)
@@ -112,6 +117,11 @@ class ChapterType(DjangoObjectType):
     def resolve_locked(self, info):
         locked = False
         user = info.context.user
+        # Checking if the user is the author of the course
+        if self.course.instructor.id == user.id:
+            # If yes, we mark it as unlocked
+            locked = False
+            return locked
 
         course_locked = CourseType.resolve_locked(self.course, info) # Checking if this belongs to a course that is locked
         if course_locked:
