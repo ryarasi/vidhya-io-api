@@ -636,7 +636,10 @@ class Query(ObjectType):
 
         chapters = []
         for course_id in course_ids:
-            chapters += Chapter.objects.filter(course__in=[course_id], status=Chapter.StatusChoices.PUBLISHED, active=True).order_by('-id')
+            course_chapters = Chapter.objects.filter(course__in=[course_id], status=Chapter.StatusChoices.PUBLISHED, active=True).order_by('-id')
+            for course_chapter in course_chapters:
+                if not ChapterType.resolve_locked(course_chapter, info):
+                    chapters.append(course_chapter)
        
         print('before the first for loop', chapters)
         for chapter in chapters:
