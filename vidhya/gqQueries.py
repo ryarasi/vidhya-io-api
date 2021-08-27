@@ -490,7 +490,7 @@ class Query(ObjectType):
                 return None
             status = Course.StatusChoices.PUBLISHED
             if chapter.status != status:
-                has_access(current_user,RESOURCES['CREATE'], ACTIONS['CREATE'])
+                has_access(current_user,RESOURCES['CHAPTER'], ACTIONS['CREATE'])
             else:
                 pass
              
