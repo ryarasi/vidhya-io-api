@@ -6,6 +6,7 @@ from django.db.models import Q
 from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS
 from django.conf import settings
+from graphql import GraphQLError
 
 class ActiveChats(graphene.ObjectType):
     chats = graphene.List(ChatType)
@@ -366,6 +367,10 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['GET']))
     def resolve_course(root, info, id, **kwargs):
         course_instance = Course.objects.get(pk=id, active=True)
+        # locked = CourseType.resolve_locked(course_instance, info)
+        # if locked:
+        #     raise GraphQLError('This course is locked for you. Please complete the prerequisites.')
+
         if course_instance is not None:
             return course_instance
         else:
@@ -433,6 +438,9 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
     def resolve_chapter(root, info, id, **kwargs):
         chapter_instance = Chapter.objects.get(pk=id, active=True)
+        locked = ChapterType.resolve_locked(chapter_instance, info)
+        if locked:
+            raise GraphQLError('The chapter you requested is locked for you. Please complete the prerequisites.')
         if chapter_instance is not None:
             return chapter_instance
         else:

@@ -112,6 +112,12 @@ class ChapterType(DjangoObjectType):
     def resolve_locked(self, info):
         locked = False
         user = info.context.user
+
+        course_locked = CourseType.resolve_locked(self.course, info) # Checking if this belongs to a course that is locked
+        if course_locked:
+            # If the course is locked, we immediately return locked is true
+            locked = True
+            return True
         completed_chapters = CompletedChapters.objects.all().filter(participant_id=user.id)
         required_chapters = MandatoryChapters.objects.all().filter(chapter_id=self.id)
         required_chapter_ids = required_chapters.values_list('requirement_id',flat=True)
