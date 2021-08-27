@@ -1658,7 +1658,7 @@ class UpdateReport(graphene.Mutation):
         if chapter_exercises_count == chapter_submissions_count:
             submission.participant.chapters.add(submission.chapter.id)
         if course_exercises_count == course_submissions_count:
-            submission.participant.courses.add(submission.chapter.id)            
+            submission.participant.courses.add(submission.course.id)            
 
 
     # This is the method used to update grading every time grading happens
