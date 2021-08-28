@@ -36,6 +36,8 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    expose:
+      - 8000
 
 volumes:
   database-data: # named volumes can be managed easier using docker-compose
