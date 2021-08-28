@@ -417,7 +417,7 @@ class Query(ObjectType):
 
         if course_id is not None:
             qs = CourseSection.objects.all().filter(
-                active=True, course_id=course_id).order_by('-id')
+                active=True, course_id=course_id).order_by('index')
 
             if searchField is not None:
                 filter = (

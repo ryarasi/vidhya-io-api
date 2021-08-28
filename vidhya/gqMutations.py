@@ -952,11 +952,9 @@ class CreateCourseSection(graphene.Mutation):
 
         if len(error) > 0:
             raise GraphQLError(error)
-        searchField = input.title
-        searchField = searchField.lower()
 
         course_section_instance = CourseSection(title=input.title, index=input.index, course_id=input.course_id,
-                                                searchField=searchField)
+                                                )
         course_section_instance.save()
 
         payload = {"course_section": course_section_instance,
@@ -2049,6 +2047,10 @@ class Mutation(graphene.ObjectType):
     update_course = UpdateCourse.Field()
     delete_course = DeleteCourse.Field()
     publish_course = PublishCourse.Field()
+
+    create_course_section = CreateCourseSection.Field()
+    update_course_section = UpdateCourseSection.Field()
+    delete_course_section = DeleteCourseSection.Field()
 
     create_chapter = CreateChapter.Field()
     update_chapter = UpdateChapter.Field()
