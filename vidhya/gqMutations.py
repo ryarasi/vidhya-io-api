@@ -1041,6 +1041,18 @@ class CreateChapter(graphene.Mutation):
     ok = graphene.Boolean()
     chapter = graphene.Field(ChapterType)
 
+    def update_points(id=None):
+        if id:
+            try:
+                chapter = Chapter.objects.all().get(pk=id, active=True)
+                exercises = Exercise.objects.all().filter(chapter_id=id, active=True)
+                chapter.points = 0
+                for exercise in exercises:
+                    chapter.points += exercise.points
+                chapter.save()
+            except:
+                pass
+
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
@@ -1062,8 +1074,11 @@ class CreateChapter(graphene.Mutation):
         searchField += input.instructions if input.instructions is not None else ""
         searchField = searchField.lower()
 
-        chapter_instance = Chapter(title=input.title, index=input.index, instructions=input.instructions,
-                                   course_id=input.course_id, section_id=input.section_id, due_date=input.due_date, points=input.points, status= input.status, searchField=searchField)
+        points = input.points if input.points is not None else 0
+        index = input.index if input.index else 100
+
+        chapter_instance = Chapter(title=input.title, index=index, instructions=input.instructions,
+                                   course_id=input.course_id, section_id=input.section_id, due_date=input.due_date, points=points, status= input.status, searchField=searchField)
         chapter_instance.save()
 
         if input.prerequisite_ids is not None:
@@ -1236,10 +1251,13 @@ class CreateExercise(graphene.Mutation):
         searchField = searchField.lower()
 
         points = input.points if input.points is not None else 0
+        index = input.index if input.index is not None else 100
 
-        exercise_instance = Exercise(prompt=input.prompt, index=input.index, course_id=input.course_id, chapter_id=input.chapter_id,
+        exercise_instance = Exercise(prompt=input.prompt, index=index, course_id=input.course_id, chapter_id=input.chapter_id,
                                      question_type=input.question_type, required=input.required, options=input.options, points=points, searchField=searchField)
         exercise_instance.save()
+
+        CreateChapter.update_points(input.chapter_id) # Updating the points on the chapter
 
         exercise_key_instance = ExerciseKey(exercise=exercise_instance, course_id=input.course_id, chapter_id=input.chapter_id, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images)
 
@@ -1294,6 +1312,8 @@ class UpdateExercise(graphene.Mutation):
 
             exercise_instance.save()
 
+            CreateChapter.update_points(input.chapter_id) # Updating the points on the chapter
+
             # Notifying updating of Exercise
             payload = {"exercise": exercise_instance,
                        "method": UPDATE_METHOD}
@@ -1342,6 +1362,7 @@ class DeleteExercise(graphene.Mutation):
                 pass
             exercise_submissions = ExerciseSubmission.objects.all().filter(exercise_id=exercise.id, active=True)
             exercise.save()
+            CreateChapter.update_points(input.chapter_id) # Updating the points on the chapter
             for submission in exercise_submissions:
                 submission.active = False
                 submission.save()

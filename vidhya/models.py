@@ -252,14 +252,14 @@ class CourseSection(models.Model):
 class Chapter(models.Model):
     title = models.CharField(max_length=80)
     instructions = models.CharField(max_length=1000)
-    index = models.IntegerField(default=-1)
+    index = models.IntegerField(default=100)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     section = models.ForeignKey(
         CourseSection, on_delete=models.DO_NOTHING, blank=True, null=True)
     prerequisites = models.ManyToManyField(
         'Chapter', related_name="required",through='MandatoryChapters', through_fields=('chapter', 'requirement'), blank=True)        
     due_date = models.CharField(max_length=100, blank=True, null=True)
-    points = models.IntegerField(blank=True, null=True)
+    points = models.IntegerField(default=0)
 
     class StatusChoices(models.TextChoices):
         DRAFT = 'DR', _('DRAFT')
@@ -283,7 +283,7 @@ class MandatoryChapters(models.Model):
 
 class Exercise(models.Model):
     prompt = models.CharField(max_length=300)
-    index = models.IntegerField(default=-1)
+    index = models.IntegerField(default=100)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     class QuestionTypeChoices(models.TextChoices):
