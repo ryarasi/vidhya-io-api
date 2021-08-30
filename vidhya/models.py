@@ -46,21 +46,21 @@ class User(AbstractUser):
     EMAIL_FIELD = 'email'
 
     def __str__(self):
-        return self.name
+        return f'{self.name}' 
 
 class CompletedChapters(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
     chapter = models.ForeignKey('Chapter', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.chapter.title
+        return f'{self.chapter.title}' 
 
 class CompletedCourses(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.course.title
+        return f'{self.course.title}'
 
 class UserRole(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
@@ -76,7 +76,8 @@ class UserRole(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.name}' 
+
 
 
 class Institution(models.Model):
@@ -100,7 +101,7 @@ class Institution(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.name}' 
 
 
 class Group(models.Model):
@@ -129,7 +130,7 @@ class Group(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.name}' 
 
 
 class GroupAdmin(models.Model):
@@ -137,7 +138,8 @@ class GroupAdmin(models.Model):
     admin = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.group
+        return f'Group {self.group.name}, member {self.admin.name}' 
+
 
 
 class GroupMember(models.Model):
@@ -145,7 +147,7 @@ class GroupMember(models.Model):
     member = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.group
+        return f'Group {self.group.name}, member {self.member.name}' 
 
 
 class Announcement(models.Model):
@@ -165,7 +167,7 @@ class Announcement(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.title
+        return f'{self.title}'
 
 
 class AnnouncementGroup(models.Model):
@@ -173,7 +175,7 @@ class AnnouncementGroup(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.announcement
+        return f'Announcement {self.announcement.title}, Group {self.group.name}'
 
 
 class Course(models.Model):
@@ -210,7 +212,8 @@ class Course(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.title
+        return f'{self.title}'
+
 
 class MandatoryRequiredCourses(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
@@ -226,7 +229,7 @@ class CourseInstitution(models.Model):
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.course
+        return f'{self.course.title}'
 
 
 class CourseParticipant(models.Model):
@@ -234,7 +237,7 @@ class CourseParticipant(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.course
+        return f'Course {self.course.title}, Participant {self.participant.name}'
 
 
 class CourseSection(models.Model):
@@ -246,7 +249,7 @@ class CourseSection(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.title
+        return f'{self.title}'
 
 
 class Chapter(models.Model):
@@ -275,7 +278,7 @@ class Chapter(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.title
+        return f'{self.title}'
 
 class MandatoryChapters(models.Model):
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
@@ -304,6 +307,10 @@ class Exercise(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.prompt}'
+
 
 class ExerciseKey(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
@@ -386,9 +393,6 @@ class Chat(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.chat_type
-
 
 class ChatMessage(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.PROTECT)
@@ -402,7 +406,7 @@ class ChatMessage(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.message
+        return f'{self.message}'
 
 # For file uploads
 
