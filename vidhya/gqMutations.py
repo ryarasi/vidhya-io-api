@@ -1312,7 +1312,7 @@ class UpdateExercise(graphene.Mutation):
 
             exercise_instance.save()
 
-            CreateChapter.update_points(input.chapter_id) # Updating the points on the chapter
+            CreateChapter.update_points(exercise_instance.chapter_id) # Updating the points on the chapter
 
             # Notifying updating of Exercise
             payload = {"exercise": exercise_instance,
@@ -1362,15 +1362,19 @@ class DeleteExercise(graphene.Mutation):
                 pass
             exercise_submissions = ExerciseSubmission.objects.all().filter(exercise_id=exercise.id, active=True)
             exercise.save()
-            CreateChapter.update_points(input.chapter_id) # Updating the points on the chapter
+            CreateChapter.update_points(exercise.chapter_id) # Updating the points on the chapter
             for submission in exercise_submissions:
                 submission.active = False
                 submission.save()
 
             payload = {"exercise": exercise,
                        "method": DELETE_METHOD}
-            NotifyExercise.broadcast(
+            NotifyExerciseKey.broadcast(
                 payload=payload)
+            exercise_key_payload = {"exercise_key": exercise_key,
+                       "method": DELETE_METHOD}
+            NotifyExerciseKey.broadcast(
+                payload=exercise_key_payload)                
             return DeleteExercise(ok=ok, exercise=exercise)
         return DeleteExercise(ok=ok, exercise=None)
 
@@ -1991,9 +1995,12 @@ class ReorderExercises(graphene.Mutation):
     def mutate(root, info, indexList=[]):
         ok = True
         exercises = []
+        failedExercices = []
         for indexObject in indexList:
             try:
-                exercise = Exercise.objects.get(pk=indexObject.id, active=True)
+                print('for id ', indexObject.id)
+                exercise = Exercise.objects.all().get(pk=indexObject.id, active=True)
+                print('exercise found', exercise)
                 exercise.index = indexObject.index
                 exercise.save()
                 payload = {"exercise": exercise,
@@ -2001,9 +2008,10 @@ class ReorderExercises(graphene.Mutation):
                 NotifyExercise.broadcast(
                     payload=payload)                
             except:
+                failedExercices.append(indexObject)
                 ok=False
                 pass
-
+        print('failed exercises', failedExercices)
         return ReorderExercises(ok=ok, exercises=exercises)
 
 class ReorderCourseSections(graphene.Mutation):
