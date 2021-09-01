@@ -22,7 +22,7 @@
     "pk": "Class Admin",
     "fields": {
       "description": "Access to all class administration related screens",
-      "priority": 4,
+      "priority": 3,
       "permissions": {
         "GROUP": {
           "GET": true,
@@ -147,7 +147,7 @@
       "searchField": "class adminaccess to all class administration related screens",
       "active": true,
       "created_at": "2021-08-11T09:24:15.123Z",
-      "updated_at": "2021-08-22T14:15:35.547Z"
+      "updated_at": "2021-09-01T04:12:01.419Z"
     }
   },
   {
@@ -155,7 +155,7 @@
     "pk": "Grader",
     "fields": {
       "description": "For individuals who only grade",
-      "priority": 4,
+      "priority": 1,
       "permissions": {
         "GROUP": {
           "GET": false,
@@ -179,8 +179,8 @@
           "UPDATE": false
         },
         "REPORT": {
-          "GET": false,
-          "LIST": false,
+          "GET": true,
+          "LIST": true,
           "CREATE": false,
           "DELETE": false,
           "UPDATE": false
@@ -242,15 +242,15 @@
           "UPDATE": false
         },
         "OWN_PROFILE": {
-          "GET": false,
-          "LIST": false,
+          "GET": true,
+          "LIST": true,
           "CREATE": false,
           "DELETE": false,
-          "UPDATE": false
+          "UPDATE": true
         },
         "ANNOUNCEMENT": {
-          "GET": false,
-          "LIST": false,
+          "GET": true,
+          "LIST": true,
           "CREATE": false,
           "DELETE": false,
           "UPDATE": false
@@ -280,7 +280,7 @@
       "searchField": "graderfor individuals who only grade",
       "active": true,
       "created_at": "2021-08-22T14:14:41.553Z",
-      "updated_at": "2021-08-22T14:14:41.553Z"
+      "updated_at": "2021-09-01T04:09:48.633Z"
     }
   },
   {
@@ -368,8 +368,8 @@
           "UPDATE": true
         },
         "INSTITUTION": {
-          "GET": false,
-          "LIST": false,
+          "GET": true,
+          "LIST": true,
           "CREATE": false,
           "DELETE": false,
           "UPDATE": true
@@ -397,7 +397,7 @@
         },
         "INSTITUTION_ADMIN": {
           "GET": true,
-          "LIST": true,
+          "LIST": false,
           "CREATE": false,
           "DELETE": false,
           "UPDATE": true
@@ -413,7 +413,7 @@
       "searchField": "institution adminrole of the administrators of the institution",
       "active": true,
       "created_at": "2021-08-09T10:29:05.211Z",
-      "updated_at": "2021-08-18T10:07:35.749Z"
+      "updated_at": "2021-09-01T04:13:08.357Z"
     }
   },
   {
@@ -421,7 +421,7 @@
     "pk": "Learner",
     "fields": {
       "description": "Student user role",
-      "priority": 3,
+      "priority": 4,
       "permissions": {
         "GROUP": {
           "GET": true,
@@ -546,7 +546,7 @@
       "searchField": "learnerstudent user role",
       "active": true,
       "created_at": "2021-08-22T14:13:31.834Z",
-      "updated_at": "2021-08-22T14:13:31.834Z"
+      "updated_at": "2021-08-23T09:24:33.044Z"
     }
   },
   {
@@ -554,7 +554,7 @@
     "pk": "Super Admin",
     "fields": {
       "description": "Has all the access",
-      "priority": 1,
+      "priority": 0,
       "permissions": {
         "GROUP": {
           "GET": true,
@@ -679,7 +679,7 @@
       "searchField": null,
       "active": true,
       "created_at": "2021-07-25T11:42:28.252Z",
-      "updated_at": "2021-08-18T10:07:12.994Z"
+      "updated_at": "2021-09-01T04:05:41.653Z"
     }
   }
 ]
