@@ -16,9 +16,7 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-        ('auth'),
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
