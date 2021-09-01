@@ -73,25 +73,25 @@ REDIS_URL="Needs to be set on Heroku to use Redis add-on "
 
 ## Docker adaptations of regular Django commands:-
 
-    1. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
-       1. Choose your username and password.
-       2. Now you can go to `localhost:8000/admin` to log into the console
-    2. While installing new packages follow these steps:-
-       1. Make sure you've activated the virtual environment with `source venv/bin/activate`
-       2. Install the package with `pip install <package_name>`
-       3. Update the `requirements.txt` file with `pip freeze > requirements.txt`
-       4. If the docker doesn't recognize the newly installed package, ensure that the docker container is rebuilt and try again.
+1. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
+   1. Choose your username and password.
+   2. Now you can go to `localhost:8000/admin` to log into the console
+2. While installing new packages follow these steps:-
+   1. Make sure you've activated the virtual environment with `source venv/bin/activate`
+   2. Install the package with `pip install <package_name>`
+   3. Update the `requirements.txt` file with `pip freeze > requirements.txt`
+   4. If the docker doesn't recognize the newly installed package, ensure that the docker container is rebuilt and try again.
 
 ## Using pgAdmin:-
 
-    1. During first time set up, add a new server with the hostname `db` and port `5432` and username and password as given in the `database.env` file.
-    2. The database can be explored and modified by visiting `localhost:5000` in the browser.
-    3. The email and password are available in the `docker-compose.yml` file under `environment` in `pgadmin4`.
+1.  During first time set up, add a new server with the hostname `db` and port `5432` and username and password as given in the `database.env` file.
+2.  The database can be explored and modified by visiting `localhost:5000` in the browser.
+3.  The email and password are available in the `docker-compose.yml` file under `environment` in `pgadmin4`.
 
 ## Using data fixtures:-
 
-    1. In order to get a JSON file of the data in a table, use `docker-compose run web python manage.py dumpdata vidhya.UserRole > ./vidhya/fixtures/roles.json`
-    2. In order to load the data from the file to a table use `docker-compose run web python manage.py loaddata ./vidhya/fixtures/roles.json`
+1.  In order to get a JSON file of the data in a table, use `docker-compose run web python manage.py dumpdata vidhya.UserRole > ./vidhya/fixtures/roles.json`
+2.  In order to load the data from the file to a table use `docker-compose run web python manage.py loaddata ./vidhya/fixtures/roles.json`
 
 ## Deployment:-
 
