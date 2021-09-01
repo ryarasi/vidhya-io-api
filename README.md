@@ -98,11 +98,13 @@ REDIS_URL="Needs to be set on Heroku to use Redis add-on "
 1. Heroku deployment requires the `heroku.yml` file and some modifications in the `Dockerfile`, `docker-compose.yml` and `settings.py`, all of which are already taken care of in this repo.
 2. Get setup with the [heroku-cli](https://devcenter.heroku.com/articles/heroku-cli)
 3. User `heroku create` to set up a new heroku project. From the GUI add the following addons to the Heroku project:-
-   1. Heroku Postgres - For the database (This automatically adds the DATABASE_URL to the project's config variables)
-   2. Heroku Redis - For the redis server (This automatically adds the REDIS_URL to the project's config variables)
-4. Set the heroku stack to container with `heroku stack:set container`
-5. Use automatic deployment through git so that pushing to the production branch will automatically build and deploy. But pushing to heroku git by default also works.
-6. [Some tips for setting up the Dockerfile and troubleshooting tips](https://stackoverflow.com/a/46229012/7981162)
+   1. **Heroku Postgres** - For the database (This automatically adds the DATABASE_URL to the project's config variables)
+   2. **Heroku Redis** - For the redis server (This automatically adds the REDIS_URL to the project's config variables)
+4. Add all essential ENV variables in `settings > config`. Refer to the .env file locally or in the information above in this readme for complete list of all essentail environment variables.
+   1. Make sure to set `DJANGO_DEBUG` to false
+5. Set the heroku stack to container with `heroku stack:set container`
+6. Use automatic deployment through git so that pushing to the production branch will automatically build and deploy. But pushing to heroku git by default also works.
+7. [Some tips for setting up the Dockerfile and troubleshooting tips](https://stackoverflow.com/a/46229012/7981162)
 
 ## Initial Setup Post deployment:-
 
