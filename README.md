@@ -102,7 +102,7 @@ REDIS_URL="Needs to be set on Heroku to use Redis add-on "
    2. **Heroku Redis** - For the redis server (This automatically adds the REDIS_URL to the project's config variables)
 4. Add all essential ENV variables in `settings > config`. Refer to the .env file locally or in the information above in this readme for complete list of all essentail environment variables.
    1. Make sure to set `DJANGO_DEBUG` to false
-5. Set the heroku stack to container with `heroku stack:set container`
+5. Set the heroku stack to container with `heroku stack:set container -a <heroku_app_name>`
 6. Use automatic deployment through git so that pushing to the production branch will automatically build and deploy. But pushing to heroku git by default also works.
 7. [Some tips for setting up the Dockerfile and troubleshooting tips](https://stackoverflow.com/a/46229012/7981162)
 
