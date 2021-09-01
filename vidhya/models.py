@@ -11,7 +11,7 @@ from django.conf import settings
 # from django.db.models import JSONField
 
 class User(AbstractUser):
-    name = models.CharField(max_length=100, default='Uninitialied User')
+    name = models.CharField(max_length=100, default='Uninitialized User')
     email = models.EmailField(blank=False, max_length=255, unique=True)
     avatar = models.CharField(max_length=250, blank=True,
                               null=True, default=settings.DEFAULT_AVATARS['USER'])
