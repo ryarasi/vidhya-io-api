@@ -6,7 +6,8 @@ from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
-
+from django.core.mail import send_mail
+from django.conf import Settings, settings
 
 CREATE_METHOD = 'CREATE'
 UPDATE_METHOD = 'UPDATE'
@@ -318,7 +319,13 @@ class ApproveUser(graphene.Mutation):
             ok = True
             user_instance.role = role
             user_instance.membership_status = 'AP'
-
+            send_mail(
+                'Your Vidhya.io account is approved!',
+                'Dear '+user_instance.username+',\n\nYour account is now approved!\n\nPlease login with your credentials - '+settings.FRONTEND_DOMAIN_URL+'.',
+                settings.DEFAULT_FROM_EMAIL,
+                [user_instance.email],
+                fail_silently=False,
+            )
             user_instance.save()
             payload = {"user": user_instance,
                        "method": DELETE_METHOD}
