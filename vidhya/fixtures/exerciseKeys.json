@@ -1,0 +1,961 @@
+
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 16,
+    "fields": {
+      "exercise": 28,
+      "chapter": 12,
+      "course": 9,
+      "valid_option": "Data Center",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-30T13:41:21.419Z",
+      "updated_at": "2021-08-30T13:41:21.419Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 17,
+    "fields": {
+      "exercise": 29,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "Optical Fiber Network",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-30T13:44:29.881Z",
+      "updated_at": "2021-08-30T13:44:29.881Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 18,
+    "fields": {
+      "exercise": 30,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "Solid State Device",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-30T13:45:30.447Z",
+      "updated_at": "2021-08-30T13:45:30.447Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 19,
+    "fields": {
+      "exercise": 31,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "Solid State Device",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-30T13:46:45.866Z",
+      "updated_at": "2021-08-30T13:46:45.866Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 20,
+    "fields": {
+      "exercise": 32,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "Because IP address are hard to remember",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": false,
+      "created_at": "2021-08-30T13:46:55.826Z",
+      "updated_at": "2021-08-30T14:14:07.547Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 21,
+    "fields": {
+      "exercise": 33,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "Ship",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": false,
+      "created_at": "2021-08-30T13:56:25.165Z",
+      "updated_at": "2021-08-30T14:09:38.004Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 22,
+    "fields": {
+      "exercise": 34,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "False",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-30T14:01:17.798Z",
+      "updated_at": "2021-08-30T14:01:17.798Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 23,
+    "fields": {
+      "exercise": 35,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "False",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": false,
+      "created_at": "2021-08-30T14:02:59.252Z",
+      "updated_at": "2021-08-30T14:40:08.617Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 24,
+    "fields": {
+      "exercise": 36,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "True",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-30T14:03:40.545Z",
+      "updated_at": "2021-08-30T14:19:48.953Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 25,
+    "fields": {
+      "exercise": 37,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "SuperEmail@12323",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-30T14:06:05.546Z",
+      "updated_at": "2021-08-30T14:08:38.069Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 26,
+    "fields": {
+      "exercise": 38,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "False",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-30T14:06:37.920Z",
+      "updated_at": "2021-08-30T14:06:37.920Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 27,
+    "fields": {
+      "exercise": 39,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "False",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-30T14:15:18.866Z",
+      "updated_at": "2021-08-30T14:15:18.866Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 28,
+    "fields": {
+      "exercise": 40,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "True",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-30T14:15:54.870Z",
+      "updated_at": "2021-08-30T14:15:54.870Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 29,
+    "fields": {
+      "exercise": 41,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "Ship",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": false,
+      "created_at": "2021-08-30T14:20:39.092Z",
+      "updated_at": "2021-08-30T14:40:02.032Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 30,
+    "fields": {
+      "exercise": 42,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "33",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": false,
+      "created_at": "2021-08-30T14:43:47.480Z",
+      "updated_at": "2021-08-30T14:44:04.764Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 31,
+    "fields": {
+      "exercise": 43,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": "2",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": false,
+      "created_at": "2021-08-30T14:46:43.254Z",
+      "updated_at": "2021-08-30T14:46:53.639Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 32,
+    "fields": {
+      "exercise": 44,
+      "chapter": 13,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[\"d\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": false,
+      "created_at": "2021-08-30T14:57:51.711Z",
+      "updated_at": "2021-08-30T14:58:02.840Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 33,
+    "fields": {
+      "exercise": 45,
+      "chapter": 15,
+      "course": 9,
+      "valid_option": "Web Development using HTML, CSS & JavaScript",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:01:02.668Z",
+      "updated_at": "2021-08-31T05:01:02.668Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 34,
+    "fields": {
+      "exercise": 46,
+      "chapter": 16,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[\"Wellington\", \"wellington\", \"WELLINGTON\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:03:16.920Z",
+      "updated_at": "2021-08-31T05:03:16.920Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 35,
+    "fields": {
+      "exercise": 47,
+      "chapter": 16,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[\"French\", \"french\", \"FRENCH\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:03:47.375Z",
+      "updated_at": "2021-08-31T05:03:47.376Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 36,
+    "fields": {
+      "exercise": 48,
+      "chapter": 16,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[\"39370.1\", \"39370\", \"39,370.1\", \"39370.079\", \"39370.0787\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:05:13.224Z",
+      "updated_at": "2021-08-31T05:05:13.224Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 37,
+    "fields": {
+      "exercise": 49,
+      "chapter": 16,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[\"Rajasthan Royals\", \"rajasthan royals\", \"Rajasthan Royal\", \"Rajasthan royals\", \"Rajasthan Royal's\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:06:11.191Z",
+      "updated_at": "2021-08-31T05:06:11.191Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 38,
+    "fields": {
+      "exercise": 50,
+      "chapter": 16,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[\"384,400\", \"384400\", \"38,44,00\", \"384,400 km\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:07:28.184Z",
+      "updated_at": "2021-08-31T05:07:28.184Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 39,
+    "fields": {
+      "exercise": 51,
+      "chapter": 16,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[\"Hypertext Markup Language\", \"Hyper text Markup Language\", \"Hyper-text Markup Language\", \"Hypertext markup language\", \"Hypertext Markup language\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:08:03.081Z",
+      "updated_at": "2021-08-31T05:08:03.081Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 40,
+    "fields": {
+      "exercise": 52,
+      "chapter": 16,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[\"Cascading Style Sheets\", \"cascading style sheets\", \"cascading stylesheets\", \"Cascading Stylesheets\", \"Cascading style sheets\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:08:42.620Z",
+      "updated_at": "2021-08-31T05:08:42.620Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 41,
+    "fields": {
+      "exercise": 53,
+      "chapter": 16,
+      "course": 9,
+      "valid_option": "False",
+      "valid_answers": "[\"Cascading Style Sheets\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:09:06.629Z",
+      "updated_at": "2021-08-31T05:09:06.629Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 42,
+    "fields": {
+      "exercise": 54,
+      "chapter": 17,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[\"Yuri Gagarin\", \"yuri gagarin\", \"Yuri gagarin\", \"yuri Gagarin\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:16:46.583Z",
+      "updated_at": "2021-08-31T05:16:46.583Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 43,
+    "fields": {
+      "exercise": 55,
+      "chapter": 17,
+      "course": 9,
+      "valid_option": "Behaviour of the site",
+      "valid_answers": "[\"Yuri Gagarin\"]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:19:19.954Z",
+      "updated_at": "2021-08-31T05:19:19.954Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 44,
+    "fields": {
+      "exercise": 56,
+      "chapter": 19,
+      "course": 9,
+      "valid_option": "True",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:24:08.155Z",
+      "updated_at": "2021-08-31T05:24:08.155Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 45,
+    "fields": {
+      "exercise": 57,
+      "chapter": 19,
+      "course": 9,
+      "valid_option": "True",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:24:42.629Z",
+      "updated_at": "2021-08-31T05:24:42.629Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 46,
+    "fields": {
+      "exercise": 58,
+      "chapter": 19,
+      "course": 9,
+      "valid_option": "True",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:25:17.931Z",
+      "updated_at": "2021-08-31T05:25:17.931Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 47,
+    "fields": {
+      "exercise": 59,
+      "chapter": 19,
+      "course": 9,
+      "valid_option": "HTML",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:25:44.189Z",
+      "updated_at": "2021-08-31T05:25:44.189Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 48,
+    "fields": {
+      "exercise": 60,
+      "chapter": 19,
+      "course": 9,
+      "valid_option": "CSS",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:26:08.369Z",
+      "updated_at": "2021-08-31T05:26:08.369Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 49,
+    "fields": {
+      "exercise": 61,
+      "chapter": 19,
+      "course": 9,
+      "valid_option": "JS",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:26:27.047Z",
+      "updated_at": "2021-08-31T05:26:27.047Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 50,
+    "fields": {
+      "exercise": 62,
+      "chapter": 19,
+      "course": 9,
+      "valid_option": "Google",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T05:27:04.243Z",
+      "updated_at": "2021-08-31T05:27:04.243Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 51,
+    "fields": {
+      "exercise": 63,
+      "chapter": 20,
+      "course": 9,
+      "valid_option": "\".html\" is the file extension of a HTML file. You add it by adding it to the end of a file name. Example - \"Sample.html\".",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T06:22:29.209Z",
+      "updated_at": "2021-08-31T06:22:29.209Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 52,
+    "fields": {
+      "exercise": 64,
+      "chapter": 23,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[\"http://localhost:8000/media/Code_Sample.png\"]",
+      "active": true,
+      "created_at": "2021-08-31T07:33:30.306Z",
+      "updated_at": "2021-08-31T07:33:30.306Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 53,
+    "fields": {
+      "exercise": 65,
+      "chapter": 23,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[\"http://localhost:8000/media/Code_Preview.png\"]",
+      "active": true,
+      "created_at": "2021-08-31T07:34:41.070Z",
+      "updated_at": "2021-08-31T07:34:41.070Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 54,
+    "fields": {
+      "exercise": 66,
+      "chapter": 24,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[\"http://localhost:8000/media/Screenshot_20201102-201613.png\"]",
+      "active": true,
+      "created_at": "2021-08-31T07:44:14.375Z",
+      "updated_at": "2021-08-31T07:44:14.375Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 55,
+    "fields": {
+      "exercise": 67,
+      "chapter": 26,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[\"http://localhost:8000/media/Screenshot_20201102-201613_QHrLqIa.png\"]",
+      "active": true,
+      "created_at": "2021-08-31T07:51:28.420Z",
+      "updated_at": "2021-08-31T07:51:28.420Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 56,
+    "fields": {
+      "exercise": 68,
+      "chapter": 36,
+      "course": 10,
+      "valid_option": "So that once this course is complete, we can learn more advanced JS libraries and build complex web apps and mobile apps",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-08-31T13:37:54.407Z",
+      "updated_at": "2021-08-31T13:37:54.407Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 57,
+    "fields": {
+      "exercise": 69,
+      "chapter": 14,
+      "course": 9,
+      "valid_option": "False",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-01T13:40:34.309Z",
+      "updated_at": "2021-09-01T13:40:34.309Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 58,
+    "fields": {
+      "exercise": 70,
+      "chapter": 18,
+      "course": 9,
+      "valid_option": "Behaviour of the website",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-01T13:47:16.912Z",
+      "updated_at": "2021-09-01T13:47:16.912Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 59,
+    "fields": {
+      "exercise": 71,
+      "chapter": 21,
+      "course": 9,
+      "valid_option": "It means there is one thing within another thing",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-01T13:51:11.528Z",
+      "updated_at": "2021-09-01T13:51:11.528Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 60,
+    "fields": {
+      "exercise": 72,
+      "chapter": 22,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[\"http://localhost:8000/media/2021_06_11_17_45_29.jpg\"]",
+      "active": true,
+      "created_at": "2021-09-01T13:54:44.121Z",
+      "updated_at": "2021-09-01T13:54:44.121Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 61,
+    "fields": {
+      "exercise": 73,
+      "chapter": 27,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[\"http://localhost:8000/media/Screenshot_20201025-195444.png\"]",
+      "active": true,
+      "created_at": "2021-09-01T14:10:41.196Z",
+      "updated_at": "2021-09-01T14:10:41.196Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 62,
+    "fields": {
+      "exercise": 74,
+      "chapter": 25,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[\"http://localhost:8000/media/Screenshot_2020-11-16-21-09-04-981_com.rhmsoft.code.png\", \"http://localhost:8000/media/Screenshot_2020-11-16-21-09-09-824_com.rhmsoft.code.png\"]",
+      "active": true,
+      "created_at": "2021-09-01T14:15:11.664Z",
+      "updated_at": "2021-09-01T14:15:11.664Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 63,
+    "fields": {
+      "exercise": 75,
+      "chapter": 25,
+      "course": 9,
+      "valid_option": null,
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[\"http://localhost:8000/media/Screenshot_2020-11-16-21-07-47-207_com.rhmsoft.code.png\"]",
+      "active": true,
+      "created_at": "2021-09-01T14:15:55.453Z",
+      "updated_at": "2021-09-01T14:15:55.453Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 64,
+    "fields": {
+      "exercise": 76,
+      "chapter": 37,
+      "course": 10,
+      "valid_option": "False",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T07:06:08.559Z",
+      "updated_at": "2021-09-02T07:06:08.559Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 65,
+    "fields": {
+      "exercise": 77,
+      "chapter": 37,
+      "course": 10,
+      "valid_option": "False",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T07:22:18.281Z",
+      "updated_at": "2021-09-02T07:22:18.281Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 66,
+    "fields": {
+      "exercise": 78,
+      "chapter": 37,
+      "course": 10,
+      "valid_option": "NaN",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T07:25:05.783Z",
+      "updated_at": "2021-09-02T07:27:24.252Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 67,
+    "fields": {
+      "exercise": 79,
+      "chapter": 38,
+      "course": 10,
+      "valid_option": "False",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T07:33:27.321Z",
+      "updated_at": "2021-09-02T07:33:27.321Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 68,
+    "fields": {
+      "exercise": 80,
+      "chapter": 38,
+      "course": 10,
+      "valid_option": "2",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T07:34:55.941Z",
+      "updated_at": "2021-09-02T07:34:55.941Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 69,
+    "fields": {
+      "exercise": 81,
+      "chapter": 38,
+      "course": 10,
+      "valid_option": "document.write(\"Hello World\")",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T07:38:31.053Z",
+      "updated_at": "2021-09-02T07:38:31.053Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 70,
+    "fields": {
+      "exercise": 82,
+      "chapter": 38,
+      "course": 10,
+      "valid_option": "document.write()",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T07:46:09.813Z",
+      "updated_at": "2021-09-02T07:46:09.813Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 71,
+    "fields": {
+      "exercise": 83,
+      "chapter": 39,
+      "course": 10,
+      "valid_option": "False",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T09:15:43.278Z",
+      "updated_at": "2021-09-02T09:15:43.278Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 72,
+    "fields": {
+      "exercise": 84,
+      "chapter": 39,
+      "course": 10,
+      "valid_option": "Giving a variable a certain value",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T09:18:45.600Z",
+      "updated_at": "2021-09-02T09:18:45.600Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 73,
+    "fields": {
+      "exercise": 85,
+      "chapter": 39,
+      "course": 10,
+      "valid_option": "True",
+      "valid_answers": "[]",
+      "reference_link": null,
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T09:21:54.161Z",
+      "updated_at": "2021-09-02T09:21:54.161Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 74,
+    "fields": {
+      "exercise": 86,
+      "chapter": 39,
+      "course": 10,
+      "valid_option": null,
+      "valid_answers": "[]",
+      "reference_link": "https://codepen.io/ryarasi/pen/abwZbWr?editors=0010",
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T09:26:30.499Z",
+      "updated_at": "2021-09-02T09:26:30.499Z"
+    }
+  },
+  {
+    "model": "vidhya.exercisekey",
+    "pk": 75,
+    "fields": {
+      "exercise": 87,
+      "chapter": 40,
+      "course": 10,
+      "valid_option": null,
+      "valid_answers": "[]",
+      "reference_link": "https://codepen.io/ryarasi/pen/QWgEwwJ?editors=0010",
+      "reference_images": "[]",
+      "active": true,
+      "created_at": "2021-09-02T10:05:53.905Z",
+      "updated_at": "2021-09-02T10:05:53.905Z"
+    }
+  }
