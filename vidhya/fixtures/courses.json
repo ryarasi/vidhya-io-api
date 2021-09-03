@@ -1665,7 +1665,7 @@
 
   {
     "model": "vidhya.exercise",
-    "pk": 28,
+    "pk": 1,
     "fields": {
       "prompt": "According to the video, where is the YouTube video stored?",
       "index": 6,
@@ -1683,7 +1683,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 29,
+    "pk": 2,
     "fields": {
       "prompt": "According to the video explaining what is internet, when you use the internet, data is primarily sent using:-",
       "index": 1,
@@ -1701,7 +1701,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 30,
+    "pk": 3,
     "fields": {
       "prompt": "What does SSD stand for?",
       "index": 2,
@@ -1719,7 +1719,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 31,
+    "pk": 4,
     "fields": {
       "prompt": "What is the purpose of a domain name?",
       "index": 3,
@@ -1737,7 +1737,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 32,
+    "pk": 5,
     "fields": {
       "prompt": "What is the purpose of a domain name?",
       "index": 1,
@@ -1755,7 +1755,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 33,
+    "pk": 6,
     "fields": {
       "prompt": "Optical cables are laid under the ocean using:-",
       "index": 5,
@@ -1773,7 +1773,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 34,
+    "pk": 7,
     "fields": {
       "prompt": "All email IDs end with \"@gmail.com\". True of False?",
       "index": 5,
@@ -1791,7 +1791,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 35,
+    "pk": 8,
     "fields": {
       "prompt": "You can have two different email IDs with the exact same spelling. True or False?",
       "index": 10,
@@ -1809,7 +1809,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 36,
+    "pk": 9,
     "fields": {
       "prompt": "Optical cables are laid under the ocean using:-",
       "index": 4,
@@ -1827,7 +1827,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 37,
+    "pk": 10,
     "fields": {
       "prompt": "One of the following Email IDs is invalid. Which one is it?",
       "index": 8,
@@ -1845,7 +1845,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 38,
+    "pk": 11,
     "fields": {
       "prompt": "Gmail app can have only one email account. True or False?",
       "index": 9,
@@ -1863,7 +1863,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 39,
+    "pk": 12,
     "fields": {
       "prompt": "You can have two different email IDs with the exact same spelling. True or False?",
       "index": 6,
@@ -1881,7 +1881,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 40,
+    "pk": 13,
     "fields": {
       "prompt": "If your email ID is \"username@gmail.com\" and someone sends an email to \"USERNAME@gmail.com\", you will still receive the email. True or False?",
       "index": 7,
@@ -1899,7 +1899,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 41,
+    "pk": 14,
     "fields": {
       "prompt": "Optical cables are laid under the ocean using:-",
       "index": 11,
@@ -1917,7 +1917,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 42,
+    "pk": 15,
     "fields": {
       "prompt": "yoyo",
       "index": 10,
@@ -1935,7 +1935,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 43,
+    "pk": 16,
     "fields": {
       "prompt": "see saw",
       "index": 10,
@@ -1953,7 +1953,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 44,
+    "pk": 17,
     "fields": {
       "prompt": "door",
       "index": 10,
@@ -1971,7 +1971,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 45,
+    "pk": 18,
     "fields": {
       "prompt": "What will we learn in this course?",
       "index": 1,
@@ -1989,7 +1989,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 46,
+    "pk": 19,
     "fields": {
       "prompt": "What is the capital of New Zealand?",
       "index": 1,
@@ -2007,7 +2007,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 47,
+    "pk": 20,
     "fields": {
       "prompt": "What is the official language of Congo?",
       "index": 2,
@@ -2025,7 +2025,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 48,
+    "pk": 21,
     "fields": {
       "prompt": "1 kilometer = ? inches. (Enter only the number below, without the units)",
       "index": 3,
@@ -2043,7 +2043,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 49,
+    "pk": 22,
     "fields": {
       "prompt": "Which team won the first IPL tournament?",
       "index": 4,
@@ -2061,7 +2061,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 50,
+    "pk": 23,
     "fields": {
       "prompt": "What is the distance between Earth and Moon in Kilometers? (Enter only the number, without units)",
       "index": 5,
@@ -2079,7 +2079,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 51,
+    "pk": 24,
     "fields": {
       "prompt": "What is the full form of HTML?",
       "index": 6,
@@ -2097,7 +2097,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 52,
+    "pk": 25,
     "fields": {
       "prompt": "What is the full form of CSS?",
       "index": 7,
@@ -2115,7 +2115,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 53,
+    "pk": 26,
     "fields": {
       "prompt": "Java and JavaScript are the same language. True or False?",
       "index": 8,
@@ -2133,7 +2133,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 54,
+    "pk": 27,
     "fields": {
       "prompt": "Use Google to find out who the first person to go to space is. Write their name below.",
       "index": 1,
@@ -2151,7 +2151,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 55,
+    "pk": 28,
     "fields": {
       "prompt": " JavaScript is used to define...",
       "index": 1,
@@ -2169,7 +2169,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 56,
+    "pk": 29,
     "fields": {
       "prompt": "A static website only shows information. User cannot interact with the site. True or False?",
       "index": 1,
@@ -2187,7 +2187,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 57,
+    "pk": 30,
     "fields": {
       "prompt": "A dynamic website usually requires both a Frontend and a Backend. True or False?",
       "index": 3,
@@ -2205,7 +2205,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 58,
+    "pk": 31,
     "fields": {
       "prompt": "Both static websites and dynamic websites typically require HTML, CSS & JS. True or False?",
       "index": 2,
@@ -2223,7 +2223,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 59,
+    "pk": 32,
     "fields": {
       "prompt": "Which of the following technologies is used to create content in a website?",
       "index": 4,
@@ -2241,7 +2241,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 60,
+    "pk": 33,
     "fields": {
       "prompt": "Which of the following technologies is used to define the look and feel of a website?",
       "index": 5,
@@ -2259,7 +2259,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 61,
+    "pk": 34,
     "fields": {
       "prompt": "Which of the following technologies is used to define the behaviour of a website?",
       "index": 6,
@@ -2277,7 +2277,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 62,
+    "pk": 35,
     "fields": {
       "prompt": "Which of the following tools will you use to find answers for something you don't know?",
       "index": 7,
@@ -2295,7 +2295,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 63,
+    "pk": 36,
     "fields": {
       "prompt": " What is the file extension for HTML files? How to add it?",
       "index": 1,
@@ -2313,7 +2313,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 64,
+    "pk": 37,
     "fields": {
       "prompt": "Attach a screenshot of your code",
       "index": 1,
@@ -2331,7 +2331,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 65,
+    "pk": 38,
     "fields": {
       "prompt": "Attach the screenshot of the preview of the HTML on the browser",
       "index": 2,
@@ -2349,7 +2349,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 66,
+    "pk": 39,
     "fields": {
       "prompt": "Attach screenshot showing that you've completed at least 21% on FreeCodeCamp",
       "index": 1,
@@ -2367,7 +2367,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 67,
+    "pk": 40,
     "fields": {
       "prompt": "Attach screenshot of having completed 29% of FreeCodeCamp HTML Exercises ",
       "index": 1,
@@ -2385,7 +2385,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 68,
+    "pk": 41,
     "fields": {
       "prompt": "According to the video which is the most exciting reason to participate in this course and learn JS fundamentals?",
       "index": 1,
@@ -2403,7 +2403,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 69,
+    "pk": 42,
     "fields": {
       "prompt": "abc@@gmail.com is a valid email ID. True or False?",
       "index": 1,
@@ -2421,7 +2421,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 70,
+    "pk": 43,
     "fields": {
       "prompt": "JavaScript is used to define...",
       "index": 1,
@@ -2439,7 +2439,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 71,
+    "pk": 44,
     "fields": {
       "prompt": "What is the meaning of HyperText?",
       "index": 1,
@@ -2457,7 +2457,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 72,
+    "pk": 45,
     "fields": {
       "prompt": "Screenshot showing the Acode and Coding keyboard app icons on your phone",
       "index": 1,
@@ -2475,7 +2475,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 73,
+    "pk": 46,
     "fields": {
       "prompt": "Screenshot of the page on FreeCodeCamp showing that you have completed the first challenge",
       "index": 1,
@@ -2493,7 +2493,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 74,
+    "pk": 47,
     "fields": {
       "prompt": "Screenshot of HTML Code",
       "index": 1,
@@ -2511,7 +2511,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 75,
+    "pk": 48,
     "fields": {
       "prompt": "Preview of the HTML code in the browser",
       "index": 2,
@@ -2529,7 +2529,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 76,
+    "pk": 49,
     "fields": {
       "prompt": "JavaScript is also referred to as Java sometimes, because Java is short form of JavaScript. True or False?",
       "index": 1,
@@ -2547,7 +2547,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 77,
+    "pk": 50,
     "fields": {
       "prompt": "JavaScript is used for styling a webpage. It is usually not helpful when trying to respond to user input. True or False?",
       "index": 2,
@@ -2565,7 +2565,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 78,
+    "pk": 51,
     "fields": {
       "prompt": "In JS, this expression results in which of the following results? => 5 + 4 + \"one\"",
       "index": 3,
@@ -2583,7 +2583,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 79,
+    "pk": 52,
     "fields": {
       "prompt": "Because JS is case-sensitive, \"hello\" is the same as \"Hello\". True or False?",
       "index": 1,
@@ -2601,7 +2601,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 80,
+    "pk": 53,
     "fields": {
       "prompt": "According to the video how many ways are there to include JS code inside a HTML file?",
       "index": 1,
@@ -2619,7 +2619,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 81,
+    "pk": 54,
     "fields": {
       "prompt": "If you wished to include a line of text (eg. \"Hello World\") inside the body of a HTML file only using JS, which of the following lines would work?",
       "index": 3,
@@ -2637,7 +2637,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 82,
+    "pk": 55,
     "fields": {
       "prompt": "Of the following, only one command is not functionally similar to a console.log() statement. Which one is it?",
       "index": 4,
@@ -2655,7 +2655,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 83,
+    "pk": 56,
     "fields": {
       "prompt": "A variable is a container for a value and that value cannot be changed once it is set. True or false?",
       "index": 1,
@@ -2673,7 +2673,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 84,
+    "pk": 57,
     "fields": {
       "prompt": "Variable assignment is __________",
       "index": 2,
@@ -2691,7 +2691,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 85,
+    "pk": 58,
     "fields": {
       "prompt": "Variable initialisation is a combination of variable declaration and assignment. True or False?",
       "index": 3,
@@ -2709,7 +2709,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 86,
+    "pk": 59,
     "fields": {
       "prompt": "Create a new pen on codepen and declare a variable named a, assign the variable b with the value 5 and then initialise a variable c with the value 10. Add the link to that codepen below.",
       "index": 4,
@@ -2727,7 +2727,7 @@
   },
   {
     "model": "vidhya.exercise",
-    "pk": 87,
+    "pk": 60,
     "fields": {
       "prompt": "Paste the link to your pen on Codepen after having completed the 5 tasks listed above.",
       "index": 1,
