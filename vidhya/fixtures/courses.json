@@ -2750,7 +2750,7 @@
     "fields": {
       "exercise": 1,
       "chapter": 1,
-      "course": 9,
+      "course": 2,
       "valid_option": "Data Center",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2766,7 +2766,7 @@
     "fields": {
       "exercise": 2,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "Optical Fiber Network",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2782,7 +2782,7 @@
     "fields": {
       "exercise": 3,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "Solid State Device",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2798,7 +2798,7 @@
     "fields": {
       "exercise": 4,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "Solid State Device",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2814,7 +2814,7 @@
     "fields": {
       "exercise": 5,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "Because IP address are hard to remember",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2830,7 +2830,7 @@
     "fields": {
       "exercise": 6,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "Ship",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2846,7 +2846,7 @@
     "fields": {
       "exercise": 7,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "False",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2862,7 +2862,7 @@
     "fields": {
       "exercise": 8,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "False",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2878,7 +2878,7 @@
     "fields": {
       "exercise": 9,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "True",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2894,7 +2894,7 @@
     "fields": {
       "exercise": 10,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "SuperEmail@12323",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2910,7 +2910,7 @@
     "fields": {
       "exercise": 11,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "False",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2926,7 +2926,7 @@
     "fields": {
       "exercise": 12,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "False",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2942,7 +2942,7 @@
     "fields": {
       "exercise": 13,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "True",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2958,7 +2958,7 @@
     "fields": {
       "exercise": 14,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "Ship",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2974,7 +2974,7 @@
     "fields": {
       "exercise": 15,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "33",
       "valid_answers": "[]",
       "reference_link": null,
@@ -2990,7 +2990,7 @@
     "fields": {
       "exercise": 16,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": "2",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3006,7 +3006,7 @@
     "fields": {
       "exercise": 17,
       "chapter": 2,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[\"d\"]",
       "reference_link": null,
@@ -3022,7 +3022,7 @@
     "fields": {
       "exercise": 18,
       "chapter": 4,
-      "course": 9,
+      "course": 2,
       "valid_option": "Web Development using HTML, CSS & JavaScript",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3038,7 +3038,7 @@
     "fields": {
       "exercise": 19,
       "chapter": 5,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[\"Wellington\", \"wellington\", \"WELLINGTON\"]",
       "reference_link": null,
@@ -3054,7 +3054,7 @@
     "fields": {
       "exercise": 20,
       "chapter": 5,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[\"French\", \"french\", \"FRENCH\"]",
       "reference_link": null,
@@ -3070,7 +3070,7 @@
     "fields": {
       "exercise": 21,
       "chapter": 5,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[\"39370.1\", \"39370\", \"39,370.1\", \"39370.079\", \"39370.0787\"]",
       "reference_link": null,
@@ -3086,7 +3086,7 @@
     "fields": {
       "exercise": 22,
       "chapter": 5,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[\"Rajasthan Royals\", \"rajasthan royals\", \"Rajasthan Royal\", \"Rajasthan royals\", \"Rajasthan Royal's\"]",
       "reference_link": null,
@@ -3102,7 +3102,7 @@
     "fields": {
       "exercise": 23,
       "chapter": 5,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[\"384,400\", \"384400\", \"38,44,00\", \"384,400 km\"]",
       "reference_link": null,
@@ -3118,7 +3118,7 @@
     "fields": {
       "exercise": 24,
       "chapter": 5,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[\"Hypertext Markup Language\", \"Hyper text Markup Language\", \"Hyper-text Markup Language\", \"Hypertext markup language\", \"Hypertext Markup language\"]",
       "reference_link": null,
@@ -3134,7 +3134,7 @@
     "fields": {
       "exercise": 25,
       "chapter": 5,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[\"Cascading Style Sheets\", \"cascading style sheets\", \"cascading stylesheets\", \"Cascading Stylesheets\", \"Cascading style sheets\"]",
       "reference_link": null,
@@ -3150,7 +3150,7 @@
     "fields": {
       "exercise": 26,
       "chapter": 5,
-      "course": 9,
+      "course": 2,
       "valid_option": "False",
       "valid_answers": "[\"Cascading Style Sheets\"]",
       "reference_link": null,
@@ -3166,7 +3166,7 @@
     "fields": {
       "exercise": 27,
       "chapter": 6,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[\"Yuri Gagarin\", \"yuri gagarin\", \"Yuri gagarin\", \"yuri Gagarin\"]",
       "reference_link": null,
@@ -3182,7 +3182,7 @@
     "fields": {
       "exercise": 28,
       "chapter": 6,
-      "course": 9,
+      "course": 2,
       "valid_option": "Behaviour of the site",
       "valid_answers": "[\"Yuri Gagarin\"]",
       "reference_link": null,
@@ -3198,7 +3198,7 @@
     "fields": {
       "exercise": 29,
       "chapter": 8,
-      "course": 9,
+      "course": 2,
       "valid_option": "True",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3214,7 +3214,7 @@
     "fields": {
       "exercise": 30,
       "chapter": 8,
-      "course": 9,
+      "course": 2,
       "valid_option": "True",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3230,7 +3230,7 @@
     "fields": {
       "exercise": 31,
       "chapter": 8,
-      "course": 9,
+      "course": 2,
       "valid_option": "True",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3246,7 +3246,7 @@
     "fields": {
       "exercise": 32,
       "chapter": 8,
-      "course": 9,
+      "course": 2,
       "valid_option": "HTML",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3262,7 +3262,7 @@
     "fields": {
       "exercise": 33,
       "chapter": 8,
-      "course": 9,
+      "course": 2,
       "valid_option": "CSS",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3278,7 +3278,7 @@
     "fields": {
       "exercise": 34,
       "chapter": 8,
-      "course": 9,
+      "course": 2,
       "valid_option": "JS",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3294,7 +3294,7 @@
     "fields": {
       "exercise": 35,
       "chapter": 8,
-      "course": 9,
+      "course": 2,
       "valid_option": "Google",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3310,7 +3310,7 @@
     "fields": {
       "exercise": 36,
       "chapter": 9,
-      "course": 9,
+      "course": 2,
       "valid_option": "\".html\" is the file extension of a HTML file. You add it by adding it to the end of a file name. Example - \"Sample.html\".",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3326,7 +3326,7 @@
     "fields": {
       "exercise": 37,
       "chapter": 12,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[]",
       "reference_link": null,
@@ -3342,7 +3342,7 @@
     "fields": {
       "exercise": 38,
       "chapter": 12,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[]",
       "reference_link": null,
@@ -3358,7 +3358,7 @@
     "fields": {
       "exercise": 39,
       "chapter": 13,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[]",
       "reference_link": null,
@@ -3374,7 +3374,7 @@
     "fields": {
       "exercise": 40,
       "chapter": 15,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[]",
       "reference_link": null,
@@ -3406,7 +3406,7 @@
     "fields": {
       "exercise": 42,
       "chapter": 3,
-      "course": 9,
+      "course": 2,
       "valid_option": "False",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3422,7 +3422,7 @@
     "fields": {
       "exercise": 43,
       "chapter": 7,
-      "course": 9,
+      "course": 2,
       "valid_option": "Behaviour of the website",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3438,7 +3438,7 @@
     "fields": {
       "exercise": 44,
       "chapter": 10,
-      "course": 9,
+      "course": 2,
       "valid_option": "It means there is one thing within another thing",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3454,7 +3454,7 @@
     "fields": {
       "exercise": 45,
       "chapter": 11,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[]",
       "reference_link": null,
@@ -3470,7 +3470,7 @@
     "fields": {
       "exercise": 46,
       "chapter": 16,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[]",
       "reference_link": null,
@@ -3486,7 +3486,7 @@
     "fields": {
       "exercise": 47,
       "chapter": 14,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[]",
       "reference_link": null,
@@ -3502,7 +3502,7 @@
     "fields": {
       "exercise": 48,
       "chapter": 14,
-      "course": 9,
+      "course": 2,
       "valid_option": null,
       "valid_answers": "[]",
       "reference_link": null,
