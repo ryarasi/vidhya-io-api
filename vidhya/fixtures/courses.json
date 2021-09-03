@@ -3390,7 +3390,7 @@
     "fields": {
       "exercise": 41,
       "chapter": 36,
-      "course": 10,
+      "course": 1,
       "valid_option": "So that once this course is complete, we can learn more advanced JS libraries and build complex web apps and mobile apps",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3518,7 +3518,7 @@
     "fields": {
       "exercise": 49,
       "chapter": 37,
-      "course": 10,
+      "course": 1,
       "valid_option": "False",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3534,7 +3534,7 @@
     "fields": {
       "exercise": 50,
       "chapter": 37,
-      "course": 10,
+      "course": 1,
       "valid_option": "False",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3550,7 +3550,7 @@
     "fields": {
       "exercise": 51,
       "chapter": 37,
-      "course": 10,
+      "course": 1,
       "valid_option": "NaN",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3566,7 +3566,7 @@
     "fields": {
       "exercise": 52,
       "chapter": 38,
-      "course": 10,
+      "course": 1,
       "valid_option": "False",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3582,7 +3582,7 @@
     "fields": {
       "exercise": 53,
       "chapter": 38,
-      "course": 10,
+      "course": 1,
       "valid_option": "2",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3598,7 +3598,7 @@
     "fields": {
       "exercise": 54,
       "chapter": 38,
-      "course": 10,
+      "course": 1,
       "valid_option": "document.write(\"Hello World\")",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3614,7 +3614,7 @@
     "fields": {
       "exercise": 55,
       "chapter": 38,
-      "course": 10,
+      "course": 1,
       "valid_option": "document.write()",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3630,7 +3630,7 @@
     "fields": {
       "exercise": 56,
       "chapter": 39,
-      "course": 10,
+      "course": 1,
       "valid_option": "False",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3646,7 +3646,7 @@
     "fields": {
       "exercise": 57,
       "chapter": 39,
-      "course": 10,
+      "course": 1,
       "valid_option": "Giving a variable a certain value",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3662,7 +3662,7 @@
     "fields": {
       "exercise": 58,
       "chapter": 39,
-      "course": 10,
+      "course": 1,
       "valid_option": "True",
       "valid_answers": "[]",
       "reference_link": null,
@@ -3678,7 +3678,7 @@
     "fields": {
       "exercise": 59,
       "chapter": 39,
-      "course": 10,
+      "course": 1,
       "valid_option": null,
       "valid_answers": "[]",
       "reference_link": "https://codepen.io/ryarasi/pen/abwZbWr?editors=0010",
@@ -3694,7 +3694,7 @@
     "fields": {
       "exercise": 60,
       "chapter": 40,
-      "course": 10,
+      "course": 1,
       "valid_option": null,
       "valid_answers": "[]",
       "reference_link": "https://codepen.io/ryarasi/pen/QWgEwwJ?editors=0010",
