@@ -334,7 +334,7 @@ class Query(ObjectType):
             Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).order_by('-id')
 
         announcement_instance = Announcement.objects.get(
-            pk=id, active=True, groups__in=groups)
+            Q(recipients_global=True) | (Q(recipients_institution=True) & Q(institution_id=current_user.institution_id)) | Q(groups__in=groups),pk=id, active=True)
         if announcement_instance is not None:
             return announcement_instance
         else:
@@ -347,8 +347,7 @@ class Query(ObjectType):
         groups = Group.objects.all().filter(
             Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).order_by('-id')
 
-        qs = Announcement.objects.all().filter(
-            active=True, groups__in=groups).order_by('-id')
+        qs = Announcement.objects.all().filter(Q(recipients_global=True) | (Q(recipients_institution=True) & Q(institution_id=current_user.institution_id)) | Q(groups__in=groups),active=True).order_by('-id')
 
         if searchField is not None:
             filter = (

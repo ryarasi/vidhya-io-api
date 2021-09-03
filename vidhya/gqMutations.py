@@ -642,8 +642,8 @@ class CreateAnnouncement(graphene.Mutation):
             error += "Author is a required field<br />"
         if input.message is None:
             error += "Message is a required field<br />"
-        if input.group_ids is None:
-            error += "Group(s) is a required field<br />"
+        if  not input.recipients_global and not input.recipients_institution and not input.group_ids:
+            error += "Recipients is a required field<br />"
         if input.institution_id is None:
             error += "Institution is a required field<br />"
         if len(error) > 0:
@@ -652,11 +652,18 @@ class CreateAnnouncement(graphene.Mutation):
         searchField += input.message if input.message is not None else ""
         searchField = searchField.lower()
 
+        if input.group_ids:
+            input.recipients_global = False
+            input.recipients_institution = False
+        
+        if input.recipients_institution == True:
+            input.recipients_global = False
+
         announcement_instance = Announcement(title=input.title, author_id=input.author_id, message=input.message,
-                                             institution_id=input.institution_id, searchField=searchField)
+                                             institution_id=input.institution_id, recipients_global=input.recipients_global, recipients_institution=input.recipients_institution, searchField=searchField)
         announcement_instance.save()
 
-        if input.group_ids is not None:
+        if input.group_ids:
             announcement_instance.groups.add(*input.group_ids)
 
         payload = {"announcement": announcement_instance,
