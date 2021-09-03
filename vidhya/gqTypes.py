@@ -272,6 +272,8 @@ class AnnouncementInput(graphene.InputObjectType):
     author_id = graphene.ID(name="author", required=True)
     message = graphene.String(required=True)
     institution_id = graphene.Int(name="institution", required=True)
+    recipients_global = graphene.Boolean()
+    recipients_institution = graphene.Boolean()
     group_ids = graphene.List(graphene.Int, name="groups", required=True)
 
 

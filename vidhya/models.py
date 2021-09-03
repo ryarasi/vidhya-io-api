@@ -156,6 +156,8 @@ class Announcement(models.Model):
         User, related_name="announcementAuthor", on_delete=models.PROTECT)
     message = models.CharField(max_length=1000)
     institution = models.ForeignKey(Institution, on_delete=models.PROTECT)
+    recipients_global = models.BooleanField(default=False)
+    recipients_institution = models.BooleanField(default=False)
     groups = models.ManyToManyField(Group, through="AnnouncementGroup", through_fields=(
         'announcement', 'group'), blank=True)
     searchField = models.CharField(max_length=1200, blank=True, null=True)
