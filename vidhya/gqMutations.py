@@ -7,7 +7,8 @@ from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, Cour
 from .gqSubscriptions import NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 from django.core.mail import send_mail
-from django.conf import Settings, settings
+from django.conf import settings
+from django.core.validators import URLValidator, ValidationError
 
 CREATE_METHOD = 'CREATE'
 UPDATE_METHOD = 'UPDATE'
@@ -1243,16 +1244,22 @@ class CreateExercise(graphene.Mutation):
         else:
             if input.question_type == Exercise.QuestionTypeChoices.OPTIONS:
                 if input.valid_option is None:
-                    error += "A valid option key is required"
+                    error += "A valid option key is required<br />"
             if input.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
                 if len(input.valid_answers) == 0:
-                    error += "A valid answer key is required"
+                    error += "A valid answer key is required<br />"
             if input.question_type == Exercise.QuestionTypeChoices.IMAGE:
                 if not input.reference_images and not input.remarks:
-                    error += "Either remarks field or at least one valid reference image is required"
+                    error += "Either remarks field or at least one valid reference image is required<br />"
             if input.question_type ==  Exercise.QuestionTypeChoices.LINK:
                 if not input.reference_link and not input.remarks:
-                    error += "Either remarks or a valid reference link is required"                                                            
+                    error += "Either remarks or a valid reference link is required<br />"     
+                if input.reference_link:
+                    try:
+                        validator = URLValidator()
+                        validator(input.reference_link)
+                    except ValidationError:                
+                        error += "Link should be a valid URL<br />"
         if input.required is None:
             error += "Required is a required field<br />"
         if len(error) > 0:
