@@ -1230,7 +1230,6 @@ class CreateExercise(graphene.Mutation):
     exercise = graphene.Field(ExerciseType)
 
     def validate_exercise_input(input):
-        ok = True
         error = ""
         if input.prompt is None:
             error += "Prompt is a required field<br />"
@@ -1263,6 +1262,7 @@ class CreateExercise(graphene.Mutation):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
     def mutate(root, info, input=None):
+        ok = True
         CreateExercise.validate_exercise_input(input)
         searchField = input.prompt
         searchField = searchField.lower()
@@ -1310,8 +1310,8 @@ class UpdateExercise(graphene.Mutation):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
-        CreateExercise.validate_exercise_input(input)
         ok = False
+        CreateExercise.validate_exercise_input(input)
         exercise_instance = Exercise.objects.get(pk=id, active=True)
         exercise_key_instance = ExerciseKey.objects.get(exercise=exercise_instance, active=True)
         if exercise_instance and exercise_key_instance:
