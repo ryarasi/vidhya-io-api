@@ -339,6 +339,7 @@ class ExerciseKeyInput(graphene.InputObjectType):
     valid_answers = graphene.List(graphene.String)
     reference_link = graphene.String()
     reference_images = graphene.List(graphene.String)    
+    remarks = graphene.String()
 
 class ExerciseSubmissionInput(graphene.InputObjectType):
     id = graphene.ID()

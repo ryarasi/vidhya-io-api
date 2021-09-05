@@ -1229,10 +1229,7 @@ class CreateExercise(graphene.Mutation):
     ok = graphene.Boolean()
     exercise = graphene.Field(ExerciseType)
 
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
-    def mutate(root, info, input=None):
+    def validate_exercise_input(input):
         ok = True
         error = ""
         if input.prompt is None:
@@ -1252,15 +1249,21 @@ class CreateExercise(graphene.Mutation):
                 if len(input.valid_answers) == 0:
                     error += "A valid answer key is required"
             if input.question_type == Exercise.QuestionTypeChoices.IMAGE:
-                if len(input.reference_images) == 0:
-                    error += "At least one valid reference image is required"
+                if not input.reference_images and not input.remarks:
+                    error += "Either remarks field or at least one valid reference image is required"
             if input.question_type ==  Exercise.QuestionTypeChoices.LINK:
-                if input.reference_link is None:
-                    error += "A valid link key is required"                                                            
+                if not input.reference_link and not input.remarks:
+                    error += "Either remarks or a valid reference link is required"                                                            
         if input.required is None:
             error += "Required is a required field<br />"
         if len(error) > 0:
             raise GraphQLError(error)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
+    def mutate(root, info, input=None):
+        CreateExercise.validate_exercise_input(input)
         searchField = input.prompt
         searchField = searchField.lower()
 
@@ -1273,7 +1276,7 @@ class CreateExercise(graphene.Mutation):
 
         CreateChapter.update_points(input.chapter_id) # Updating the points on the chapter
 
-        exercise_key_instance = ExerciseKey(exercise=exercise_instance, course_id=input.course_id, chapter_id=input.chapter_id, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images)
+        exercise_key_instance = ExerciseKey(exercise=exercise_instance, course_id=input.course_id, chapter_id=input.chapter_id, valid_option=input.valid_option, valid_answers=input.valid_answers, reference_link = input.reference_link, reference_images = input.reference_images, remarks = input.remarks)
 
         exercise_key_instance.save()
 
@@ -1307,6 +1310,7 @@ class UpdateExercise(graphene.Mutation):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
+        CreateExercise.validate_exercise_input(input)
         ok = False
         exercise_instance = Exercise.objects.get(pk=id, active=True)
         exercise_key_instance = ExerciseKey.objects.get(exercise=exercise_instance, active=True)
@@ -1337,6 +1341,7 @@ class UpdateExercise(graphene.Mutation):
             exercise_key_instance.valid_answers = input.valid_answers if input.valid_answers is not None else exercise_key_instance.valid_answers
             exercise_key_instance.reference_link = input.reference_link if input.reference_link is not None else exercise_key_instance.reference_link
             exercise_key_instance.reference_images = input.reference_images if input.reference_images is not None else exercise_key_instance.reference_images
+            exercise_key_instance.remarks = input.remarks if input.remarks is not None else exercise_key_instance.remarks
          
             exercise_key_instance.save()
             payload = {"exercise_key": exercise_key_instance,

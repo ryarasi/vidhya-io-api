@@ -321,9 +321,10 @@ class ExerciseKey(models.Model):
     valid_option = models.CharField(
         max_length=200, blank=True, null=True)
     valid_answers = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
-    reference_link = models.CharField(max_length=5000, blank=True, null=True)
+    reference_link = models.CharField(max_length=500, blank=True, null=True)
     reference_images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
+    remarks = models.CharField(max_length=1000, blank=True, null=True)
 
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
