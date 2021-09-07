@@ -180,7 +180,7 @@ class AddInvitecode(graphene.Mutation):
             ok = True
             user.invitecode = invitecode
             user.save()
-        return AddInvitecode(ok=ok,user=user)
+        return AddInvitecode(ok=ok)
 
 
 # class CreateUser(graphene.Mutation):
