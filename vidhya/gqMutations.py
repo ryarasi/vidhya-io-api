@@ -170,18 +170,17 @@ class AddInvitecode(graphene.Mutation):
     @staticmethod
     def mutate(root, info, invitecode, email, input=None):
         ok = False
-        institution = Institution.objects.get(
-            invitecode=invitecode, active=True)
-        institution_instance = institution
-        if institution_instance is None:
+        try:
+            institution = Institution.objects.get(invitecode=invitecode, active=True)
+            user = User.objects.get(email=email, active=True)
+        except:
             raise GraphQLError(
-                "You've provided an invalid invitation code. Please check and try again.")
-        user_instance = User.objects.get(email=email, active=True)
-        if user_instance and institution_instance:
+                "There was an error in your registration. Please contact the admin.")
+        if user and institution:
             ok = True
-            user_instance.invitecode = invitecode
-            user_instance.save()
-        return AddInvitecode(ok=ok,)
+            user.invitecode = invitecode
+            user.save()
+        return AddInvitecode(ok=ok)
 
 
 # class CreateUser(graphene.Mutation):
