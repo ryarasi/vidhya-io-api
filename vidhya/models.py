@@ -27,7 +27,11 @@ class LowercaseEmailField(models.EmailField):
 
 class User(AbstractUser):
     name = models.CharField(max_length=100, default='Uninitialized User')
+<<<<<<< HEAD
     email = models.EmailField(blank=False, max_length=255, unique=True)
+=======
+    email = LowercaseEmailField(blank=False, max_length=255, unique=True)
+>>>>>>> dev
     avatar = models.CharField(max_length=250, blank=True,
                               null=True, default=settings.DEFAULT_AVATARS['USER'])
     institution = models.ForeignKey(
