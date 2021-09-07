@@ -7,7 +7,7 @@ import vidhya.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('vidhya', '0020_auto_20210905_0517'),
+        ('vidhya', '0004_load_courses'),
     ]
 
     operations = [
