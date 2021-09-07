@@ -10,9 +10,24 @@ from django.db import models
 from django.conf import settings
 # from django.db.models import JSONField
 
+class LowercaseEmailField(models.EmailField):
+    """
+    Override EmailField to convert emails to lowercase before saving.
+    """
+    def to_python(self, value):
+        """
+        Convert email to lowercase.
+        """
+        value = super(LowercaseEmailField, self).to_python(value)
+        # Value can be None so check that it's a string before lowercasing.
+        if isinstance(value, str):
+            return value.lower()
+        return value
+
+
 class User(AbstractUser):
     name = models.CharField(max_length=100, default='Uninitialied User')
-    email = models.EmailField(blank=False, max_length=255, unique=True)
+    email = LowercaseEmailField(blank=False, max_length=255, unique=True)
     avatar = models.CharField(max_length=250, blank=True,
                               null=True, default=settings.DEFAULT_AVATARS['USER'])
     institution = models.ForeignKey(
