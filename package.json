@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "stage": "git checkout staging && git merge dev && git push",
-    "golive": "git checkout production && git merge dev && git push",
+    "stage": "git checkout staging && git merge dev && git push && git checkout dev",
+    "golive": "git checkout production && git merge dev && git push && git checkout dev",
     "sync-all": "npm run stage && npm run golive"
   },
   "repository": {
