@@ -8,6 +8,18 @@ from common.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTION
 from django.conf import settings
 from graphql import GraphQLError
 
+class Users(graphene.ObjectType):
+    records = graphene.List(UserType)
+    total = graphene.Int()
+
+class UserRoles(graphene.ObjectType):
+    records = graphene.List(UserRoleType)
+    total = graphene.Int()
+
+class Institutions(graphene.ObjectType):
+    records = graphene.List(InstitutionType)
+    total = graphene.Int()
+
 class ActiveChats(graphene.ObjectType):
     chats = graphene.List(ChatType)
     groups = graphene.List(GroupType)
@@ -52,23 +64,27 @@ class PublicUserType(graphene.ObjectType):
     institution = graphene.String()
 
 
+class PublicUsers(graphene.ObjectType):
+    records = graphene.List(PublicUserType)
+    total = graphene.Int()
+
 class Query(ObjectType):
     institution_by_invitecode = graphene.Field(
         InstitutionType, invitecode=graphene.String())
     institution = graphene.Field(InstitutionType, id=graphene.ID())
-    institutions = graphene.List(
-        InstitutionType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    institutions = graphene.Field(
+        Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     user = graphene.Field(UserType, id=graphene.ID())
-    users = graphene.List(
-        UserType, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    users = graphene.Field(
+        Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
-    public_users = graphene.List(
-        PublicUserType, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    public_users = graphene.Field(
+        PublicUsers, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     user_role = graphene.Field(UserRoleType, role_name=graphene.String())
-    user_roles = graphene.List(
-        UserRoleType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    user_roles = graphene.Field(
+        UserRoles, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     group = graphene.Field(GroupType, id=graphene.ID())
     groups = graphene.List(
@@ -150,14 +166,19 @@ class Query(ObjectType):
                 Q(searchField__icontains=searchField)
             )
             qs = qs.filter(filter)
+ 
+        total = 0
+        if qs:
+            total = qs.count()       
 
         if offset is not None:
             qs = qs[offset:]
 
         if limit is not None:
             qs = qs[:limit]
-
-        return qs
+        
+        results = Institutions(records=qs, total=total)
+        return results
 
     @login_required
     def resolve_user(root, info, id, **kwargs):
@@ -211,6 +232,10 @@ class Query(ObjectType):
                 if user.institution_id != current_user.institution_id:
                     user.avatar = settings.DEFAULT_AVATARS['USER']
                 redacted_qs.append(user)
+        
+        total = 0
+        if redacted_qs:
+            total = redacted_qs.count()
 
         if offset is not None:
             redacted_qs = redacted_qs[offset:]
@@ -218,7 +243,8 @@ class Query(ObjectType):
         if limit is not None:
             redacted_qs = redacted_qs[:limit]
         
-        return redacted_qs
+        results = Users(records=redacted_qs, total=total)
+        return results
 
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], role_name=None, limit=None, offset=None, **kwargs):
@@ -253,17 +279,22 @@ class Query(ObjectType):
                 user.avatar = settings.DEFAULT_AVATARS['USER']
             redacted_qs.append(user)
 
+        total = 0
+        if redacted_qs:
+            total = redacted_qs.count()
+
         if offset is not None:
             redacted_qs = redacted_qs[offset:]
 
         if limit is not None:
             redacted_qs = redacted_qs[:limit]
-     
+
         public_users = []
         for user in qs:
             new_user = PublicUserType(id=user.id, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution.name)
             public_users.append(new_user)
-        return public_users
+        results = PublicUsers(records=public_users, total=total)
+        return results
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['GET']))
@@ -288,12 +319,18 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
 
+        total = 0
+        if qs:
+            total = qs.count()
+
         if offset is not None:
             qs = qs[offset:]
 
         if limit is not None:
             qs = qs[:limit]
-        return qs
+        
+        results = UserRoles(records=qs, total=total)
+        return results
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['GET']))

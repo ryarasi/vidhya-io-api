@@ -11,67 +11,33 @@ from django.db import models
 
 
 class InstitutionType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = Institution.objects.all().filter(active=True).count()
-        return count
-
     class Meta:
         model = Institution
 
 
 class UserType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = User.objects.all().filter(active=True).count()
-        return count
-
     class Meta:
         model = User
 
 
 class UserRoleType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = UserRole.objects.all().filter(active=True).count()
-        return count
-
     class Meta:
         model = UserRole
 
 
 class GroupType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = Group.objects.all().filter(active=True).count()
-        return count
-
     class Meta:
         model = Group
 
 
 class AnnouncementType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = Announcement.objects.all().filter(active=True).count()
-        return count
-
     class Meta:
         model = Announcement
 
 
 class CourseType(DjangoObjectType):
-    total_count = graphene.Int()
-    locked = graphene.Boolean()
 
-    def resolve_total_count(self, info):
-        count = Course.objects.all().filter(active=True).count()
-        return count
+    locked = graphene.Boolean()
 
     def resolve_locked(self, info):
         locked = False
@@ -96,23 +62,13 @@ class CourseType(DjangoObjectType):
 
 
 class CourseSectionType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = CourseSection.objects.all().filter(active=True).count()
-        return count
 
     class Meta:
         model = CourseSection
 
 
 class ChapterType(DjangoObjectType):
-    total_count = graphene.Int()
     locked = graphene.Boolean()
-
-    def resolve_total_count(self, info):
-        count = Chapter.objects.all().filter(active=True).count()
-        return count
 
     def resolve_locked(self, info):
         locked = False
@@ -143,65 +99,34 @@ class ChapterType(DjangoObjectType):
 
 
 class ExerciseType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = Exercise.objects.all().filter(active=True).count()
-        return count
 
     class Meta:
         model = Exercise
 
 class ExerciseKeyType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = ExerciseKey.objects.all().filter(active=True).count()
-        return count
 
     class Meta:
         model = ExerciseKey
 
 class ExerciseSubmissionType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = ExerciseSubmission.objects.all().filter(active=True).count()
-        return count
 
     class Meta:
         model = ExerciseSubmission
 
 
 class ReportType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = Report.objects.all().filter(active=True).count()
-        return count
 
     class Meta:
         model = Report
 
 
 class ChatType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = Chat.objects.all().filter(active=True).count()
-        return count
 
     class Meta:
         model = Chat
 
 
 class ChatMessageType(DjangoObjectType):
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info):
-        count = ChatMessage.objects.all().filter(active=True).count()
-        return count
-
     class Meta:
         model = ChatMessage
 
