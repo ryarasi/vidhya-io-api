@@ -166,10 +166,10 @@ class Query(ObjectType):
                 Q(searchField__icontains=searchField)
             )
             qs = qs.filter(filter)
- 
-        total = 0
-        if qs:
-            total = qs.count()       
+        try:
+            total = qs.count()
+        except:
+            total = 0
 
         if offset is not None:
             qs = qs[offset:]
@@ -233,9 +233,10 @@ class Query(ObjectType):
                     user.avatar = settings.DEFAULT_AVATARS['USER']
                 redacted_qs.append(user)
         
-        total = 0
-        if redacted_qs:
+        try:
             total = redacted_qs.count()
+        except:
+            total = 0
 
         if offset is not None:
             redacted_qs = redacted_qs[offset:]
@@ -279,9 +280,10 @@ class Query(ObjectType):
                 user.avatar = settings.DEFAULT_AVATARS['USER']
             redacted_qs.append(user)
 
-        total = 0
-        if redacted_qs:
+        try:
             total = redacted_qs.count()
+        except:
+            total = 0
 
         if offset is not None:
             redacted_qs = redacted_qs[offset:]
@@ -319,9 +321,10 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
 
-        total = 0
-        if qs:
+        try:
             total = qs.count()
+        except:
+            total = 0
 
         if offset is not None:
             qs = qs[offset:]
