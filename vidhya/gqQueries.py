@@ -89,6 +89,8 @@ class Query(ObjectType):
     group = graphene.Field(GroupType, id=graphene.ID())
     groups = graphene.List(
         GroupType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    admin_groups = graphene.List(
+        GroupType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())        
 
     announcement = graphene.Field(AnnouncementType, id=graphene.ID())
     announcements = graphene.List(
@@ -349,6 +351,26 @@ class Query(ObjectType):
         current_user = info.context.user
         qs = Group.objects.all().filter(
             Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).distinct().order_by('-id')
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField)
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+        return qs
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['LIST']))
+    def resolve_admin_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        current_user = info.context.user
+        qs = Group.objects.all().filter(
+             Q(admins__in=[current_user]), active=True).distinct().order_by('-id')
 
         if searchField is not None:
             filter = (
