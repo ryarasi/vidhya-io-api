@@ -488,21 +488,25 @@ class CreateGroup(graphene.Mutation):
     ok = graphene.Boolean()
     group = graphene.Field(GroupType)
 
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['CREATE']))
-    def mutate(root, info, input=None):
-        current_user = info.context.user
-        ok = True
+    def validate_group(input):
         error = ""
         if input.name is None:
             error += "Name is a required field<br />"
         if input.description is None:
             error += "Description is a required field<br />"
         if input.institution_id is None:
-            error += "institution is a required field<br />"
-        if len(error) > 0:
-            raise GraphQLError(error)
+            error += "Institution is a required field<br />"
+        if not input.admin_ids:
+            error += "The group needs at least one admin<br />"
+        if error:
+            raise GraphQLError(error)    
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['CREATE']))
+    def mutate(root, info, input=None):
+        ok = True
+        CreateGroup.validate_group(input)
         searchField = input.name
 
         searchField += input.description if input.description is not None else ""
@@ -512,14 +516,10 @@ class CreateGroup(graphene.Mutation):
                                institution_id=input.institution_id, searchField=searchField)
         group_instance.save()
 
-        if input.member_ids is not None:
+        if not input.member_ids:
             group_instance.members.add(*input.member_ids)
-        if input.admin_ids is not None:
+        if not input.admin_ids:
             group_instance.admins.add(*input.admin_ids)
-
-        # Adding the creator of the group as an admin
-
-        group_instance.admins.set([current_user.id])
 
         # Creating a Group chat automatically
 
@@ -552,6 +552,7 @@ class UpdateGroup(graphene.Mutation):
     def mutate(root, info, id, input=None):
         current_user = info.context.user
         ok = False
+        CreateGroup.validate_group(input)
         group = Group.objects.get(pk=id, active=True)
         group_instance = group
         if group_instance:
@@ -574,8 +575,6 @@ class UpdateGroup(graphene.Mutation):
                 group_instance.admins.clear()
                 group_instance.admins.add(*input.admin_ids)
 
-            # Adding the creator of the group as an admin
-            group_instance.admins.set([current_user.id])
             payload = {"group": group_instance,
                        "method": UPDATE_METHOD}
             NotifyGroup.broadcast(
@@ -846,20 +845,20 @@ class UpdateCourse(graphene.Mutation):
 
             course_instance.save()
 
-            if input.institution_ids is not None:
+            if not input.institution_ids:
                 course_instance.institutions.clear()
                 course_instance.institutions.add(*input.institution_ids)
 
-            if input.participant_ids is not None:
+            if not input.participant_ids:
                 course_instance.participants.clear()
                 course_instance.participants.add(*input.participant_ids)
 
-            if input.mandatory_prerequisite_ids is not None:
+            if not input.mandatory_prerequisite_ids :
                 course_instance.mandatory_prerequisites.clear()
                 course_instance.mandatory_prerequisites.add(
                     *input.mandatory_prerequisite_ids)
 
-            if input.recommended_prerequisite_ids is not None:
+            if not input.recommended_prerequisite_ids:
                 course_instance.recommended_prerequisites.clear()
                 course_instance.recommended_prerequisites.add(
                     *input.recommended_prerequisite_ids)
@@ -926,7 +925,6 @@ class PublishCourse(graphene.Mutation):
         if course_instance:
             ok = True
             course_instance.status = Course.StatusChoices.PUBLISHED
-            print('id', id, 'publish_chapters', publish_chapters)
             if publish_chapters==True:
                 chapters = Chapter.objects.filter(course=id, active=True)
                 for chapter in chapters:
@@ -1145,7 +1143,7 @@ class UpdateChapter(graphene.Mutation):
 
             chapter_instance.save()
 
-            if input.prerequisite_ids is not None:
+            if not input.prerequisite_ids:
                 chapter.prerequisites.clear()
                 chapter_instance.prerequisites.add(
                     *input.prerequisite_ids)
@@ -1827,9 +1825,7 @@ class ChatWithMember(graphene.Mutation):
         ok = True
         current_user = info.context.user
         member = User.objects.get(pk=id)
-        print('current_user => ', current_user, 'member => ', member)
         if member is None:
-            print('There is no member with id ', id, 'member =>', member)
             return ChatWithMember(ok=False, chat=None)
         try:
             first_possibility = Chat.objects.get(
@@ -2026,9 +2022,7 @@ class ReorderExercises(graphene.Mutation):
         failedExercices = []
         for indexObject in indexList:
             try:
-                print('for id ', indexObject.id)
                 exercise = Exercise.objects.all().get(pk=indexObject.id, active=True)
-                print('exercise found', exercise)
                 exercise.index = indexObject.index
                 exercise.save()
                 payload = {"exercise": exercise,
@@ -2039,7 +2033,6 @@ class ReorderExercises(graphene.Mutation):
                 failedExercices.append(indexObject)
                 ok=False
                 pass
-        print('failed exercises', failedExercices)
         return ReorderExercises(ok=ok, exercises=exercises)
 
 class ReorderCourseSections(graphene.Mutation):
