@@ -202,13 +202,10 @@ class Query(ObjectType):
             # if the user is super user then they
             qs = User.objects.all().filter(active=True).order_by('-id')
         else:
-            print('User is NOT a super admin')
             # If the user is not a super user, we filter the users by institution
             qs = User.objects.all().filter(
                 active=True, institution_id=current_user.institution.id).order_by('-id')
 
-        print('searchField', searchField, 'membership_status_not',
-              membership_status_not, 'role', role_name)
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField)
@@ -667,11 +664,8 @@ class Query(ObjectType):
         current_user = info.context.user
 
         courses = Course.objects.filter(participants__in=[current_user.id], active=True)
-        print('list of courses', courses)
-
 
         course_ids = courses.values_list('id')
-        print('list of course ids', course_ids)
 
         chapters = []
         for course_id in course_ids:
@@ -680,7 +674,6 @@ class Query(ObjectType):
                 if not ChapterType.resolve_locked(course_chapter, info):
                     chapters.append(course_chapter)
        
-        print('before the first for loop', chapters)
         for chapter in chapters:
             chapter = Chapter.objects.get(pk=chapter.id)
             course = chapter.course.title 
@@ -694,12 +687,6 @@ class Query(ObjectType):
             percentage = 0
             exercises = Exercise.objects.all().filter(chapter_id=chapter.id, active=True)
             # exercise_submissions = ExerciseSubmission.objects.all().filter(participant_id=current_user.id, chapter_id=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED, active=True)
-            print('username ', current_user.username)
-            print('chapter', chapter.title)
-            print('exercises for participant ', exercises)
-            print('exercisecount => ', exerciseCount)
-            print('submittedCount => ', submittedCount)
-            print('gradedCount => ', gradedCount)
             chapter_status = ExerciseSubmission.StatusChoices.PENDING
             for exercise in exercises:
                 try:
@@ -723,8 +710,6 @@ class Query(ObjectType):
             card = AssignmentType(id=chapter.id, title=chapter.title, course=course, section=section, status=chapter_status, dueDate=dueDate, exerciseCount=exerciseCount, submittedCount=submittedCount, gradedCount=gradedCount, totalPoints = totalPoints, percentage=percentage,pointsScored=pointsScored)
             assignments.append(card)        
 
-        print('before the filtering',assignments, status)
-
         if status is not None:
             assignments = [assignment for assignment in assignments if assignment.status == status]
 
@@ -742,8 +727,7 @@ class Query(ObjectType):
         if limit is not None:
             assignments = assignments[:limit]
 
-        print('after the filtering',assignments)
-        
+       
         return assignments   
 
     @login_required
@@ -860,8 +844,6 @@ class Query(ObjectType):
         chats = chats.filter(Q(individual_member_one=current_user.id) | Q(
             individual_member_two=current_user.id))
 
-        print('from resolve_chats => chats =>', chats, 'groups => ', groups)
-
         if offset is not None:
             chats = chats[offset:]
             groups = groups[offset:]
@@ -880,11 +862,7 @@ class Query(ObjectType):
 
         groups = Group.objects.all()
 
-        print('Got the gropus', groups)
-
         group_ids = groups.values_list('id')
-
-        print('Group Ids =>', group_ids)
 
         if query is not None:
             # "~Q(id=user_id)" is meant to exclude the current user from the results
@@ -906,7 +884,6 @@ class Query(ObjectType):
 
             if limit is not None:
                 qs = qs[:limit]
-            print('Gathered search result => ', qs)
             return qs
         else:
             return None
