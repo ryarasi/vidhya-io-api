@@ -80,13 +80,6 @@
           "DELETE": false,
           "UPDATE": false
         },
-        "ASSIGNMENT": {
-          "GET": false,
-          "LIST": false,
-          "CREATE": false,
-          "DELETE": false,
-          "UPDATE": false
-        },
         "MODERATION": {
           "GET": true,
           "LIST": true,
@@ -207,13 +200,6 @@
           "UPDATE": false
         },
         "USER_ROLE": {
-          "GET": false,
-          "LIST": false,
-          "CREATE": false,
-          "DELETE": false,
-          "UPDATE": false
-        },
-        "ASSIGNMENT": {
           "GET": false,
           "LIST": false,
           "CREATE": false,
@@ -346,13 +332,6 @@
           "DELETE": false,
           "UPDATE": false
         },
-        "ASSIGNMENT": {
-          "GET": false,
-          "LIST": false,
-          "CREATE": false,
-          "DELETE": false,
-          "UPDATE": false
-        },
         "MODERATION": {
           "GET": true,
           "LIST": true,
@@ -479,13 +458,6 @@
           "DELETE": false,
           "UPDATE": false
         },
-        "ASSIGNMENT": {
-          "GET": true,
-          "LIST": true,
-          "CREATE": false,
-          "DELETE": false,
-          "UPDATE": false
-        },
         "MODERATION": {
           "GET": false,
           "LIST": false,
@@ -606,13 +578,6 @@
           "UPDATE": true
         },
         "USER_ROLE": {
-          "GET": true,
-          "LIST": true,
-          "CREATE": true,
-          "DELETE": true,
-          "UPDATE": true
-        },
-        "ASSIGNMENT": {
           "GET": true,
           "LIST": true,
           "CREATE": true,

@@ -660,7 +660,7 @@ class Query(ObjectType):
         return groups   
 
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['ASSIGNMENT'], ACTIONS['LIST']))    
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']))    
     def resolve_assignments(root, info, status=None, limit=None, offset=None, **kwargs):
         assignments = []
 
