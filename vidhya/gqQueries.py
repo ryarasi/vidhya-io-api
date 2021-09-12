@@ -168,10 +168,8 @@ class Query(ObjectType):
                 Q(searchField__icontains=searchField)
             )
             qs = qs.filter(filter)
-        try:
-            total = qs.count()
-        except:
-            total = 0
+        total = len(qs)
+
 
         if offset is not None:
             qs = qs[offset:]
@@ -241,14 +239,16 @@ class Query(ObjectType):
             elif user.membership_status == User.StatusChoices.UNINITIALIZED:
                 uninitialized.append(user)
             else:
-                others.apend(user)
+                others.append(user)
         
         sorted_qs = pending + uninitialized + others
+    
+        print('Redacted QS',redacted_qs)
+        print('Sorted QS', sorted_qs)
         
-        try:
-            total = sorted_qs.count()
-        except:
-            total = 0
+        total = len(sorted_qs)
+
+        print('total ', total)
 
         if offset is not None:
             sorted_qs = sorted_qs[offset:]
@@ -292,10 +292,7 @@ class Query(ObjectType):
                 user.avatar = settings.DEFAULT_AVATARS['USER']
             redacted_qs.append(user)
 
-        try:
-            total = redacted_qs.count()
-        except:
-            total = 0
+        total = len(redacted_qs)
 
         if offset is not None:
             redacted_qs = redacted_qs[offset:]
@@ -333,10 +330,7 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
 
-        try:
-            total = qs.count()
-        except:
-            total = 0
+        total = len(qs)
 
         if offset is not None:
             qs = qs[offset:]
