@@ -210,7 +210,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField) | Q(username__icontains=searchField)
             )
             qs = qs.filter(filter)
 
@@ -232,18 +232,31 @@ class Query(ObjectType):
                     user.avatar = settings.DEFAULT_AVATARS['USER']
                 redacted_qs.append(user)
         
+        pending = []
+        uninitialized = []
+        others = []
+        for user in redacted_qs:
+            if user.membership_status == User.StatusChoices.PENDINIG:
+                pending.append(user)
+            elif user.membership_status == User.StatusChoices.UNINITIALIZED:
+                uninitialized.append(user)
+            else:
+                others.apend(user)
+        
+        sorted_qs = pending + uninitialized + others
+        
         try:
-            total = redacted_qs.count()
+            total = sorted_qs.count()
         except:
             total = 0
 
         if offset is not None:
-            redacted_qs = redacted_qs[offset:]
+            sorted_qs = sorted_qs[offset:]
 
         if limit is not None:
-            redacted_qs = redacted_qs[:limit]
+            sorted_qs = sorted_qs[:limit]
         
-        results = Users(records=redacted_qs, total=total)
+        results = Users(records=sorted_qs, total=total)
         return results
 
     @login_required
@@ -259,7 +272,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField) | Q(username__icontains=searchField)
             )
             qs = qs.filter(filter)
 
