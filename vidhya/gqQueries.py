@@ -474,6 +474,10 @@ class Query(ObjectType):
     def resolve_course_sections(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
 
         if course_id is not None:
+            try:
+                course = Course.objects.get(pk=course_id, active=True, status=Course.StatusChoices.PUBLISHED)
+            except:
+                raise GraphQLError('Course unavailable')
             qs = CourseSection.objects.all().filter(
                 active=True, course_id=course_id).order_by('index')
 
@@ -516,6 +520,10 @@ class Query(ObjectType):
 
         
         if course_id is not None:
+            try:
+                course = Course.objects.get(pk=course_id, active=True, status=Course.StatusChoices.PUBLISHED)
+            except:
+                raise GraphQLError('Course unavailable')            
             filter = (
                 Q(course_id=course_id)
             )
@@ -693,7 +701,7 @@ class Query(ObjectType):
         for course_id in course_ids:
             course_chapters = Chapter.objects.filter(course__in=[course_id], status=Chapter.StatusChoices.PUBLISHED, active=True).order_by('-id')
             for course_chapter in course_chapters:
-                if not ChapterType.resolve_locked(course_chapter, info):
+                if not ChapterType.resolve_locked(course_chapter, info) and course_chapter.points > 0:
                     chapters.append(course_chapter)
        
         for chapter in chapters:
@@ -729,6 +737,7 @@ class Query(ObjectType):
                 chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
             if gradedCount == exerciseCount:
                 chapter_status = ExerciseSubmission.StatusChoices.GRADED
+
             card = AssignmentType(id=chapter.id, title=chapter.title, course=course, section=section, status=chapter_status, dueDate=dueDate, exerciseCount=exerciseCount, submittedCount=submittedCount, gradedCount=gradedCount, totalPoints = totalPoints, percentage=percentage,pointsScored=pointsScored)
             assignments.append(card)        
 
