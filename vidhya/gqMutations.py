@@ -39,7 +39,7 @@ class CreateInstitution(graphene.Mutation):
             # raise GraphQLError('Location is a required field')
         if input.city is None:
             error += "City is a required field<br />"
-        if len(error) > 0:
+        if error:
             raise GraphQLError(error)
 
         searchField = input.name
@@ -248,7 +248,7 @@ class UpdateUser(graphene.Mutation):
             # Updatiing the membership status to Pending if the user is currently Uninitialized and
             # they provide first name, last name and institution to set up their profile
             if user_instance.membership_status == 'UI':
-                if len(user_instance.name) > 1 and user_instance.institution_id is not None:
+                if user_instance.name and user_instance.institution_id is not None:
                     user_instance.membership_status = 'PE'
 
             searchField = user_instance.first_name if user_instance.first_name is not None else ""
@@ -394,7 +394,7 @@ class CreateUserRole(graphene.Mutation):
             error += "permissions is a required field<br />"
         if input.priority is None:
             error += "priority is a required field<br />"
-        if len(error) > 0:
+        if error:
             raise GraphQLError(error)
         searchField = input.name
         searchField += input.description if input.description is not None else ""
@@ -516,9 +516,9 @@ class CreateGroup(graphene.Mutation):
                                institution_id=input.institution_id, searchField=searchField)
         group_instance.save()
 
-        if not input.member_ids:
+        if input.member_ids:
             group_instance.members.add(*input.member_ids)
-        if not input.admin_ids:
+        if input.admin_ids:
             group_instance.admins.add(*input.admin_ids)
 
         # Creating a Group chat automatically
@@ -648,7 +648,7 @@ class CreateAnnouncement(graphene.Mutation):
             error += "Recipients is a required field<br />"
         if input.institution_id is None:
             error += "Institution is a required field<br />"
-        if len(error) > 0:
+        if error:
             raise GraphQLError(error)
         searchField = input.title
         searchField += input.message if input.message is not None else ""
@@ -776,7 +776,7 @@ class CreateCourse(graphene.Mutation):
             error += "Instructor is a required field<br />"
         if input.institution_ids is None:
             error += "Institution(s) is a required field<br />"
-        if len(error) > 0:
+        if error:
             raise GraphQLError(error)
         searchField = input.title
         searchField += input.blurb if input.blurb is not None else ""
@@ -824,6 +824,7 @@ class UpdateCourse(graphene.Mutation):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
+        print('This is the input ', input)
         ok = False
         course = Course.objects.get(pk=id, active=True)
         course_instance = course
@@ -845,23 +846,25 @@ class UpdateCourse(graphene.Mutation):
 
             course_instance.save()
 
-            if not input.institution_ids:
+            if input.institution_ids:
                 course_instance.institutions.clear()
                 course_instance.institutions.add(*input.institution_ids)
 
-            if not input.participant_ids:
+            if input.participant_ids:
                 course_instance.participants.clear()
                 course_instance.participants.add(*input.participant_ids)
 
-            if not input.mandatory_prerequisite_ids :
+            if input.mandatory_prerequisite_ids :
                 course_instance.mandatory_prerequisites.clear()
                 course_instance.mandatory_prerequisites.add(
                     *input.mandatory_prerequisite_ids)
 
-            if not input.recommended_prerequisite_ids:
+            if input.recommended_prerequisite_ids:
                 course_instance.recommended_prerequisites.clear()
                 course_instance.recommended_prerequisites.add(
                     *input.recommended_prerequisite_ids)
+            
+            course_instance.save()
 
             payload = {"course": course_instance,
                        "method": UPDATE_METHOD}
@@ -965,7 +968,7 @@ class CreateCourseSection(graphene.Mutation):
         if input.course_id is None:
             error += "Course is a required field<br />"
 
-        if len(error) > 0:
+        if error:
             raise GraphQLError(error)
 
         course_section_instance = CourseSection(title=input.title, index=input.index, course_id=input.course_id,
@@ -1083,7 +1086,7 @@ class CreateChapter(graphene.Mutation):
             error += "Course is a required field<br />"
         if input.status is None:
             error += "Status is a required field<br />"
-        if len(error) > 0:
+        if error:
             raise GraphQLError(error)
         searchField = input.title
         searchField += input.instructions if input.instructions is not None else ""
@@ -1143,7 +1146,7 @@ class UpdateChapter(graphene.Mutation):
 
             chapter_instance.save()
 
-            if not input.prerequisite_ids:
+            if input.prerequisite_ids:
                 chapter.prerequisites.clear()
                 chapter_instance.prerequisites.add(
                     *input.prerequisite_ids)
@@ -1246,7 +1249,7 @@ class CreateExercise(graphene.Mutation):
                 if input.valid_option is None:
                     error += "A valid option key is required<br />"
             if input.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
-                if len(input.valid_answers) == 0:
+                if input.valid_answers:
                     error += "A valid answer key is required<br />"
             if input.question_type == Exercise.QuestionTypeChoices.IMAGE:
                 if not input.reference_images and not input.remarks:
@@ -1262,7 +1265,7 @@ class CreateExercise(graphene.Mutation):
                         error += "Link should be a valid URL<br />"
         if input.required is None:
             error += "Required is a required field<br />"
-        if len(error) > 0:
+        if error:
             raise GraphQLError(error)
 
     @staticmethod
@@ -1463,23 +1466,24 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 error += "Question type is a required field<br />"
             if exercise_instance.required == True:
                 if exercise_instance.question_type == Exercise.QuestionTypeChoices.OPTIONS:
-                    if submission.option is None:
-                        error += "A valid option is required"
+                    if not submission.option:
+                        error += "A valid option is required<br />"
                 if exercise_instance.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
-                    if len(submission.answer) == 0:
-                        error += "A valid answer is required"
+                    if not submission.answer:
+                        error += "A valid answer is required<br />"
                 if exercise_instance.question_type == Exercise.QuestionTypeChoices.IMAGE:
-                    if len(submission.images) == 0:
-                        error += "At least one image is required"
+                    if not submission.images:
+                        error += "At least one image is required<br />"
                 if exercise_instance.question_type ==  Exercise.QuestionTypeChoices.LINK:
-                    if submission.link is None:
-                        error += "A link is required"    
-            if len(error) > 0:
-                raise GraphQLError(error)
+                    if not submission.link:
+                        error += "A link is required<br />"    
+        print('error from validation in exercise submission', error)
+        if error:
+            raise GraphQLError(error)
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']))
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
     def mutate(root, info, exercise_submissions=None):
         ok = False
         CreateUpdateExerciseSubmissions.check_errors(exercise_submissions) # validating the input
@@ -1659,7 +1663,7 @@ class CreateReport(graphene.Mutation):
             error += "Completed is a required field<br />"
         if input.score is None:
             error += "Score is a required field<br />"
-        if len(error) > 0:
+        if error:
             raise GraphQLError(error)
         searchField = ""
         searchField = searchField.lower()
@@ -1689,7 +1693,7 @@ class UpdateReport(graphene.Mutation):
     def remove_duplicate_submissions(all_submissions):
         unique_submissions = []
         for submission in all_submissions:
-            if len(unique_submissions):
+            if unique_submissions:
                 for entry in unique_submissions:
                     if submission.participant_id == entry.participant_id and submission.course_id == entry.course_id:
                         pass
