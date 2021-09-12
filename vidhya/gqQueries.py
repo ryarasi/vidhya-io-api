@@ -479,10 +479,10 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_course_sections(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
-
+        current_user = info.context.user
         if course_id is not None:
             try:
-                course = Course.objects.get(pk=course_id, active=True, status=Course.StatusChoices.PUBLISHED)
+                course = Course.objects.get(Q(status=Course.StatusChoices.PUBLISHED) | Q(instructor_id=current_user.id), pk=course_id, active=True, )
             except:
                 raise GraphQLError('Course unavailable')
             qs = CourseSection.objects.all().filter(
@@ -528,7 +528,7 @@ class Query(ObjectType):
         
         if course_id is not None:
             try:
-                course = Course.objects.get(pk=course_id, active=True, status=Course.StatusChoices.PUBLISHED)
+                course = Course.objects.get( Q(status=Course.StatusChoices.PUBLISHED) | Q(instructor_id=current_user.id),pk=course_id, active=True )
             except:
                 raise GraphQLError('Course unavailable')            
             filter = (
