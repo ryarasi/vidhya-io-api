@@ -864,7 +864,6 @@ class UpdateCourse(graphene.Mutation):
                 course_instance.recommended_prerequisites.add(
                     *input.recommended_prerequisite_ids)
             
-            course_instance.save()
 
             payload = {"course": course_instance,
                        "method": UPDATE_METHOD}
@@ -1147,7 +1146,7 @@ class UpdateChapter(graphene.Mutation):
             chapter_instance.save()
 
             if input.prerequisite_ids:
-                chapter.prerequisites.clear()
+                chapter_instance.prerequisites.clear()
                 chapter_instance.prerequisites.add(
                     *input.prerequisite_ids)
 
