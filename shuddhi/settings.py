@@ -38,10 +38,10 @@ DEBUG = env.bool('DJANGO_DEBUG', default=False)
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 # Whether or not requests from other origins are allowed
 CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
-# Twilio Sendgrid API key
-SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 # setting default email for sending email through sendgrid
 DEFAULT_FROM_EMAIL = env('FROM_EMAIL_ID')
+# password for the from email
+FROM_EMAIL_PASSWORD = env('FRONT_EMAIL_PASSWORD')
 # Lets us set the domain of the site via environment variable
 FRONTEND_DOMAIN_URL = env('FRONTEND_DOMAIN_URL')
 # This is for the migration that sets the domain name
@@ -57,17 +57,20 @@ DEFAULT_AVATARS = {
 # Application definition
 
 
-# Sendgrid Mail Settings
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
-EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
+# Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 if DEBUG:
+    # If using development, it prints the email in the console
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = DEFAULT_FROM_EMAIL
+EMAIL_HOST_PASSWORD = FROM_EMAIL_PASSWORD
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+
 
 INSTALLED_APPS = [
     'corsheaders',
