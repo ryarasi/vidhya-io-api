@@ -208,7 +208,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField) | Q(username__icontains=searchField) | Q(email_icontains=searchField)
+                Q(searchField__icontains=searchField) | Q(username__icontains=searchField) | Q(email__icontains=searchField)
             )
             qs = qs.filter(filter)
 
