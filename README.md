@@ -128,6 +128,20 @@ REDIS_URL="Needs to be set on Heroku to use Redis add-on "
    1. Stop docker and start it again with `docker-compose down && docker-compose up`
    2. If the above step doesn't help, try restarting postgresql. First stop it with `sudo service postgresql stop` and then start it up again with `sudo service postgresql start`
 
+## Useful PGAdmin commands:-
+
+1. If you wish to delete the rows in a table and have it cascade to dependent tables, use this:-
+
+   `TRUNCATE public.vidhya_course RESTART IDENTITY CASCADE;`
+
+2. When you experience the error ERROR: duplicate key value violates unique constraint Key already exists, use this following command on pgadmin to set the latest PK to the highest pk + 1. (Replace the table name accordingly)
+
+   `SELECT SETVAL((SELECT PG_GET_SERIAL_SEQUENCE('"vidhya_mandatorychapters_pkey"', 'id')), (SELECT (MAX("id") + 1) FROM vidhya_mandatorychapters_pkey), FALSE);`
+
+3. When trying to query for rows where a certain field is empty:-
+
+   `SELECT * FROM public.vidhya_user WHERE COALESCE(invitecode, '') = '' OR COALESCE(institution_id, '') = '';`
+
 ## Useful Links:-
 
 1. [Docker & Django](https://docs.docker.com/samples/django/)
