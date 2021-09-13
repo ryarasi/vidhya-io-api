@@ -38,7 +38,9 @@ DEBUG = env.bool('DJANGO_DEBUG', default=False)
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 # Whether or not requests from other origins are allowed
 CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
-# setting default email for sending email through sendgrid
+# Email host used to send email
+DEFAULT_EMAIL_HOST=env.bool('EMAIL_HOST')
+# setting default email from which emails will be sent
 DEFAULT_FROM_EMAIL = env('FROM_EMAIL_ID')
 # password for the from email
 FROM_EMAIL_PASSWORD = env('FROM_EMAIL_PASSWORD')
@@ -64,7 +66,7 @@ if DEBUG:
     # If using development, it prints the email in the console
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = DEFAULT_EMAIL_HOST
 EMAIL_HOST_USER = DEFAULT_FROM_EMAIL
 EMAIL_HOST_PASSWORD = FROM_EMAIL_PASSWORD
 EMAIL_PORT = 587
