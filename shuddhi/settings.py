@@ -41,7 +41,7 @@ CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
 # setting default email for sending email through sendgrid
 DEFAULT_FROM_EMAIL = env('FROM_EMAIL_ID')
 # password for the from email
-FROM_EMAIL_PASSWORD = env('FRONT_EMAIL_PASSWORD')
+FROM_EMAIL_PASSWORD = env('FROM_EMAIL_PASSWORD')
 # Lets us set the domain of the site via environment variable
 FRONTEND_DOMAIN_URL = env('FRONTEND_DOMAIN_URL')
 # This is for the migration that sets the domain name
