@@ -161,7 +161,21 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
     def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Institution.objects.all().filter(active=True).order_by('-id')
+        current_user = info.context.user
+        current_user_role_name = current_user.role.name
+        admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
+
+        # print('user role name => ', current_user_role_name)
+        # print('suer admin role name constant => ',
+        #       USER_ROLES_NAMES["SUPER_ADMIN"])
+        if admin_user:
+            # print('User is super admin')
+            # if the user is super user then they
+            qs = Institution.objects.all().filter(active=True).order_by('-id')
+        else:
+            # If the user is not a super user, we filter the users by institution
+            qs = Institution.objects.all().filter(
+                active=True, pk=current_user.institution.id).order_by('-id')        
 
         if searchField is not None:
             filter = (
