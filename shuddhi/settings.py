@@ -39,13 +39,13 @@ ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 # Whether or not requests from other origins are allowed
 CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
 # Email host used to send email
-ENV_EMAIL_HOST=env('ENV_EMAIL_HOST')
+ENV_EMAIL_HOST=env('ENV_EMAIL_HOST',default='smtp.gmail.com')
 # The SMTP host user 
-ENV_EMAIL_HOST_USER = env('ENV_EMAIL_HOST_USER')
+ENV_EMAIL_HOST_USER = env('ENV_EMAIL_HOST_USER',default='')
 # The password for SMTP sender
-ENV_EMAIL_HOST_PASSWORD = env('ENV_EMAIL_HOST_PASSWORD')
+ENV_EMAIL_HOST_PASSWORD = env('ENV_EMAIL_HOST_PASSWORD',default='')
 # setting default email from which emails will be sent
-ENV_DEFAULT_FROM_EMAIL = env('ENV_DEFAULT_FROM_EMAIL')
+ENV_DEFAULT_FROM_EMAIL = env('ENV_DEFAULT_FROM_EMAIL', default='noreply@vidhya.io')
 # SMTP port
 ENV_EMAIL_PORT = env('ENV_EMAIL_PORT',default=587)
 # Whether we use TLS for email encryption
