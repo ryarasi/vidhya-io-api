@@ -39,7 +39,7 @@ ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 # Whether or not requests from other origins are allowed
 CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
 # Email host used to send email
-DEFAULT_EMAIL_HOST=env.bool('EMAIL_HOST')
+DEFAULT_EMAIL_HOST=env('EMAIL_HOST')
 # setting default email from which emails will be sent
 DEFAULT_FROM_EMAIL = env('FROM_EMAIL_ID')
 # password for the from email
