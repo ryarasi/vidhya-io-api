@@ -39,12 +39,20 @@ ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 # Whether or not requests from other origins are allowed
 CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
 # Email host used to send email
-DEFAULT_EMAIL_HOST=env('EMAIL_HOST')
+ENV_EMAIL_HOST=env('ENV_EMAIL_HOST')
+# The SMTP host user 
+ENV_EMAIL_HOST_USER = env('ENV_EMAIL_HOST_USER')
+# The password for SMTP sender
+ENV_EMAIL_HOST_PASSWORD = env('ENV_EMAIL_HOST_PASSWORD')
 # setting default email from which emails will be sent
-DEFAULT_FROM_EMAIL = env('FROM_EMAIL_ID')
-# password for the from email
-FROM_EMAIL_PASSWORD = env('FROM_EMAIL_PASSWORD')
-# Lets us set the domain of the site via environment variable
+ENV_DEFAULT_FROM_EMAIL = env('ENV_DEFAULT_FROM_EMAIL')
+# SMTP port
+ENV_EMAIL_PORT = env('ENV_EMAIL_PORT',default=587)
+# Whether we use TLS for email encryption
+ENV_EMAIL_USE_TLS = env.bool('ENV_EMAIL_USE_TLS',default=False)
+# Whether we use SSL for email encryption
+ENV_EMAIL_USE_SSL = env.bool('ENV_EMAIL_USE_SSL',default=False)
+# Lets us set the domain of the site via environment variable. Requires migration to set it in DB
 FRONTEND_DOMAIN_URL = env('FRONTEND_DOMAIN_URL')
 # This is for the migration that sets the domain name
 SITE_ID = 1
@@ -62,16 +70,17 @@ DEFAULT_AVATARS = {
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-if DEBUG:
-    # If using development, it prints the email in the console
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# if DEBUG:
+#     # If using development, it prints the email in the console
+#     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-EMAIL_HOST = DEFAULT_EMAIL_HOST
-EMAIL_HOST_USER = DEFAULT_FROM_EMAIL
-EMAIL_HOST_PASSWORD = FROM_EMAIL_PASSWORD
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
+EMAIL_HOST = ENV_EMAIL_HOST
+EMAIL_HOST_USER = ENV_EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = ENV_EMAIL_HOST_PASSWORD
+EMAIL_PORT = ENV_EMAIL_PORT
+EMAIL_USE_TLS = ENV_EMAIL_USE_TLS
+EMAIL_USE_SSL = ENV_EMAIL_USE_SSL
+DEFAULT_FROM_EMAIL=ENV_DEFAULT_FROM_EMAIL
 
 INSTALLED_APPS = [
     'corsheaders',
