@@ -324,7 +324,7 @@ class ApproveUser(graphene.Mutation):
             user_instance.membership_status = 'AP'
             send_mail(
                 'Your Vidhya.io account is approved!',
-                'Dear '+user_instance.username+',\n\nYour account is now approved!\n\nPlease login with your credentials - '+settings.FRONTEND_DOMAIN_URL+'.',
+                'Dear '+user_instance.username+',\n\nYour account is now approved!\n\nPlease login with your credentials - '+settings.FRONTEND_DOMAIN_URL+'.\n\nPlease do not reply to this email.',
                 settings.DEFAULT_FROM_EMAIL,
                 [user_instance.email],
                 fail_silently=False,
