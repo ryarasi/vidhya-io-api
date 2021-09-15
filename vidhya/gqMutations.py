@@ -324,7 +324,7 @@ class ApproveUser(graphene.Mutation):
             user_instance.membership_status = 'AP'
             send_mail(
                 'Your Vidhya.io account is approved!',
-                'Dear '+user_instance.username+',\n\nYour account is now approved!\n\nPlease login with your credentials - '+settings.FRONTEND_DOMAIN_URL+'.',
+                'Dear '+user_instance.username+',\n\nYour account is now approved!\n\nPlease login with your credentials - '+settings.FRONTEND_DOMAIN_URL+'.\n\nPlease do not reply to this email.',
                 settings.DEFAULT_FROM_EMAIL,
                 [user_instance.email],
                 fail_silently=False,
@@ -1234,21 +1234,21 @@ class CreateExercise(graphene.Mutation):
 
     def validate_exercise_input(input):
         error = ""
-        if input.prompt is None:
+        if not input.prompt:
             error += "Prompt is a required field<br />"
           
-        if input.chapter_id is None:
+        if not input.chapter_id:
             error += "Chapter is a required field<br />"
-        if input.course_id is None:
+        if not input.course_id:
             error += "Course is a required field<br />"            
-        if input.question_type is None:
+        if not input.question_type:
             error += "Question type is a required field<br />"
         else:
             if input.question_type == Exercise.QuestionTypeChoices.OPTIONS:
-                if input.valid_option is None:
+                if not input.valid_option:
                     error += "A valid option key is required<br />"
             if input.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
-                if input.valid_answers:
+                if not input.valid_answers:
                     error += "A valid answer key is required<br />"
             if input.question_type == Exercise.QuestionTypeChoices.IMAGE:
                 if not input.reference_images and not input.remarks:
@@ -1263,7 +1263,7 @@ class CreateExercise(graphene.Mutation):
                     except ValidationError:                
                         error += "Link should be a valid URL<br />"
         if input.required is None:
-            error += "Required is a required field<br />"
+            error += "Please specify if this question is required or not<br />"
         if error:
             raise GraphQLError(error)
 

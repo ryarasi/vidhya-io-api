@@ -136,7 +136,7 @@ REDIS_URL="Needs to be set on Heroku to use Redis add-on "
 
 2. When you experience the error ERROR: duplicate key value violates unique constraint Key already exists, use this following command on pgadmin to set the latest PK to the highest pk + 1. (Replace the table name accordingly)
 
-   `SELECT SETVAL((SELECT PG_GET_SERIAL_SEQUENCE('"vidhya_mandatorychapters_pkey"', 'id')), (SELECT (MAX("id") + 1) FROM vidhya_mandatorychapters_pkey), FALSE);`
+   `SELECT SETVAL((SELECT PG_GET_SERIAL_SEQUENCE('"vidhya_mandatorychapters_pkey"', 'id')), (SELECT (MAX("id") + 1) FROM public.vidhya_mandatorychapters), FALSE);`
 
 3. When trying to query for rows where a certain field is empty:-
 
