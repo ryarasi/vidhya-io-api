@@ -70,9 +70,9 @@ DEFAULT_AVATARS = {
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-# if DEBUG:
-#     # If using development, it prints the email in the console
-#     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+if DEBUG:
+    # If using development, it prints the email in the console
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 EMAIL_HOST = ENV_EMAIL_HOST
 EMAIL_HOST_USER = ENV_EMAIL_HOST_USER
