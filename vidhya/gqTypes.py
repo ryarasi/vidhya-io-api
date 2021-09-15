@@ -282,6 +282,7 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     status = graphene.String()
     remarks = graphene.String()
     flagged = graphene.Boolean()
+    grader = graphene.ID()
 
 class ReportInput(graphene.InputObjectType):
     id = graphene.ID()
