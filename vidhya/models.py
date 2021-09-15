@@ -370,6 +370,8 @@ class ExerciseSubmission(models.Model):
 
     status = models.CharField(
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.PENDING)
+    flagged = models.BooleanField(default=False)
+    grader = models.ForeignKey(User, related_name="grader", blank=True, null=True, on_delete=models.DO_NOTHING)
     remarks = models.CharField(max_length=200, blank=True, null=True)
     active = models.BooleanField(default=True)
     searchField = models.CharField(max_length=1000, blank=True, null=True)
