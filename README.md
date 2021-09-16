@@ -140,7 +140,7 @@ REDIS_URL="Needs to be set on Heroku to use Redis add-on "
 
 3. When trying to query for rows where a certain field is empty:-
 
-   `SELECT * FROM public.vidhya_user WHERE COALESCE(invitecode, '') = '' OR COALESCE(institution_id, '') = '';`
+   `SELECT * FROM public.vidhya_user WHERE COALESCE(invitecode, '') = '';`
 
 ## Useful Links:-
 
