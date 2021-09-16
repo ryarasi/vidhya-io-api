@@ -315,6 +315,7 @@ class ApproveUser(graphene.Mutation):
     @user_passes_test(lambda user: has_access(user, RESOURCES['MODERATION'], ACTIONS['UPDATE']))
     def mutate(root, info, user_id, role_name):
         ok = False
+        current_user = info.context.user
         user = User.objects.get(pk=user_id, active=True)
         user_instance = user
         role = UserRole.objects.get(pk=role_name, active=True)
@@ -324,7 +325,7 @@ class ApproveUser(graphene.Mutation):
             user_instance.membership_status = 'AP'
             send_mail(
                 'Your Vidhya.io account is approved!',
-                'Dear '+user_instance.username+',\n\nYour account is now approved!\n\nPlease login with your credentials - '+settings.FRONTEND_DOMAIN_URL+'.\n\nPlease do not reply to this email.',
+                'Dear '+user_instance.username+',\n\nYour account is now approved!\n\nPlease login with your credentials - '+settings.FRONTEND_DOMAIN_URL+'.\n\nThis approval action was undertaken by ' + current_user.name+ '.\n\nPlease do not reply to this email.',
                 settings.DEFAULT_FROM_EMAIL,
                 [user_instance.email],
                 fail_silently=False,
@@ -1535,6 +1536,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
                                                             answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, remarks=submission.remarks, searchField=searchField)
             else:
+                grader_id = info.context.user.id # If it is update, that means it is being graded, so here we add the grader_id
                 exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
                 exercise_submission_instance.course_id = submission.course_id if submission.course_id is not None else exercise_submission_instance.course_id
                 exercise_submission_instance.chapter_id = submission.chapter_id if submission.chapter_id is not None else exercise_submission_instance.chapter_id
@@ -1546,7 +1548,8 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 exercise_submission_instance.percentage = submission.percentage if submission.percentage is not None else exercise_submission_instance.percentage
                 exercise_submission_instance.status = submission.status if submission.status is not None else exercise_submission_instance.status
                 exercise_submission_instance.remarks = submission.remarks if submission.remarks is not None else exercise_submission_instance.remarks
-
+                exercise_submission_instance.flagged = submission.flagged if submission.flagged is not None else exercise_submission_instance.flagged
+                exercise_submission_instance.grader_id = grader_id
                 exercise_submission_instance.searchField = searchField
 
             exercise_submission_instance.save()
