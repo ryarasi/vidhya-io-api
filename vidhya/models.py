@@ -302,7 +302,7 @@ class MandatoryChapters(models.Model):
     requirement = models.ForeignKey(Chapter, related_name="requirement", on_delete=models.CASCADE)
 
 class Exercise(models.Model):
-    prompt = models.CharField(max_length=300)
+    prompt = models.CharField(max_length=1000)
     index = models.IntegerField(default=100)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
@@ -321,6 +321,9 @@ class Exercise(models.Model):
     points = models.IntegerField(blank=True, null=True)
     active = models.BooleanField(default=True)
     searchField = models.CharField(max_length=1000, blank=True, null=True)
+    def default_rubric():
+        return {}
+    rubric = JSONField(default=default_rubric)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
