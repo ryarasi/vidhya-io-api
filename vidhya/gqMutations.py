@@ -825,7 +825,6 @@ class UpdateCourse(graphene.Mutation):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
-        print('This is the input ', input)
         ok = False
         course = Course.objects.get(pk=id, active=True)
         course_instance = course
@@ -1339,7 +1338,6 @@ class UpdateExercise(graphene.Mutation):
             exercise_instance.searchField = searchField.lower()
 
             exercise_instance.save()
-
             CreateChapter.update_points(exercise_instance.chapter_id) # Updating the points on the chapter
 
             # Notifying updating of Exercise
@@ -1354,6 +1352,7 @@ class UpdateExercise(graphene.Mutation):
             exercise_key_instance.remarks = input.remarks if input.remarks is not None else exercise_key_instance.remarks
          
             exercise_key_instance.save()
+
             payload = {"exercise_key": exercise_key_instance,
                        "method": UPDATE_METHOD}
             NotifyExerciseKey.broadcast(
@@ -1477,7 +1476,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 if exercise_instance.question_type ==  Exercise.QuestionTypeChoices.LINK:
                     if not submission.link:
                         error += "A link is required<br />"    
-        print('error from validation in exercise submission', error)
         if error:
             raise GraphQLError(error)
 
