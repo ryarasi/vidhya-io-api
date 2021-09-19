@@ -569,10 +569,10 @@ class UpdateGroup(graphene.Mutation):
 
             group_instance.save()
 
-            if input.member_ids is not None:
+            if input.member_ids:
                 group_instance.members.clear()
                 group_instance.members.add(*input.member_ids)
-            if input.admin_ids is not None:
+            if input.admin_ids:
                 group_instance.admins.clear()
                 group_instance.admins.add(*input.admin_ids)
 
@@ -707,7 +707,7 @@ class UpdateAnnouncement(graphene.Mutation):
 
             announcement_instance.save()
 
-            if input.group_ids is not None:
+            if input.group_ids or input.group_ids == []:
                 announcement_instance.groups.clear()
                 announcement_instance.groups.add(*input.group_ids)
 
@@ -788,17 +788,17 @@ class CreateCourse(graphene.Mutation):
                                  instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, searchField=searchField)
         course_instance.save()
 
-        if input.institution_ids is not None:
+        if input.institution_ids:
             course_instance.institutions.add(*input.institution_ids)
 
-        if input.participant_ids is not None:
+        if input.participant_ids or input.participant_ids == []:
             course_instance.participants.add(*input.participant_ids)
 
-        if input.mandatory_prerequisite_ids is not None:
+        if input.mandatory_prerequisite_ids:
             course_instance.mandatory_prerequisites.add(
                 *input.mandatory_prerequisite_ids)
 
-        if input.recommended_prerequisite_ids is not None:
+        if input.recommended_prerequisite_ids:
             course_instance.recommended_prerequisites.add(
                 *input.recommended_prerequisite_ids)
 
@@ -846,20 +846,20 @@ class UpdateCourse(graphene.Mutation):
 
             course_instance.save()
 
-            if input.institution_ids:
+            if input.institution_ids or input.institution_ids == []:
                 course_instance.institutions.clear()
                 course_instance.institutions.add(*input.institution_ids)
 
-            if input.participant_ids:
+            if input.participant_ids or input.participant_ids == []:
                 course_instance.participants.clear()
                 course_instance.participants.add(*input.participant_ids)
 
-            if input.mandatory_prerequisite_ids :
+            if input.mandatory_prerequisite_ids or input.mandatory_prerequisite_ids == []:
                 course_instance.mandatory_prerequisites.clear()
                 course_instance.mandatory_prerequisites.add(
                     *input.mandatory_prerequisite_ids)
 
-            if input.recommended_prerequisite_ids:
+            if input.recommended_prerequisite_ids or input.recommended_prerequisite_ids == []:
                 course_instance.recommended_prerequisites.clear()
                 course_instance.recommended_prerequisites.add(
                     *input.recommended_prerequisite_ids)
@@ -1145,7 +1145,7 @@ class UpdateChapter(graphene.Mutation):
 
             chapter_instance.save()
 
-            if input.prerequisite_ids:
+            if input.prerequisite_ids or input.prerequisite_ids == []:
                 chapter_instance.prerequisites.clear()
                 chapter_instance.prerequisites.add(
                     *input.prerequisite_ids)
