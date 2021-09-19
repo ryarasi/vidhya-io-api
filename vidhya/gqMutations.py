@@ -1280,7 +1280,7 @@ class CreateExercise(graphene.Mutation):
         index = input.index if input.index is not None else 100
 
         exercise_instance = Exercise(prompt=input.prompt, index=index, course_id=input.course_id, chapter_id=input.chapter_id,
-                                     question_type=input.question_type, required=input.required, options=input.options, points=points, searchField=searchField)
+                                     question_type=input.question_type, required=input.required, options=input.options, points=points, rubric=input.rubric, searchField=searchField)
         exercise_instance.save()
 
         CreateChapter.update_points(input.chapter_id) # Updating the points on the chapter
@@ -1333,6 +1333,7 @@ class UpdateExercise(graphene.Mutation):
             exercise_instance.required = input.required if input.required is not None else exercise_instance.required
             exercise_instance.options = input.options if input.options is not None else exercise_instance.options
             exercise_instance.points = input.points if input.points is not None else exercise_instance.points
+            exercise_instance.rubric = input.rubric if input.rubric is not None else exercise_instance.rubric
 
             searchField = input.prompt
             exercise_instance.searchField = searchField.lower()
