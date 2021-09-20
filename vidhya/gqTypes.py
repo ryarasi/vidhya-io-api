@@ -254,7 +254,8 @@ class ExerciseInput(graphene.InputObjectType):
     valid_answers = graphene.List(graphene.String)
     reference_link = graphene.String()
     reference_images = graphene.List(graphene.String)
-    remarks=graphene.String()
+    remarks= graphene.String()
+    rubric= generic.GenericScalar()
 
 class ExerciseKeyInput(graphene.InputObjectType):
     id = graphene.ID()
@@ -281,8 +282,11 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     percentage = graphene.Int()
     status = graphene.String()
     remarks = graphene.String()
+    criteriaSatisfied = graphene.List(graphene.String)
     flagged = graphene.Boolean()
     grader = graphene.ID()
+    createdAt = graphene.String()
+    updatedAt = graphene.String()
 
 class ReportInput(graphene.InputObjectType):
     id = graphene.ID()

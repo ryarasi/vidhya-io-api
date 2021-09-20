@@ -569,10 +569,10 @@ class UpdateGroup(graphene.Mutation):
 
             group_instance.save()
 
-            if input.member_ids is not None:
+            if input.member_ids:
                 group_instance.members.clear()
                 group_instance.members.add(*input.member_ids)
-            if input.admin_ids is not None:
+            if input.admin_ids:
                 group_instance.admins.clear()
                 group_instance.admins.add(*input.admin_ids)
 
@@ -707,7 +707,7 @@ class UpdateAnnouncement(graphene.Mutation):
 
             announcement_instance.save()
 
-            if input.group_ids is not None:
+            if input.group_ids or input.group_ids == []:
                 announcement_instance.groups.clear()
                 announcement_instance.groups.add(*input.group_ids)
 
@@ -788,17 +788,17 @@ class CreateCourse(graphene.Mutation):
                                  instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, searchField=searchField)
         course_instance.save()
 
-        if input.institution_ids is not None:
+        if input.institution_ids:
             course_instance.institutions.add(*input.institution_ids)
 
-        if input.participant_ids is not None:
+        if input.participant_ids or input.participant_ids == []:
             course_instance.participants.add(*input.participant_ids)
 
-        if input.mandatory_prerequisite_ids is not None:
+        if input.mandatory_prerequisite_ids:
             course_instance.mandatory_prerequisites.add(
                 *input.mandatory_prerequisite_ids)
 
-        if input.recommended_prerequisite_ids is not None:
+        if input.recommended_prerequisite_ids:
             course_instance.recommended_prerequisites.add(
                 *input.recommended_prerequisite_ids)
 
@@ -846,20 +846,20 @@ class UpdateCourse(graphene.Mutation):
 
             course_instance.save()
 
-            if input.institution_ids:
+            if input.institution_ids or input.institution_ids == []:
                 course_instance.institutions.clear()
                 course_instance.institutions.add(*input.institution_ids)
 
-            if input.participant_ids:
+            if input.participant_ids or input.participant_ids == []:
                 course_instance.participants.clear()
                 course_instance.participants.add(*input.participant_ids)
 
-            if input.mandatory_prerequisite_ids :
+            if input.mandatory_prerequisite_ids or input.mandatory_prerequisite_ids == []:
                 course_instance.mandatory_prerequisites.clear()
                 course_instance.mandatory_prerequisites.add(
                     *input.mandatory_prerequisite_ids)
 
-            if input.recommended_prerequisite_ids:
+            if input.recommended_prerequisite_ids or input.recommended_prerequisite_ids == []:
                 course_instance.recommended_prerequisites.clear()
                 course_instance.recommended_prerequisites.add(
                     *input.recommended_prerequisite_ids)
@@ -1145,7 +1145,7 @@ class UpdateChapter(graphene.Mutation):
 
             chapter_instance.save()
 
-            if input.prerequisite_ids:
+            if input.prerequisite_ids or input.prerequisite_ids == []:
                 chapter_instance.prerequisites.clear()
                 chapter_instance.prerequisites.add(
                     *input.prerequisite_ids)
@@ -1280,7 +1280,7 @@ class CreateExercise(graphene.Mutation):
         index = input.index if input.index is not None else 100
 
         exercise_instance = Exercise(prompt=input.prompt, index=index, course_id=input.course_id, chapter_id=input.chapter_id,
-                                     question_type=input.question_type, required=input.required, options=input.options, points=points, searchField=searchField)
+                                     question_type=input.question_type, required=input.required, options=input.options, points=points, rubric=input.rubric, searchField=searchField)
         exercise_instance.save()
 
         CreateChapter.update_points(input.chapter_id) # Updating the points on the chapter
@@ -1333,6 +1333,7 @@ class UpdateExercise(graphene.Mutation):
             exercise_instance.required = input.required if input.required is not None else exercise_instance.required
             exercise_instance.options = input.options if input.options is not None else exercise_instance.options
             exercise_instance.points = input.points if input.points is not None else exercise_instance.points
+            exercise_instance.rubric = input.rubric if input.rubric is not None else exercise_instance.rubric
 
             searchField = input.prompt
             exercise_instance.searchField = searchField.lower()
@@ -1532,7 +1533,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
             if existing_submission is None:
                 exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
-                                                            answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, remarks=submission.remarks, searchField=searchField)
+                                                            answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, criteriaSatisfied=submission.criteriaSatisfied, remarks=submission.remarks, searchField=searchField)
             else:
                 grader_id = info.context.user.id # If it is update, that means it is being graded, so here we add the grader_id
                 exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
@@ -1545,6 +1546,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 exercise_submission_instance.points = submission.points if submission.points is not None else exercise_submission_instance.points
                 exercise_submission_instance.percentage = submission.percentage if submission.percentage is not None else exercise_submission_instance.percentage
                 exercise_submission_instance.status = submission.status if submission.status is not None else exercise_submission_instance.status
+                exercise_submission_instance.criteriaSatisfied = submission.criteriaSatisfied if submission.criteriaSatisfied is not None else exercise_submission_instance.criteriaSatisfied
                 exercise_submission_instance.remarks = submission.remarks if submission.remarks is not None else exercise_submission_instance.remarks
                 exercise_submission_instance.flagged = submission.flagged if submission.flagged is not None else exercise_submission_instance.flagged
                 exercise_submission_instance.grader_id = grader_id
