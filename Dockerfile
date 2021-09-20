@@ -9,6 +9,7 @@ LABEL maintainer="https://github.com/ryarasi"
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+COPY ./requirements.txt /requirements.txt
 # create root directory for our project in the container
 RUN mkdir /shuddhi
 # COPY ./scripts /scripts
@@ -17,9 +18,6 @@ WORKDIR /shuddhi
 # Copy the current directory contents into the container at /shuddhi
 ADD . /shuddhi/
 # Install any needed packages specified in requirements.txt
-
-# Install any needed packages specified in requirements.txt
-COPY requirements.txt ./
 
 # This is to create the collectstatic folder for whitenoise
 RUN pip install --upgrade pip && \
@@ -30,9 +28,7 @@ RUN pip install --upgrade pip && \
 # ENV PATH="/scripts:$PATH"
 # CMD ["run.sh"]
 
-CMD python manage.py collectstatic --noinput
-
-CMD python manage.py wait_for_db && python manage.py migrate && gunicorn shuddhi.wsgi:application --bind 0.0.0.0:$PORT
+CMD python manage.py wait_for_db && python manage.py collectstatic --noinput && python manage.py migrate && gunicorn shuddhi.wsgi:application --bind 0.0.0.0:$PORT
 
 # uwsgi --socket :9000 --workers 4 --master --enable-threads --module shuddhi.wsgi
 
