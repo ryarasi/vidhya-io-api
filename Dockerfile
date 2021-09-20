@@ -14,6 +14,8 @@ COPY ./shuddhi /shuddhi
 # COPY ./scripts /scripts
 WORKDIR /shuddhi
 
+# Copy the current directory contents into the container at /shuddhi
+ADD . /shuddhi/
 # Install any needed packages specified in requirements.txt
 
 
