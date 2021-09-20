@@ -10,7 +10,8 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 COPY ./requirements.txt /requirements.txt
-COPY ./shuddhi /shuddhi
+# create root directory for our project in the container
+RUN mkdir /shuddhi
 # COPY ./scripts /scripts
 WORKDIR /shuddhi
 
