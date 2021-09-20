@@ -22,6 +22,11 @@ RUN pip install --upgrade pip && \
     mkdir -p /vol/web/static && \
     mkdir -p /vol/web/media
 
-ENV PATH="/scripts:/py/bin:$PATH"
+# ENV PATH="/scripts:$PATH"
+# CMD ["run.sh"]
 
-CMD ["run.sh"]
+CMD python manage.py wait_for_db && python manage.py collectstatic --noinput && python manage.py migrate && gunicorn shuddhi.wsgi:application --bind 0.0.0.0:$PORT
+
+# uwsgi --socket :9000 --workers 4 --master --enable-threads --module shuddhi.wsgi
+
+
