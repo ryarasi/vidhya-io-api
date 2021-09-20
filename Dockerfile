@@ -11,7 +11,8 @@ ENV PYTHONUNBUFFERED 1
 
 COPY ./requirements.txt /requirements.txt
 COPY ./shuddhi /shuddhi
-COPY ./scripts /scripts
+# COPY ./scripts /scripts
+WORKDIR /shuddhi
 
 # Install any needed packages specified in requirements.txt
 
