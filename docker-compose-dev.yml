@@ -4,7 +4,7 @@ services:
   nginx:
     build: ./nginx
     ports:
-      - ${PORT}:80
+      - 80:8000
     volumes:
       - static-data:/vol/static
     depends_on:
