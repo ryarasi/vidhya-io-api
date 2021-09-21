@@ -1482,9 +1482,30 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
+    def update_submission(root, info, exercise_submission_instance, submission, searchField):
+        grader_id = info.context.user.id # If it is update, that means it is being graded, so here we add the grader_id
+        exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
+        exercise_submission_instance.course_id = submission.course_id if submission.course_id is not None else exercise_submission_instance.course_id
+        exercise_submission_instance.chapter_id = submission.chapter_id if submission.chapter_id is not None else exercise_submission_instance.chapter_id
+        exercise_submission_instance.option = submission.option if submission.option is not None else exercise_submission_instance.option
+        exercise_submission_instance.answer = submission.answer if submission.answer is not None else exercise_submission_instance.answer
+        exercise_submission_instance.link = submission.link if submission.link is not None else exercise_submission_instance.link
+        exercise_submission_instance.images = submission.images if submission.images is not None else exercise_submission_instance.images
+        exercise_submission_instance.points = submission.points if submission.points is not None else exercise_submission_instance.points
+        exercise_submission_instance.percentage = submission.percentage if submission.percentage is not None else exercise_submission_instance.percentage
+        exercise_submission_instance.status = submission.status if submission.status is not None else exercise_submission_instance.status
+        exercise_submission_instance.criteriaSatisfied = submission.criteriaSatisfied if submission.criteriaSatisfied is not None else exercise_submission_instance.criteriaSatisfied
+        exercise_submission_instance.remarks = submission.remarks if submission.remarks is not None else exercise_submission_instance.remarks
+        exercise_submission_instance.flagged = submission.flagged if submission.flagged is not None else exercise_submission_instance.flagged
+        exercise_submission_instance.grader_id = grader_id
+        exercise_submission_instance.searchField = searchField    
+        return exercise_submission_instance    
+
+    @staticmethod
+    @login_required
     def mutate(root, info, exercise_submissions=None):
         ok = False
+        current_user = info.context.user
         CreateUpdateExerciseSubmissions.check_errors(exercise_submissions) # validating the input
         finalSubmissions = []
         for submission in exercise_submissions:
@@ -1531,26 +1552,11 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             except:
                 pass                                           
 
-            if existing_submission is None:
+            if existing_submission is None and has_access(current_user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']):
                 exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
                                                             answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, criteriaSatisfied=submission.criteriaSatisfied, remarks=submission.remarks, searchField=searchField)
-            else:
-                grader_id = info.context.user.id # If it is update, that means it is being graded, so here we add the grader_id
-                exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
-                exercise_submission_instance.course_id = submission.course_id if submission.course_id is not None else exercise_submission_instance.course_id
-                exercise_submission_instance.chapter_id = submission.chapter_id if submission.chapter_id is not None else exercise_submission_instance.chapter_id
-                exercise_submission_instance.option = submission.option if submission.option is not None else exercise_submission_instance.option
-                exercise_submission_instance.answer = submission.answer if submission.answer is not None else exercise_submission_instance.answer
-                exercise_submission_instance.link = submission.link if submission.link is not None else exercise_submission_instance.link
-                exercise_submission_instance.images = submission.images if submission.images is not None else exercise_submission_instance.images
-                exercise_submission_instance.points = submission.points if submission.points is not None else exercise_submission_instance.points
-                exercise_submission_instance.percentage = submission.percentage if submission.percentage is not None else exercise_submission_instance.percentage
-                exercise_submission_instance.status = submission.status if submission.status is not None else exercise_submission_instance.status
-                exercise_submission_instance.criteriaSatisfied = submission.criteriaSatisfied if submission.criteriaSatisfied is not None else exercise_submission_instance.criteriaSatisfied
-                exercise_submission_instance.remarks = submission.remarks if submission.remarks is not None else exercise_submission_instance.remarks
-                exercise_submission_instance.flagged = submission.flagged if submission.flagged is not None else exercise_submission_instance.flagged
-                exercise_submission_instance.grader_id = grader_id
-                exercise_submission_instance.searchField = searchField
+            elif has_access(current_user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']):
+                exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, submission, searchField)
 
             exercise_submission_instance.save()
 
