@@ -4,6 +4,7 @@
   "description": "The API for vidhya.io",
   "main": "index.js",
   "scripts": {
+    "start": "docker-compose up",
     "test": "echo \"Error: no test specified\" && exit 1",
     "stage": "git checkout staging && git merge dev && git push && git checkout dev",
     "golive": "git checkout production && git merge dev && git push && git checkout dev",
