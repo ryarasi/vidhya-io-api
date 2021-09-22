@@ -165,11 +165,7 @@ class Query(ObjectType):
         current_user_role_name = current_user.role.name
         admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
 
-        # print('user role name => ', current_user_role_name)
-        # print('suer admin role name constant => ',
-        #       USER_ROLES_NAMES["SUPER_ADMIN"])
         if admin_user:
-            # print('User is super admin')
             # if the user is super user then they
             qs = Institution.objects.all().filter(active=True).order_by('-id')
         else:
@@ -208,11 +204,7 @@ class Query(ObjectType):
         current_user_role_name = current_user.role.name
         admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
 
-        # print('user role name => ', current_user_role_name)
-        # print('suer admin role name constant => ',
-        #       USER_ROLES_NAMES["SUPER_ADMIN"])
         if admin_user:
-            # print('User is super admin')
             # if the user is super user then they
             qs = User.objects.all().filter(active=True).order_by('-id')
         else:
@@ -256,13 +248,8 @@ class Query(ObjectType):
                 others.append(user)
         
         sorted_qs = pending + uninitialized + others
-    
-        print('Redacted QS',redacted_qs)
-        print('Sorted QS', sorted_qs)
         
         total = len(sorted_qs)
-
-        print('total ', total)
 
         if offset is not None:
             sorted_qs = sorted_qs[offset:]
@@ -909,8 +896,6 @@ class Query(ObjectType):
     @login_required
     def resolve_chat_search(root, info, query=None, offset=None, limit=None, **kwargs):
         current_user = info.context.user
-
-        # print('Got the users ', users)
 
         groups = Group.objects.all()
 
