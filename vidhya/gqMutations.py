@@ -1448,6 +1448,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
     class Arguments:
         exercise_submissions = graphene.List(ExerciseSubmissionInput, required=True)
+        grading = graphene.Boolean(required=True)
 
     ok = graphene.Boolean()
     exercise_submissions = graphene.List(ExerciseSubmissionType)
@@ -1480,10 +1481,39 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         if error:
             raise GraphQLError(error)
 
-    @staticmethod
-    @login_required
-    def update_submission(root, info, exercise_submission_instance, submission, searchField):
-        grader_id = info.context.user.id # If it is update, that means it is being graded, so here we add the grader_id
+
+    def process_submission(submission,grading):
+        exercise = Exercise.objects.get(pk=submission.exercise_id, active=True)       
+        try:
+            exercise_key = ExerciseKey.objects.get(exercise_id=exercise.id, active=True)
+        except:
+            exercise_key = ExerciseKey(exercise_id=exercise.id, chapter_id=exercise.chapter.id, course_id=exercise.course.id)
+            exercise_key.save()
+            pass
+        status = ExerciseSubmission.StatusChoices.SUBMITTED if not grading else submission.status
+        points = submission.points if submission.points is not None else 0
+        remarks = submission.remarks if submission.remarks is not None else None
+        if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
+            if exercise_key.valid_answers:
+                if submission.answer in exercise_key.valid_answers:
+                    status = ExerciseSubmission.StatusChoices['GRADED']
+                    points = exercise.points
+        if exercise.question_type == Exercise.QuestionTypeChoices.OPTIONS:
+            status = ExerciseSubmission.StatusChoices.GRADED
+            if submission.option == exercise_key.valid_option:
+                points = exercise.points
+            else:
+                points = 0
+                remarks = 'Correct Option is "' + exercise_key.valid_option + '"'
+        submission.points = points
+        submission.status = status 
+        submission.remarks = remarks
+        totalPoints = exercise.points if exercise.points is not None else 0
+        submission.percentage = submission.points * 100 / totalPoints if totalPoints > 0 else 100 # If total points is 0, then they get 100%
+        return submission
+
+    def update_submission(root, info, exercise_submission_instance, grading, submission, searchField):
+        grader_id = info.context.user.id if grading else None# If it is update, that means it is being graded, so here we add the grader_id
         exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
         exercise_submission_instance.course_id = submission.course_id if submission.course_id is not None else exercise_submission_instance.course_id
         exercise_submission_instance.chapter_id = submission.chapter_id if submission.chapter_id is not None else exercise_submission_instance.chapter_id
@@ -1503,67 +1533,48 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
     @staticmethod
     @login_required
-    def mutate(root, info, exercise_submissions=None):
-        print('got into the mutate method')
+    def mutate(root, info, exercise_submissions=None, grading=False):
         ok = False
         current_user = info.context.user
         CreateUpdateExerciseSubmissions.check_errors(exercise_submissions) # validating the input
         finalSubmissions = []
+
+        # Looping through the array of submissions to process them individually
         for submission in exercise_submissions:
             ok = True
-            exercise = Exercise.objects.get(pk=submission.exercise_id, active=True)       
-            try:
-                exercise_key = ExerciseKey.objects.get(exercise_id=exercise.id, active=True)
-            except:
-                exercise_key = ExerciseKey(exercise_id=exercise.id, chapter_id=exercise.chapter.id, course_id=exercise.course.id)
-                exercise_key.save()
-                pass
+
+            # Processing the indivdual submission
+            submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading)
+
+            # Generating a global searchField
             searchField = submission.option if submission.option is not None else ""
             searchField += submission.answer if submission.answer is not None else ""
             searchField += submission.link if submission.link is not None else ""
-            searchField = searchField.lower()
-            status = submission.status if submission.status is not None else ExerciseSubmission.StatusChoices.SUBMITTED
-            points = submission.points if submission.points is not None else 0
-            remarks = submission.remarks if submission.remarks is not None else None
-            if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
-                if exercise_key.valid_answers:
-                    if submission.answer in exercise_key.valid_answers:
-                        status = ExerciseSubmission.StatusChoices['GRADED']
-                        points = exercise.points
-            if exercise.question_type == Exercise.QuestionTypeChoices.OPTIONS:
-                status = ExerciseSubmission.StatusChoices.GRADED
-                if submission.option == exercise_key.valid_option:
-                    points = exercise.points
-                else:
-                    points = 0
-                    remarks = 'Correct Option is "' + exercise_key.valid_option + '"'
-            submission.points = points
-            submission.status = status 
-            submission.remarks = remarks
-            totalPoints = exercise.points if exercise.points is not None else 0
-            submission.percentage = submission.points * 100 / totalPoints if totalPoints > 0 else 100 # If total points is 0, then they get 100%
+            searchField = searchField.lower()   
 
+            # Checking if this is an update or a creation         
             existing_submission = None
             method = CREATE_METHOD
             try:
+                # Looking for existing submission
                 existing_submission = ExerciseSubmission.objects.get(participant_id=submission.participant_id, exercise_id=submission.exercise_id, active=True)
                 if existing_submission is not None:
-                    print('existing submission', existing_submission)
+                    # If found, we store it in exercise_submission_instance
                     exercise_submission_instance = existing_submission
                     method = UPDATE_METHOD
             except:
                 pass                                           
-            print('method => ', method)
-            if existing_submission is None and has_access(current_user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE'], True):
-                print("Now creating the submission")
+            if existing_submission is None:
+                #If not found, we create it and store it in exercise_submission_instance
                 exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
                                                             answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, criteriaSatisfied=submission.criteriaSatisfied, remarks=submission.remarks, searchField=searchField)
-            elif has_access(current_user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE'], True):
-                print("Now updating the submission")
-                exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, submission, searchField)
+            else:
+                exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, grading, submission, searchField)
 
+            # Saving the variable to the database
             exercise_submission_instance.save()
 
+            # Adding it to the list of submissions that will then be passed on for report generation
             finalSubmissions.append(exercise_submission_instance)
 
 
@@ -1571,7 +1582,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     "method": method}
             NotifyExerciseSubmission.broadcast(
                 payload=payload)
-        print('Before recalculating grade through UpdateReport.recalculate', finalSubmissions)
         UpdateReport.recalculate(finalSubmissions) # updating the reports
         return CreateUpdateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
 
@@ -1729,7 +1739,6 @@ class UpdateReport(graphene.Mutation):
 
     # This is the method used to update grading every time grading happens
     def recalculate(all_submissions):
-        print('inside recalculate method', all_submissions)
         unique_submissions = UpdateReport.remove_duplicate_submissions(all_submissions)
         for submission in unique_submissions:
             UpdateReport.markCompletedCoursesChapters(submission) # This is to mark the courses and chapters completed for the participant            
@@ -1763,7 +1772,6 @@ class UpdateReport(graphene.Mutation):
                                         completed=completed, percentage=percentage)
 
                 report_instance.save()
-                print('report is saved')
                 payload = {"report": report_instance,
                         "method": method}
                 NotifyReport.broadcast(
