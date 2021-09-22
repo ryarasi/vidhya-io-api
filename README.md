@@ -142,6 +142,10 @@ REDIS_URL="Needs to be set on Heroku to use Redis add-on "
 
    `SELECT * FROM public.vidhya_user WHERE COALESCE(invitecode, '') = '';`
 
+4. Update some rows based on a condition:-
+
+   `UPDATE public.vidhya_exercisesubmission SET points = 0, remarks = 'The correct answer is "Because IP address are hard to remember"' WHERE option != 'Because IP address are hard to remember';`
+
 ## Useful Links:-
 
 1. [Docker & Django](https://docs.docker.com/samples/django/)
