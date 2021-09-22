@@ -1482,7 +1482,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
     def update_submission(root, info, exercise_submission_instance, submission, searchField):
         grader_id = info.context.user.id # If it is update, that means it is being graded, so here we add the grader_id
         exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
@@ -1505,6 +1504,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
     @staticmethod
     @login_required
     def mutate(root, info, exercise_submissions=None):
+        print('got into the mutate method')
         ok = False
         current_user = info.context.user
         CreateUpdateExerciseSubmissions.check_errors(exercise_submissions) # validating the input
@@ -1548,15 +1548,18 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             try:
                 existing_submission = ExerciseSubmission.objects.get(participant_id=submission.participant_id, exercise_id=submission.exercise_id, active=True)
                 if existing_submission is not None:
+                    print('existing submission', existing_submission)
                     exercise_submission_instance = existing_submission
                     method = UPDATE_METHOD
             except:
                 pass                                           
-
+            print('method => ', method)
             if existing_submission is None and has_access(current_user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE'], True):
+                print("Now creating the submission")
                 exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
                                                             answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, criteriaSatisfied=submission.criteriaSatisfied, remarks=submission.remarks, searchField=searchField)
             elif has_access(current_user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE'], True):
+                print("Now updating the submission")
                 exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, submission, searchField)
 
             exercise_submission_instance.save()
@@ -1568,6 +1571,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     "method": method}
             NotifyExerciseSubmission.broadcast(
                 payload=payload)
+        print('Before recalculating grade through UpdateReport.recalculate', finalSubmissions)
         UpdateReport.recalculate(finalSubmissions) # updating the reports
         return CreateUpdateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
 
@@ -1725,6 +1729,7 @@ class UpdateReport(graphene.Mutation):
 
     # This is the method used to update grading every time grading happens
     def recalculate(all_submissions):
+        print('inside recalculate method', all_submissions)
         unique_submissions = UpdateReport.remove_duplicate_submissions(all_submissions)
         for submission in unique_submissions:
             UpdateReport.markCompletedCoursesChapters(submission) # This is to mark the courses and chapters completed for the participant            
@@ -1758,6 +1763,7 @@ class UpdateReport(graphene.Mutation):
                                         completed=completed, percentage=percentage)
 
                 report_instance.save()
+                print('report is saved')
                 payload = {"report": report_instance,
                         "method": method}
                 NotifyReport.broadcast(
@@ -1768,7 +1774,7 @@ class UpdateReport(graphene.Mutation):
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
+    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
         ok = False
         report_instance = Report.objects.get(pk=id, active=True)
