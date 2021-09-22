@@ -77,10 +77,10 @@ class Query(ObjectType):
 
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
-        Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
 
     public_users = graphene.Field(
-        PublicUsers, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), role_name=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        PublicUsers, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
 
     user_role = graphene.Field(UserRoleType, role_name=graphene.String())
     user_roles = graphene.Field(
@@ -165,11 +165,7 @@ class Query(ObjectType):
         current_user_role_name = current_user.role.name
         admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
 
-        # print('user role name => ', current_user_role_name)
-        # print('suer admin role name constant => ',
-        #       USER_ROLES_NAMES["SUPER_ADMIN"])
         if admin_user:
-            # print('User is super admin')
             # if the user is super user then they
             qs = Institution.objects.all().filter(active=True).order_by('-id')
         else:
@@ -203,16 +199,12 @@ class Query(ObjectType):
             return None
 
 
-    def process_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], role_name=None, limit=None, offset=None, **kwargs):
+    def process_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
         current_user = info.context.user
         current_user_role_name = current_user.role.name
         admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
 
-        # print('user role name => ', current_user_role_name)
-        # print('suer admin role name constant => ',
-        #       USER_ROLES_NAMES["SUPER_ADMIN"])
         if admin_user:
-            # print('User is super admin')
             # if the user is super user then they
             qs = User.objects.all().filter(active=True).order_by('-id')
         else:
@@ -231,8 +223,8 @@ class Query(ObjectType):
 
         if bool(membership_status_is):
             qs = qs.filter(membership_status__in=membership_status_is)
-        if role_name is not None:
-            qs = qs.filter(role=role_name)
+        if roles:
+            qs = qs.filter(role__in=roles)
 
         redacted_qs = []
         if admin_user:
@@ -256,13 +248,8 @@ class Query(ObjectType):
                 others.append(user)
         
         sorted_qs = pending + uninitialized + others
-    
-        print('Redacted QS',redacted_qs)
-        print('Sorted QS', sorted_qs)
         
         total = len(sorted_qs)
-
-        print('total ', total)
 
         if offset is not None:
             sorted_qs = sorted_qs[offset:]
@@ -274,11 +261,11 @@ class Query(ObjectType):
         return results
 
     @login_required
-    def resolve_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], role_name=None, limit=None, offset=None, **kwargs):
-        qs = Query.process_users(root, info, searchField, membership_status_not, membership_status_is, role_name, limit, offset, **kwargs)
+    def resolve_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
+        qs = Query.process_users(root, info, searchField, membership_status_not, membership_status_is, roles, limit, offset, **kwargs)
         return qs
 
-    def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], role_name=None, limit=None, offset=None, **kwargs):   
+    def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):   
         current_user = info.context.user
 
         qs = User.objects.all().filter(active=True).order_by('-id')
@@ -295,8 +282,8 @@ class Query(ObjectType):
 
         if bool(membership_status_is):
             qs = qs.filter(~Q(membership_status__in=membership_status_is))
-        if role_name is not None:
-            qs = qs.filter(role=role_name)
+        if roles:
+            qs = qs.filter(role__in=roles)
 
         redacted_qs = []
 
@@ -909,8 +896,6 @@ class Query(ObjectType):
     @login_required
     def resolve_chat_search(root, info, query=None, offset=None, limit=None, **kwargs):
         current_user = info.context.user
-
-        # print('Got the users ', users)
 
         groups = Group.objects.all()
 
