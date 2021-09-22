@@ -1482,6 +1482,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
     def update_submission(root, info, exercise_submission_instance, submission, searchField):
         grader_id = info.context.user.id # If it is update, that means it is being graded, so here we add the grader_id
         exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
@@ -1552,10 +1553,10 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             except:
                 pass                                           
 
-            if existing_submission is None and has_access(current_user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']):
+            if existing_submission is None and has_access(current_user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE'], True):
                 exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
                                                             answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, criteriaSatisfied=submission.criteriaSatisfied, remarks=submission.remarks, searchField=searchField)
-            elif has_access(current_user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']):
+            elif has_access(current_user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE'], True):
                 exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, submission, searchField)
 
             exercise_submission_instance.save()
@@ -1767,7 +1768,7 @@ class UpdateReport(graphene.Mutation):
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
+    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
         ok = False
         report_instance = Report.objects.get(pk=id, active=True)
