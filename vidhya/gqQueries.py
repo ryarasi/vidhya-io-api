@@ -447,7 +447,7 @@ class Query(ObjectType):
     def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
         status = Course.StatusChoices.PUBLISHED
-        if has_access(current_user, RESOURCES['COURSE'], ACTIONS['CREATE'], True):
+        if has_access(current_user, RESOURCES['COURSE'], ACTIONS['CREATE']):
             qs = Course.objects.all().filter(
                 Q(participants__in=[current_user]) | Q(instructor_id=current_user.id), active=True).distinct().order_by('-id')
         else:
@@ -521,7 +521,7 @@ class Query(ObjectType):
     def resolve_chapters(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
         status = Course.StatusChoices.PUBLISHED
-        if has_access(current_user, RESOURCES['CHAPTER'], ACTIONS['CREATE'], True):
+        if has_access(current_user, RESOURCES['CHAPTER'], ACTIONS['CREATE']):
             qs = Chapter.objects.all().filter(active=True).order_by('index')
         else:
             qs = Chapter.objects.all().filter(active=True, status=status).order_by('index')
@@ -572,7 +572,7 @@ class Query(ObjectType):
                 return None
             status = Course.StatusChoices.PUBLISHED
             if chapter.status != status:
-                has_access(current_user,RESOURCES['CHAPTER'], ACTIONS['CREATE'])
+                has_access(current_user,RESOURCES['CHAPTER'], ACTIONS['CREATE'], False)
             else:
                 pass
              

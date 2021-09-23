@@ -35,7 +35,7 @@ ACTIONS = {
 }
 
 
-def has_access(user=None, resource=None, action=None, silent=False):
+def has_access(user=None, resource=None, action=None, silent=True):
     result = False
     if user:
         user_permissions = user.role.permissions
