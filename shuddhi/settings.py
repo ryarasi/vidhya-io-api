@@ -145,7 +145,7 @@ GRAPHQL_JWT = {
     'JWT_PAYLOAD_HANDLER': 'common.utils.jwt_payload',
     "JWT_VERIFY_EXPIRATION": True,
     "JWT_LONG_RUNNING_REFRESH_TOKEN": True,
-    'JWT_REUSE_REFRESH_TOKENS': True, # Eliminates creation of new db records every time refreshtoken is created.
+    'JWT_REUSE_REFRESH_TOKENS': True, # Eliminates creation of new db records every time refreshtoken is requested.
     'JWT_EXPIRATION_DELTA': timedelta(minutes=60), # Expiry time of token
     'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7), # Expiry time of refreshToken
 }
