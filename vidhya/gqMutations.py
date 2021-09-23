@@ -1537,6 +1537,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
     @staticmethod
     @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
     def mutate(root, info, exercise_submissions=None, grading=False, bulkauto=False):
         ok = False
         current_user = info.context.user
