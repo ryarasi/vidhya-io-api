@@ -1484,6 +1484,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
 
     def process_submission(submission,grading):
+        autograded = False
         exercise = Exercise.objects.get(pk=submission.exercise_id, active=True)       
         try:
             exercise_key = ExerciseKey.objects.get(exercise_id=exercise.id, active=True)
@@ -1497,9 +1498,11 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
             if exercise_key.valid_answers:
                 if submission.answer in exercise_key.valid_answers:
+                    autograded = True
                     status = ExerciseSubmission.StatusChoices['GRADED']
                     points = exercise.points
         if exercise.question_type == Exercise.QuestionTypeChoices.OPTIONS:
+            autograded=True
             status = ExerciseSubmission.StatusChoices.GRADED
             if submission.option == exercise_key.valid_option:
                 points = exercise.points
@@ -1511,10 +1514,10 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         submission.remarks = remarks
         totalPoints = exercise.points if exercise.points is not None else 0
         submission.percentage = submission.points * 100 / totalPoints if totalPoints > 0 else 100 # If total points is 0, then they get 100%
-        return submission
+        return {'submission': submission, 'autograded': autograded}
 
-    def update_submission(root, info, exercise_submission_instance, grading, submission, searchField):
-        grader_id = info.context.user.id if grading else None# If it is update, that means it is being graded, so here we add the grader_id
+    def update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField):
+        grader_id = info.context.user.id if grading and not autograded else None# If it is update, that means it is being graded, so here we add the grader_id
         exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
         exercise_submission_instance.course_id = submission.course_id if submission.course_id is not None else exercise_submission_instance.course_id
         exercise_submission_instance.chapter_id = submission.chapter_id if submission.chapter_id is not None else exercise_submission_instance.chapter_id
@@ -1549,9 +1552,12 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         # Looping through the array of submissions to process them individually
         for submission in exercise_submissions:
             ok = True
+            autograded = False
 
             # Processing the indivdual submission
-            submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading)
+            processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading)
+            submission = processed_submission['submission']
+            autograded = processed_submission['autograded']
 
             # Generating a global searchField
             searchField = submission.option if submission.option is not None else ""
@@ -1576,7 +1582,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
                                                             answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, criteriaSatisfied=submission.criteriaSatisfied, remarks=submission.remarks, searchField=searchField)
             else:
-                exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, grading, submission, searchField)
+                exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField)
 
             # Saving the variable to the database
             exercise_submission_instance.save()
