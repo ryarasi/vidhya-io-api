@@ -155,3 +155,4 @@ REDIS_URL="Needs to be set on Heroku to use Redis add-on "
 5. [Connect to the postgres table in the Docker container with pgAdmin](https://stackoverflow.com/a/62749875/7981162)
 6. [How to uninstall all packages in a python project](https://stackoverflow.com/a/67379806/7981162)
 7. [Setting up secure 12factor Django app with Docker and Environ, for different environemnts](https://medium.com/swlh/setting-up-a-secure-django-project-repository-with-docker-and-django-environ-4af72ce037f0)
+8. [Documentation for JWT tokens and various associated configuration](https://readthedocs.org/projects/django-graphql-jwt/downloads/pdf/latest/)
