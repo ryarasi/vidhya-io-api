@@ -13,7 +13,7 @@ from pathlib import Path
 import os
 import dj_database_url
 from environ import Env              
-
+from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -144,7 +144,10 @@ GRAPHQL_JWT = {
     ],
     'JWT_PAYLOAD_HANDLER': 'common.utils.jwt_payload',
     "JWT_VERIFY_EXPIRATION": True,
-    "JWT_LONG_RUNNING_REFRESH_TOKEN": True
+    "JWT_LONG_RUNNING_REFRESH_TOKEN": True,
+    'JWT_REUSE_REFRESH_TOKENS': True, # Eliminates creation of new db records every time refreshtoken is created.
+    'JWT_EXPIRATION_DELTA': timedelta(minutes=60), # Expiry time of token
+    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7), # Expiry time of refreshToken
 }
 
 ROOT_URLCONF = 'shuddhi.urls'
