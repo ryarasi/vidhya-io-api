@@ -1449,6 +1449,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
     class Arguments:
         exercise_submissions = graphene.List(ExerciseSubmissionInput, required=True)
         grading = graphene.Boolean(required=True)
+        bulkauto = graphene.Boolean()
 
     ok = graphene.Boolean()
     exercise_submissions = graphene.List(ExerciseSubmissionType)
@@ -1533,11 +1534,17 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
     @staticmethod
     @login_required
-    def mutate(root, info, exercise_submissions=None, grading=False):
+    def mutate(root, info, exercise_submissions=None, grading=False, bulkauto=False):
         ok = False
         current_user = info.context.user
         CreateUpdateExerciseSubmissions.check_errors(exercise_submissions) # validating the input
         finalSubmissions = []
+
+        # If we're trying to do a bulk automatic grading of eligible submissions...
+        if grading == True and bulkauto == True:
+            eligible_exercises = Exercise.objects.filter(question_type__in=[Exercise.QuestionTypeChoices.DESCRIPTION,Exercise.QuestionTypeChoices.OPTIONS],active=True)
+            exercise_submissions = ExerciseSubmission.objects.filter(exercise__in=eligible_exercises, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True)
+
 
         # Looping through the array of submissions to process them individually
         for submission in exercise_submissions:
