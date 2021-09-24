@@ -1591,11 +1591,11 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             searchField = exercise_submission_instance.searchField if exercise_submission_instance.searchField is not None else searchField
             institution =  exercise_submission_instance.participant.institution.name if exercise_submission_instance.participant.institution.name is not None else ""
             participant = exercise_submission_instance.participant.name if exercise_submission_instance.participant.name is not None else ""
-            grader = exercise_submission_instance.grader.name if exercise_submission_instance.grader.name is not None else ""
+            # grader = exercise_submission_instance.grader.name if exercise_submission_instance.grader.name is not None else ""
             # Adding institution, participant and grader
             searchField += institution.lower() if institution.lower() not in searchField else ""
             searchField += participant.lower() if participant.lower() not in searchField else ""
-            searchField += grader.lower() if grader.lower() not in searchField else ""
+            # searchField += grader.lower() if grader.lower() not in searchField else ""
             exercise_submission_instance.searchField = searchField.lower()
 
 
