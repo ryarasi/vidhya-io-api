@@ -256,7 +256,8 @@ class UpdateUser(graphene.Mutation):
             searchField += user_instance.title if user_instance.title is not None else ""
             searchField += user_instance.bio if user_instance.bio is not None else ""
             searchField += user_instance.membership_status if user_instance.membership_status is not None else ""
-            searchField += user_instance.institution.name if user_instance.institution.name is not None else ""
+            if user_instance.institution:
+                searchField += user_instance.institution.name if user_instance.institution.name is not None else ""
             user_instance.searchField = searchField.lower()
 
             user_instance.save()
@@ -1483,7 +1484,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             raise GraphQLError(error)
 
 
-    def process_submission(submission,grading):
+    def process_submission(submission, grading, current_user):
         autograded = False
         exercise = Exercise.objects.get(pk=submission.exercise_id, active=True)       
         try:
@@ -1514,7 +1515,17 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         submission.remarks = remarks
         totalPoints = exercise.points if exercise.points is not None else 0
         submission.percentage = submission.points * 100 / totalPoints if totalPoints > 0 else 100 # If total points is 0, then they get 100%
-        return {'submission': submission, 'autograded': autograded}
+
+        # Generating a global searchField
+        searchField = ''
+        if submission.exercise:
+            searchField += submission.exercise.prompt if submission.exercise.prompt is not None else ""
+        searchField += submission.option if submission.option is not None else ""
+        searchField += submission.answer if submission.answer is not None else ""
+        searchField += submission.link if submission.link is not None else ""
+        searchField += current_user.name if current_user.name is not None else ""
+        searchField = searchField.lower()        
+        return {'submission': submission, 'autograded': autograded, 'searchField': searchField}
 
     def update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField):
         grader_id = info.context.user.id if grading and not autograded else None# If it is update, that means it is being graded, so here we add the grader_id
@@ -1556,17 +1567,10 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             autograded = False
 
             # Processing the indivdual submission
-            processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading)
+            processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading, current_user)
             submission = processed_submission['submission']
             autograded = processed_submission['autograded']
-
-            # Generating a global searchField
-
-            searchField = submission.option if submission.option is not None else ""
-            searchField += submission.answer if submission.answer is not None else ""
-            searchField += submission.link if submission.link is not None else ""
-            searchField += current_user.name if current_user.name is not None else ""
-            searchField = searchField.lower()
+            searchField = processed_submission['searchField']
 
             # Checking if this is an update or a creation
             existing_submission = None
