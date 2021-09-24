@@ -175,7 +175,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
         total = len(qs)
@@ -214,7 +214,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField) | Q(username__icontains=searchField) | Q(email__icontains=searchField)
+                Q(searchField__icontains=searchField.lower()) | Q(username__icontains=searchField.lower()) | Q(email__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -273,7 +273,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField) | Q(username__icontains=searchField)
+                Q(searchField__icontains=searchField.lower()) | Q(username__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -327,7 +327,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -362,7 +362,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -382,7 +382,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -418,7 +418,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -456,7 +456,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -491,7 +491,7 @@ class Query(ObjectType):
 
             if searchField is not None:
                 filter = (
-                    Q(searchField__icontains=searchField)
+                    Q(searchField__icontains=searchField.lower())
                 )
                 qs = qs.filter(filter)
 
@@ -539,7 +539,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -583,7 +583,7 @@ class Query(ObjectType):
 
             if searchField is not None:
                 filter = (
-                    Q(searchField__icontains=searchField)
+                    Q(searchField__icontains=searchField.lower())
                 )
                 qs = qs.filter(filter)
 
@@ -646,7 +646,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -805,7 +805,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -852,7 +852,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField)
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 
@@ -942,7 +942,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(message__icontains=searchField)
+                Q(message__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
 

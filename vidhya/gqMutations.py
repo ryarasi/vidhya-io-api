@@ -1561,12 +1561,14 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             autograded = processed_submission['autograded']
 
             # Generating a global searchField
+
             searchField = submission.option if submission.option is not None else ""
             searchField += submission.answer if submission.answer is not None else ""
             searchField += submission.link if submission.link is not None else ""
-            searchField = searchField.lower()   
+            searchField += current_user.name if current_user.name is not None else ""
+            searchField = searchField.lower()
 
-            # Checking if this is an update or a creation         
+            # Checking if this is an update or a creation
             existing_submission = None
             method = CREATE_METHOD
             try:
@@ -1584,6 +1586,18 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                                                             answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, criteriaSatisfied=submission.criteriaSatisfied, remarks=submission.remarks, searchField=searchField)
             else:
                 exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField)
+
+            # Adding additional attributes to searchField
+            searchField = exercise_submission_instance.searchField if exercise_submission_instance.searchField is not None else searchField
+            institution =  exercise_submission_instance.participant.institution.name if exercise_submission_instance.participant.institution.name is not None else ""
+            participant = exercise_submission_instance.participant.name if exercise_submission_instance.participant.name is not None else ""
+            grader = exercise_submission_instance.grader.name if exercise_submission_instance.grader.name is not None else ""
+            # Adding institution, participant and grader
+            searchField += institution.lower() if institution.lower() not in searchField else ""
+            searchField += participant.lower() if participant.lower() not in searchField else ""
+            searchField += grader.lower() if grader.lower() not in searchField else ""
+            exercise_submission_instance.searchField = searchField.lower()
+
 
             # Saving the variable to the database
             exercise_submission_instance.save()
