@@ -1429,8 +1429,12 @@ class PatchExerciseSubmissionsSearchFields(graphene.Mutation):
         total_count = all_submissions.count()
         processed_count = 0
         for submission in all_submissions:
-                    # Generating a global searchField
+            # Generating a global searchField
             searchField = ''
+            if submission.course:
+                searchField += submission.course.title if submission.course.title is not None else ""            
+            if submission.chapter:
+                searchField += submission.chapter.title if submission.chapter.title is not None else ""
             if submission.exercise:
                 searchField += submission.exercise.prompt if submission.exercise.prompt is not None else ""
             searchField += submission.option if submission.option is not None else ""
@@ -1531,12 +1535,15 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
         # Generating a global searchField
         searchField = ''
+        if submission.course:
+            searchField += submission.course.title if submission.course.title is not None else ""            
+        if submission.chapter:
+            searchField += submission.chapter.title if submission.chapter.title is not None else ""
         if submission.exercise:
             searchField += submission.exercise.prompt if submission.exercise.prompt is not None else ""
         searchField += submission.option if submission.option is not None else ""
         searchField += submission.answer if submission.answer is not None else ""
         searchField += submission.link if submission.link is not None else ""
-        searchField += current_user.name if current_user.name is not None else ""
         searchField = searchField.lower()        
         return {'submission': submission, 'autograded': autograded, 'searchField': searchField}
 
@@ -1606,16 +1613,17 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
             # Adding additional attributes to searchField
             searchField = exercise_submission_instance.searchField if exercise_submission_instance.searchField is not None else searchField
-            institution =  exercise_submission_instance.participant.institution.name if exercise_submission_instance.participant.institution.name is not None else ""
-            participant = exercise_submission_instance.participant.name if exercise_submission_instance.participant.name is not None else ""
+            institution =  submission.participant.institution.name if submission.participant.institution.name is not None else ""
+            participant = submission.participant.name if submission.participant.name is not None else ""
             grader = ""
-            if exercise_submission_instance.grader:
-                grader = exercise_submission_instance.grader.name if exercise_submission_instance.grader.name is not None else ""
+            if submission.grader:
+                grader = submission.grader.name if submission.grader.name is not None else ""
             # Adding institution, participant and grader
             searchField += institution.lower() if institution.lower() not in searchField else ""
             searchField += participant.lower() if participant.lower() not in searchField else ""
             searchField += grader.lower() if grader.lower() not in searchField else ""
-            exercise_submission_instance.searchField = searchField.lower()
+            searchField = searchField.lower()            
+            submission.searchField = searchField
 
 
             # Saving the variable to the database
