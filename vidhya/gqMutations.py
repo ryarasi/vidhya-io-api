@@ -256,7 +256,8 @@ class UpdateUser(graphene.Mutation):
             searchField += user_instance.title if user_instance.title is not None else ""
             searchField += user_instance.bio if user_instance.bio is not None else ""
             searchField += user_instance.membership_status if user_instance.membership_status is not None else ""
-            searchField += user_instance.institution.name if user_instance.institution.name is not None else ""
+            if user_instance.institution:
+                searchField += user_instance.institution.name if user_instance.institution.name is not None else ""
             user_instance.searchField = searchField.lower()
 
             user_instance.save()
@@ -1408,39 +1409,52 @@ class DeleteExercise(graphene.Mutation):
         return DeleteExercise(ok=ok, exercise=None)
 
 
-# class UpdateExerciseKey(graphene.Mutation):
-#     class Meta:
-#         description = "Mutation to update a Exercise Key"
+class PatchExerciseSubmissionsSearchFields(graphene.Mutation):
+    class Meta:
+        description = "Mutation to patch searchFields of all submissions"
 
-#     class Arguments:
-#         id = graphene.ID(required=True)
-#         input = ExerciseKeyInput(required=True)
+    class Arguments:
+        pass
 
-#     ok = graphene.Boolean()
-#     exercise_key = graphene.Field(ExerciseKeyType)
+    ok = graphene.Boolean()
+    exercise_submissions_count = graphene.Int()
 
-    # @staticmethod
-    # @login_required
-    # @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['UPDATE']))
-    # def mutate(root, info, id, input=None):
-    #     ok = False
-    #     exercise_key_instance = ExerciseKey.objects.get(pk=id, active=True)
-    #     if exercise_key_instance:
-    #         ok = True
-    #         exercise_key_instance.exercise = input.exercise if input.exercise is not None else exercise_key_instance.exercise
-    #         exercise_key_instance.valid_option = input.valid_option if input.valid_option is not None else exercise_key_instance.valid_option
-    #         exercise_key_instance.valid_answers = input.valid_answers if input.valid_answers is not None else exercise_key_instance.valid_answers
-    #         exercise_key_instance.reference_link = input.reference_link if input.reference_link is not None else exercise_key_instance.reference_link
-    #         exercise_key_instance.reference_images = input.reference_images if input.reference_images is not None else exercise_key_instance.reference_images
-         
-    #         exercise_key_instance.save()
-    #         payload = {"exercise_key": exercise_key_instance,
-    #                    "method": UPDATE_METHOD}
-    #         NotifyExerciseKey.broadcast(
-    #             payload=payload)
-    #         return UpdateExerciseKey(ok=ok, exercise_key=exercise_key_instance)
-    #     return UpdateExerciseKey(ok=ok, exercise_key=None)
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
+    def mutate(root, info, exercise_submissions=None, grading=False, bulkauto=False):
+        ok = False
 
+        all_submissions = ExerciseSubmission.objects.filter(active=True)
+        total_count = all_submissions.count()
+        processed_count = 0
+        for submission in all_submissions:
+                    # Generating a global searchField
+            searchField = ''
+            if submission.exercise:
+                searchField += submission.exercise.prompt if submission.exercise.prompt is not None else ""
+            searchField += submission.option if submission.option is not None else ""
+            searchField += submission.answer if submission.answer is not None else ""
+            searchField += submission.link if submission.link is not None else ""
+    
+            institution =  submission.participant.institution.name if submission.participant.institution.name is not None else ""
+            participant = submission.participant.name if submission.participant.name is not None else ""
+            grader = ""
+            if submission.grader:
+                grader = submission.grader.name if submission.grader.name is not None else ""
+            # Adding institution, participant and grader
+            searchField += institution.lower() if institution.lower() not in searchField else ""
+            searchField += participant.lower() if participant.lower() not in searchField else ""
+            searchField += grader.lower() if grader.lower() not in searchField else ""
+            searchField = searchField.lower()            
+            submission.searchField = searchField
+
+            # Saving the submission to the database
+            submission.save()
+            processed_count += 1
+
+        ok = True if processed_count == total_count else False
+        return PatchExerciseSubmissionsSearchFields(ok=ok, exercise_submissions_count=processed_count)    
 
 class CreateUpdateExerciseSubmissions(graphene.Mutation):
     class Meta:
@@ -1483,7 +1497,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             raise GraphQLError(error)
 
 
-    def process_submission(submission,grading):
+    def process_submission(submission, grading, current_user):
         autograded = False
         exercise = Exercise.objects.get(pk=submission.exercise_id, active=True)       
         try:
@@ -1514,7 +1528,17 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         submission.remarks = remarks
         totalPoints = exercise.points if exercise.points is not None else 0
         submission.percentage = submission.points * 100 / totalPoints if totalPoints > 0 else 100 # If total points is 0, then they get 100%
-        return {'submission': submission, 'autograded': autograded}
+
+        # Generating a global searchField
+        searchField = ''
+        if submission.exercise:
+            searchField += submission.exercise.prompt if submission.exercise.prompt is not None else ""
+        searchField += submission.option if submission.option is not None else ""
+        searchField += submission.answer if submission.answer is not None else ""
+        searchField += submission.link if submission.link is not None else ""
+        searchField += current_user.name if current_user.name is not None else ""
+        searchField = searchField.lower()        
+        return {'submission': submission, 'autograded': autograded, 'searchField': searchField}
 
     def update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField):
         grader_id = info.context.user.id if grading and not autograded else None# If it is update, that means it is being graded, so here we add the grader_id
@@ -1556,17 +1580,10 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             autograded = False
 
             # Processing the indivdual submission
-            processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading)
+            processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading, current_user)
             submission = processed_submission['submission']
             autograded = processed_submission['autograded']
-
-            # Generating a global searchField
-
-            searchField = submission.option if submission.option is not None else ""
-            searchField += submission.answer if submission.answer is not None else ""
-            searchField += submission.link if submission.link is not None else ""
-            searchField += current_user.name if current_user.name is not None else ""
-            searchField = searchField.lower()
+            searchField = processed_submission['searchField']
 
             # Checking if this is an update or a creation
             existing_submission = None
@@ -1591,7 +1608,9 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             searchField = exercise_submission_instance.searchField if exercise_submission_instance.searchField is not None else searchField
             institution =  exercise_submission_instance.participant.institution.name if exercise_submission_instance.participant.institution.name is not None else ""
             participant = exercise_submission_instance.participant.name if exercise_submission_instance.participant.name is not None else ""
-            # grader = exercise_submission_instance.grader.name if exercise_submission_instance.grader.name is not None else ""
+            grader = ""
+            if exercise_submission_instance.grader:
+                grader = exercise_submission_instance.grader.name if exercise_submission_instance.grader.name is not None else ""
             # Adding institution, participant and grader
             searchField += institution.lower() if institution.lower() not in searchField else ""
             searchField += participant.lower() if participant.lower() not in searchField else ""
@@ -2178,3 +2197,4 @@ class Mutation(graphene.ObjectType):
     reorder_chapters = ReorderChapters.Field()
     reorder_exercises = ReorderExercises.Field()
     reorder_course_sections = ReorderCourseSections.Field()
+    patch_exercise_submissions_searchFields = PatchExerciseSubmissionsSearchFields.Field()

@@ -117,7 +117,7 @@ class Query(ObjectType):
     exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
-    exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), limit=graphene.Int(), offset=graphene.Int())
+    exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     assignments = graphene.List(AssignmentType, status=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     exercise_key = graphene.Field(
@@ -659,11 +659,11 @@ class Query(ObjectType):
         return qs
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
-    def resolve_exercise_submission_groups(root, info, group_by=None, status=None, limit=None, offset=None, **kwargs):
+    def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField='', limit=None, offset=None, **kwargs):
         groups = []
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
-            unique_exercises = ExerciseSubmission.objects.filter(status=status).values_list('exercise', flat=True).distinct().order_by()
+            unique_exercises = ExerciseSubmission.objects.filter(Q(searchField__icontains=searchField.lower()),status=status ).values_list('exercise', flat=True).distinct().order_by()
             for exercise_id in unique_exercises:
                 exercise = Exercise.objects.get(pk=exercise_id)
                 count = ExerciseSubmission.objects.all().filter(exercise=exercise, status=status).count()
@@ -671,7 +671,7 @@ class Query(ObjectType):
                 groups.append(card)
         
         if group_by == RESOURCES['CHAPTER']:
-            unique_chapters = ExerciseSubmission.objects.filter(status=status).values_list('chapter', flat=True).distinct().order_by()
+            unique_chapters = ExerciseSubmission.objects.filter(Q(searchField__icontains=searchField.lower()), status=status).values_list('chapter', flat=True).distinct().order_by()
             for chapter_id in unique_chapters:
                 chapter = Chapter.objects.get(pk=chapter_id)
                 count = ExerciseSubmission.objects.all().filter(chapter=chapter, status=status).count()
@@ -679,7 +679,7 @@ class Query(ObjectType):
                 groups.append(card)        
 
         if group_by == RESOURCES['COURSE']:
-            unique_courses = ExerciseSubmission.objects.filter(status=status).values_list('course', flat=True).distinct().order_by()
+            unique_courses = ExerciseSubmission.objects.filter(Q(searchField__icontains=searchField.lower()), status=status).values_list('course', flat=True).distinct().order_by()
             for course_id in unique_courses:
                 course = Course.objects.get(pk=course_id)
                 count = ExerciseSubmission.objects.all().filter(course=course, status=status).count()
