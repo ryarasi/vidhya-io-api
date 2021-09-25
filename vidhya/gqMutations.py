@@ -1535,12 +1535,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
         # Generating a global searchField
         searchField = ''
-        if submission.course:
-            searchField += submission.course.title if submission.course.title is not None else ""            
-        if submission.chapter:
-            searchField += submission.chapter.title if submission.chapter.title is not None else ""
-        if submission.exercise:
-            searchField += submission.exercise.prompt if submission.exercise.prompt is not None else ""
         searchField += submission.option if submission.option is not None else ""
         searchField += submission.answer if submission.answer is not None else ""
         searchField += submission.link if submission.link is not None else ""
@@ -1614,6 +1608,12 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             # Adding additional attributes to searchField
             searchField = exercise_submission_instance.searchField if exercise_submission_instance.searchField is not None else searchField
             institution =  submission.participant.institution.name if submission.participant.institution.name is not None else ""
+            if exercise_submission_instance.course:
+                searchField += exercise_submission_instance.course.title if exercise_submission_instance.course.title is not None else ""            
+            if exercise_submission_instance.chapter:
+                searchField += exercise_submission_instance.chapter.title if exercise_submission_instance.chapter.title is not None else ""
+            if exercise_submission_instance.exercise:
+                searchField += exercise_submission_instance.exercise.prompt if exercise_submission_instance.exercise.prompt is not None else ""            
             participant = submission.participant.name if submission.participant.name is not None else ""
             grader = ""
             if submission.grader:
