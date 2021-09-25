@@ -659,32 +659,53 @@ class Query(ObjectType):
         return qs
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
-    def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField='', limit=None, offset=None, **kwargs):
+    def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
         groups = []
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
-            unique_exercises = ExerciseSubmission.objects.filter(Q(searchField__icontains=searchField.lower()),status=status ).values_list('exercise', flat=True).distinct().order_by()
+            unique_exercises = ExerciseSubmission.objects.filter(status=status ).values_list('exercise', flat=True).distinct().order_by()
+            if searchField is not None:
+                filter=Q(searchField__icontains=searchField.lower())
+                unique_exercises = unique_exercises.filter(filter)
             for exercise_id in unique_exercises:
                 exercise = Exercise.objects.get(pk=exercise_id)
-                count = ExerciseSubmission.objects.all().filter(Q(searchField__icontains=searchField.lower()),exercise=exercise, status=status).count()
+                submissions = ExerciseSubmission.objects.all().filter(exercise=exercise, status=status)
+                if searchField is not None:
+                    filter=Q(searchField__icontains=searchField.lower())
+                    submissions = submissions.filter(filter)
+                count = submissions.count()                                
                 card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise.prompt, subtitle=exercise.course.title, count=count)
                 groups.append(card)
         
         if group_by == RESOURCES['CHAPTER']:
-            unique_chapters = ExerciseSubmission.objects.filter(Q(searchField__icontains=searchField.lower()), status=status).values_list('chapter', flat=True).distinct().order_by()
+            unique_chapters = ExerciseSubmission.objects.filter(status=status).values_list('chapter', flat=True).distinct().order_by()
+            if searchField is not None:
+                filter=Q(searchField__icontains=searchField.lower())
+                unique_chapters = unique_chapters.filter(filter)                   
             for chapter_id in unique_chapters:
                 chapter = Chapter.objects.get(pk=chapter_id)
-                count = ExerciseSubmission.objects.all().filter(chapter=chapter, status=status).count()
-                card = ExerciseSubmissionGroup(Q(searchField__icontains=searchField.lower()),id=chapter_id, type=group_by, title=chapter.title, subtitle=chapter.course.title, count=count)
+                submissions = ExerciseSubmission.objects.all().filter(chapter=chapter, status=status)
+                if searchField is not None:
+                    filter=Q(searchField__icontains=searchField.lower())
+                    submissions = submissions.filter(filter)
+                count = submissions.count()                
+                card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter.title, subtitle=chapter.course.title, count=count)
                 groups.append(card)        
 
         if group_by == RESOURCES['COURSE']:
-            unique_courses = ExerciseSubmission.objects.filter(Q(searchField__icontains=searchField.lower()), status=status).values_list('course', flat=True).distinct().order_by()
+            unique_courses = ExerciseSubmission.objects.filter(status=status).values_list('course', flat=True).distinct().order_by()
+            if searchField is not None:
+                filter=Q(searchField__icontains=searchField.lower())
+                unique_courses = unique_courses.filter(filter)                                  
             for course_id in unique_courses:
                 course = Course.objects.get(pk=course_id)
-                count = ExerciseSubmission.objects.all().filter(Q(searchField__icontains=searchField.lower()),course=course, status=status).count()
+                submissions = ExerciseSubmission.objects.all().filter(course=course, status=status)
+                if searchField is not None:
+                    filter=Q(searchField__icontains=searchField.lower())
+                    submissions = submissions.filter(filter)
+                count = submissions.count()
                 card = ExerciseSubmissionGroup(id=course_id, type=group_by, title=course.title, subtitle=course.blurb, count=count)
-                groups.append(card)                
+                groups.append(card)
 
         if offset is not None:
             groups = groups[offset:]
