@@ -666,7 +666,7 @@ class Query(ObjectType):
             unique_exercises = ExerciseSubmission.objects.filter(Q(searchField__icontains=searchField.lower()),status=status ).values_list('exercise', flat=True).distinct().order_by()
             for exercise_id in unique_exercises:
                 exercise = Exercise.objects.get(pk=exercise_id)
-                count = ExerciseSubmission.objects.all().filter(exercise=exercise, status=status).count()
+                count = ExerciseSubmission.objects.all().filter(Q(searchField__icontains=searchField.lower()),exercise=exercise, status=status).count()
                 card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise.prompt, subtitle=exercise.course.title, count=count)
                 groups.append(card)
         
@@ -675,14 +675,14 @@ class Query(ObjectType):
             for chapter_id in unique_chapters:
                 chapter = Chapter.objects.get(pk=chapter_id)
                 count = ExerciseSubmission.objects.all().filter(chapter=chapter, status=status).count()
-                card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter.title, subtitle=chapter.course.title, count=count)
+                card = ExerciseSubmissionGroup(Q(searchField__icontains=searchField.lower()),id=chapter_id, type=group_by, title=chapter.title, subtitle=chapter.course.title, count=count)
                 groups.append(card)        
 
         if group_by == RESOURCES['COURSE']:
             unique_courses = ExerciseSubmission.objects.filter(Q(searchField__icontains=searchField.lower()), status=status).values_list('course', flat=True).distinct().order_by()
             for course_id in unique_courses:
                 course = Course.objects.get(pk=course_id)
-                count = ExerciseSubmission.objects.all().filter(course=course, status=status).count()
+                count = ExerciseSubmission.objects.all().filter(Q(searchField__icontains=searchField.lower()),course=course, status=status).count()
                 card = ExerciseSubmissionGroup(id=course_id, type=group_by, title=course.title, subtitle=course.blurb, count=count)
                 groups.append(card)                
 
