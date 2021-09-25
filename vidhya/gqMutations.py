@@ -1614,7 +1614,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             # Adding institution, participant and grader
             searchField += institution.lower() if institution.lower() not in searchField else ""
             searchField += participant.lower() if participant.lower() not in searchField else ""
-            # searchField += grader.lower() if grader.lower() not in searchField else ""
+            searchField += grader.lower() if grader.lower() not in searchField else ""
             exercise_submission_instance.searchField = searchField.lower()
 
 
