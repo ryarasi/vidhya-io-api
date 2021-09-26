@@ -4,7 +4,7 @@ from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from vidhya.models import CompletedChapters, CompletedCourses, MandatoryChapters, MandatoryRequiredCourses, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from django.db import models
-
+from common.authorization import USER_ROLES_NAMES
 ##############
 # Query Types
 ##############
@@ -73,8 +73,13 @@ class ChapterType(DjangoObjectType):
     def resolve_locked(self, info):
         locked = False
         user = info.context.user
-        # Checking if the user is the author of the course
-        if self.course.instructor.id == user.id:
+
+        # Letting the user see it if they are a grader
+        user_role = user.role.name;
+        grader = user_role == USER_ROLES_NAMES['GRADER']
+
+        # Checking if the user is the author of the course or a grader
+        if self.course.instructor.id == user.id or grader:
             # If yes, we mark it as unlocked
             locked = False
             return locked

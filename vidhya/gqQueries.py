@@ -507,15 +507,8 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
     def resolve_chapter(root, info, id, **kwargs):
-        current_user = info.context.user
         chapter_instance = Chapter.objects.get(pk=id, active=True)
         locked = ChapterType.resolve_locked(chapter_instance, info)
-        print('locked', locked)
-        # Letting the user see it if they are a grader
-        user_role = current_user.role.name;
-        grader = user_role == USER_ROLES_NAMES['GRADER']
-        locked = locked and not grader
-        print('locked after processing grader', locked, grader)
         if locked:
             raise GraphQLError('The chapter you requested is locked for you. Please complete the prerequisites.')
         if chapter_instance is not None:
