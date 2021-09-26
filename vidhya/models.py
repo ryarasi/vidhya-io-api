@@ -271,7 +271,7 @@ class CourseSection(models.Model):
 
 class Chapter(models.Model):
     title = models.CharField(max_length=80)
-    instructions = models.CharField(max_length=1000)
+    instructions = models.CharField(max_length=2000)
     index = models.IntegerField(default=100)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     section = models.ForeignKey(
@@ -375,7 +375,7 @@ class ExerciseSubmission(models.Model):
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.PENDING)
     flagged = models.BooleanField(default=False)
     grader = models.ForeignKey(User, related_name="grader", blank=True, null=True, on_delete=models.DO_NOTHING)
-    remarks = models.CharField(max_length=200, blank=True, null=True)
+    remarks = models.CharField(max_length=1000, blank=True, null=True)
     criteriaSatisfied = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
     active = models.BooleanField(default=True)
     searchField = models.CharField(max_length=1000, blank=True, null=True)
