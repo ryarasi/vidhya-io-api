@@ -5,7 +5,8 @@ USER_ROLES_NAMES = {
     'INSTITUTION_ADMIN': 'Institution Admin',
     'CLASS_ADMIN': 'Class Admin',
     'LEARNER': 'Learner',
-    'CLASS_ADMIN_LEARNER': 'Class Admin Learner'
+    'CLASS_ADMIN_LEARNER': 'Class Admin Learner',
+    'GRADER': 'Grader'
 }
 
 RESOURCES = {
