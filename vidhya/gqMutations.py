@@ -1501,7 +1501,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             raise GraphQLError(error)
 
 
-    def process_submission(submission, grading, current_user):
+    def process_submission(submission, grading):
         autograded = False
         exercise = Exercise.objects.get(pk=submission.exercise_id, active=True)       
         try:
@@ -1510,7 +1510,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             exercise_key = ExerciseKey(exercise_id=exercise.id, chapter_id=exercise.chapter.id, course_id=exercise.course.id)
             exercise_key.save()
             pass
-        status = ExerciseSubmission.StatusChoices.SUBMITTED if not grading else submission.status
+        status = ExerciseSubmission.StatusChoices.SUBMITTED if grading != True  else submission.status
         points = submission.points if submission.points is not None else 0
         remarks = submission.remarks if submission.remarks is not None else None
         if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
@@ -1581,7 +1581,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             autograded = False
 
             # Processing the indivdual submission
-            processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading, current_user)
+            processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading)
             submission = processed_submission['submission']
             autograded = processed_submission['autograded']
             searchField = processed_submission['searchField']
