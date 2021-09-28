@@ -58,11 +58,13 @@ class AssignmentType(graphene.ObjectType):
 
 class PublicUserType(graphene.ObjectType):
     id = graphene.ID()
+    username = graphene.String()
     name = graphene.String()
     title = graphene.String()
     bio = graphene.String()
     avatar = graphene.String()
-    institution = graphene.String()
+    institution = graphene.Field(InstitutionType)
+    courses = graphene.List(ReportType)
 
 
 class PublicUsers(graphene.ObjectType):
@@ -77,6 +79,7 @@ class Query(ObjectType):
         Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     user = graphene.Field(UserType, id=graphene.ID())
+    user_by_username = graphene.Field(PublicUserType, username=graphene.String())
     users = graphene.Field(
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
 
@@ -200,6 +203,19 @@ class Query(ObjectType):
             return None
 
 
+    def resolve_user_by_username(root, info, username, **kwargs):
+        user = None
+        try:
+            user = User.objects.get(username=username, active=True)
+        except:
+            raise GraphQLError('User does not exist!')
+        courses = Report.objects.filter(active=True, participant_id=user.id)
+        if user is not None:
+            new_user = PublicUserType(id=user.id, username=user.username, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution, courses=courses)
+            return new_user      
+        else:
+            return None
+
     def process_users(root, info, searchField=None, all_institutions=False, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
         current_user = info.context.user
         institution_id = None
@@ -285,7 +301,7 @@ class Query(ObjectType):
         public_users = []
         # This is to limit the fields in the User model that we are exposing in this GraphQL query
         for user in records:
-            new_user = PublicUserType(id=user.id, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution.name)
+            new_user = PublicUserType(id=user.id, username=user.username, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution)
             public_users.append(new_user)
         results = PublicUsers(records=public_users, total=total)
         return results
