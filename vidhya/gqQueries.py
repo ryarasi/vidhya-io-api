@@ -65,6 +65,7 @@ class PublicUserType(graphene.ObjectType):
     avatar = graphene.String()
     institution = graphene.Field(InstitutionType)
     courses = graphene.List(ReportType)
+    score = graphene.Int()
 
 
 class PublicUsers(graphene.ObjectType):
@@ -301,7 +302,11 @@ class Query(ObjectType):
         public_users = []
         # This is to limit the fields in the User model that we are exposing in this GraphQL query
         for user in records:
-            new_user = PublicUserType(id=user.id, username=user.username, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution)
+            courses = Report.objects.filter(active=True, participant_id=user.id)
+            score = 0
+            for course in courses:
+                score += course.completed * course.percentage
+            new_user = PublicUserType(id=user.id, username=user.username, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution, score=score)
             public_users.append(new_user)
         results = PublicUsers(records=public_users, total=total)
         return results
