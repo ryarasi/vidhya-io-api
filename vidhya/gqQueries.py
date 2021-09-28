@@ -270,6 +270,10 @@ class Query(ObjectType):
 
         qs = User.objects.all().filter(active=True).order_by('-id')
 
+        for user in qs:
+            print('user role => ', user.role)
+
+        print('From resolve_public_users users => ', qs, 'roles => ', roles, 'membership_status_is => ', membership_status_is, 'limit => ', limit, 'offset => ', offset)
 
         if searchField is not None:
             filter = (
@@ -281,10 +285,10 @@ class Query(ObjectType):
             qs = qs.exclude(membership_status__in=membership_status_not)
 
         if bool(membership_status_is):
-            qs = qs.filter(~Q(membership_status__in=membership_status_is))
+            qs = qs.filter(membership_status__in=membership_status_is)
         if roles:
             qs = qs.filter(role__in=roles)
-
+            
         redacted_qs = []
 
         # Replacing the user avatar if the requesting user is not of the same institution and is not a super admin
@@ -294,6 +298,7 @@ class Query(ObjectType):
             redacted_qs.append(user)
 
         total = len(redacted_qs)
+        print('Redacted qs ', redacted_qs, total)
 
         if offset is not None:
             redacted_qs = redacted_qs[offset:]
@@ -302,7 +307,7 @@ class Query(ObjectType):
             redacted_qs = redacted_qs[:limit]
 
         public_users = []
-        for user in qs:
+        for user in redacted_qs:
             new_user = PublicUserType(id=user.id, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution.name)
             public_users.append(new_user)
         results = PublicUsers(records=public_users, total=total)
