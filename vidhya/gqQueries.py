@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
@@ -199,18 +200,26 @@ class Query(ObjectType):
             return None
 
 
-    def process_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
+    def process_users(root, info, searchField=None, all_institutions=False, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        current_user_role_name = current_user.role.name
-        admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
+        institution_id = None
+        print('Current user ', current_user)
+        if current_user.is_anonymous:
+            admin_user = False            
+            print('current user is anonymous')
+        else:
+            institution_id = current_user.institution.id
+            current_user_role_name = current_user.role.name
+            admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
 
-        if admin_user:
+        if admin_user or all_institutions == True:
             # if the user is super user then they
             qs = User.objects.all().filter(active=True).order_by('-id')
         else:
             # If the user is not a super user, we filter the users by institution
             qs = User.objects.all().filter(
-                active=True, institution_id=current_user.institution.id).order_by('-id')
+                active=True, institution_id=institution_id).order_by('-id')
+
 
         if searchField is not None:
             filter = (
@@ -218,10 +227,10 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
 
-        if bool(membership_status_not):
+        if membership_status_not:
             qs = qs.exclude(membership_status__in=membership_status_not)
 
-        if bool(membership_status_is):
+        if membership_status_is:
             qs = qs.filter(membership_status__in=membership_status_is)
         if roles:
             qs = qs.filter(role__in=roles)
@@ -232,7 +241,7 @@ class Query(ObjectType):
         else:
             # Replacing the user avatar if the requesting user is not of the same institution and is not a super admin
             for user in qs:
-                if user.institution_id != current_user.institution_id:
+                if user.institution_id != institution_id:
                     user.avatar = settings.DEFAULT_AVATARS['USER']
                 redacted_qs.append(user)
         
@@ -262,52 +271,20 @@ class Query(ObjectType):
 
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
-        qs = Query.process_users(root, info, searchField, membership_status_not, membership_status_is, roles, limit, offset, **kwargs)
+        all_institutions=False
+        qs = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, limit, offset, **kwargs)
         return qs
 
     def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):   
-        current_user = info.context.user
+        all_institutions=True
+        results = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, limit, offset, **kwargs)
 
-        qs = User.objects.all().filter(active=True).order_by('-id')
-
-        for user in qs:
-            print('user role => ', user.role)
-
-        print('From resolve_public_users users => ', qs, 'roles => ', roles, 'membership_status_is => ', membership_status_is, 'limit => ', limit, 'offset => ', offset)
-
-        if searchField is not None:
-            filter = (
-                Q(searchField__icontains=searchField.lower()) | Q(username__icontains=searchField.lower())
-            )
-            qs = qs.filter(filter)
-
-        if bool(membership_status_not):
-            qs = qs.exclude(membership_status__in=membership_status_not)
-
-        if bool(membership_status_is):
-            qs = qs.filter(membership_status__in=membership_status_is)
-        if roles:
-            qs = qs.filter(role__in=roles)
-            
-        redacted_qs = []
-
-        # Replacing the user avatar if the requesting user is not of the same institution and is not a super admin
-        for user in qs:
-            if user.institution_id != current_user.institution_id:
-                user.avatar = settings.DEFAULT_AVATARS['USER']
-            redacted_qs.append(user)
-
-        total = len(redacted_qs)
-        print('Redacted qs ', redacted_qs, total)
-
-        if offset is not None:
-            redacted_qs = redacted_qs[offset:]
-
-        if limit is not None:
-            redacted_qs = redacted_qs[:limit]
+        records = results.records
+        total = results.total
 
         public_users = []
-        for user in redacted_qs:
+        # This is to limit the fields in the User model that we are exposing in this GraphQL query
+        for user in records:
             new_user = PublicUserType(id=user.id, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution.name)
             public_users.append(new_user)
         results = PublicUsers(records=public_users, total=total)
