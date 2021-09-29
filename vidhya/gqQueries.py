@@ -217,13 +217,13 @@ class Query(ObjectType):
         else:
             return None
 
-    def process_users(root, info, searchField=None, all_institutions=False, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
+    def process_users(root, info, searchField=None, all_institutions=False, membership_status_not=[], membership_status_is=[], roles=[], unpaginated = False, limit=None, offset=None, **kwargs):
         current_user = info.context.user
         institution_id = None
-        print('Current user ', current_user)
+        
         if current_user.is_anonymous:
-            admin_user = False            
-            print('current user is anonymous')
+            admin_user = False       
+
         else:
             institution_id = current_user.institution.id
             current_user_role_name = current_user.role.name
@@ -277,6 +277,11 @@ class Query(ObjectType):
         
         total = len(sorted_qs)
 
+        if unpaginated == True:
+            results = Users(records=sorted_qs, total=total)
+            return results
+            
+
         if offset is not None:
             sorted_qs = sorted_qs[offset:]
 
@@ -289,17 +294,20 @@ class Query(ObjectType):
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
         all_institutions=False
-        qs = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, limit, offset, **kwargs)
+        unpaginated = False
+        qs = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset, **kwargs)
         return qs
 
     def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):   
         all_institutions=True
-        results = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, limit, offset, **kwargs)
+        unpaginated = True        
+        results = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset, **kwargs)
 
         records = results.records
         total = results.total
 
         public_users = []
+        
         # This is to limit the fields in the User model that we are exposing in this GraphQL query
         for user in records:
             courses = Report.objects.filter(active=True, participant_id=user.id)
@@ -308,6 +316,14 @@ class Query(ObjectType):
                 score += course.completed * course.percentage
             new_user = PublicUserType(id=user.id, username=user.username, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution, score=score)
             public_users.append(new_user)
+
+        public_users.sort(key=lambda x: x.score, reverse=True) # Sorting the results by score before proceeding with pagination
+
+        if offset is not None:
+            public_users = public_users[offset:]
+
+        if limit is not None:
+            public_users = public_users[:limit]
         results = PublicUsers(records=public_users, total=total)
         return results
 
