@@ -539,16 +539,16 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_chapters(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        status = Course.StatusChoices.PUBLISHED
+        published = Course.StatusChoices.PUBLISHED
         if has_access(current_user, RESOURCES['CHAPTER'], ACTIONS['CREATE']):
             qs = Chapter.objects.all().filter(active=True).order_by('index')
         else:
-            qs = Chapter.objects.all().filter(active=True, status=status).order_by('index')
+            qs = Chapter.objects.all().filter(active=True, status=published).order_by('index')
 
         
         if course_id is not None:
             try:
-                course = Course.objects.get( Q(status=Course.StatusChoices.PUBLISHED) | Q(instructor_id=current_user.id),pk=course_id, active=True )
+                course = Course.objects.get( Q(status=published) | Q(instructor_id=current_user.id),pk=course_id, active=True )
             except:
                 raise GraphQLError('Course unavailable')            
             filter = (
