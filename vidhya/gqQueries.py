@@ -122,7 +122,7 @@ class Query(ObjectType):
     exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
-    submissions_history = graphene.List(SubmissionHistoryType, exercise_id=graphene.ID(), participant_id=graphene.ID())
+    submission_history = graphene.List(SubmissionHistoryType, exercise_id=graphene.ID(), participant_id=graphene.ID())
 
     exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     assignments = graphene.List(AssignmentType, status=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
@@ -681,10 +681,10 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['LIST']))
-    def resolve_submissions_history(root, info, exercise_id=None, participant_id=None):
+    def resolve_submission_history(root, info, exercise_id=None, participant_id=None):
         qs = []
         if exercise_id and participant_id:
-            qs = SubmissionHistory.objects.filter(exercise_id=exercise_id, participant_id=participant_id, active=True)
+            qs = SubmissionHistory.objects.filter(exercise_id=exercise_id, participant_id=participant_id, active=True).order_by('-id')
         return qs
 
     @login_required

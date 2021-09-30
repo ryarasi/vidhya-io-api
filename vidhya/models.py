@@ -395,7 +395,7 @@ class SubmissionHistory(models.Model):
     status = models.CharField(
         max_length=2, choices=ExerciseSubmission.StatusChoices.choices, default=ExerciseSubmission.StatusChoices.PENDING)
     flagged = models.BooleanField(default=False)
-    grader = models.ForeignKey(User, related_name="grader", blank=True, null=True, on_delete=models.DO_NOTHING)
+    grader = models.ForeignKey(User, related_name="grader_past", blank=True, null=True, on_delete=models.DO_NOTHING)
     remarks = models.CharField(max_length=1000, blank=True, null=True)
     criteriaSatisfied = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
     active = models.BooleanField(default=True)

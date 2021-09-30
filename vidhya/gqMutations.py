@@ -1554,7 +1554,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         exercise_submission_instance.percentage = submission.percentage if submission.percentage is not None else exercise_submission_instance.percentage
         exercise_submission_instance.status = submission.status if submission.status is not None else exercise_submission_instance.status
         exercise_submission_instance.criteriaSatisfied = submission.criteriaSatisfied if submission.criteriaSatisfied is not None else exercise_submission_instance.criteriaSatisfied
-        exercise_submission_instance.remarks = submission.remarks if submission.remarks is not None else exercise_submission_instance.remarks
+        exercise_submission_instance.remarks = submission.remarks 
         exercise_submission_instance.flagged = submission.flagged if submission.flagged is not None else exercise_submission_instance.flagged
         exercise_submission_instance.grader_id = grader_id
         exercise_submission_instance.searchField = searchField    
