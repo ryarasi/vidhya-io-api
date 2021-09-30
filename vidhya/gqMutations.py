@@ -1512,7 +1512,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             pass
         status = ExerciseSubmission.StatusChoices.SUBMITTED if grading != True  else submission.status
         points = submission.points if submission.points is not None else 0
-        remarks = submission.remarks if submission.remarks is not None else None
+        remarks = None if grading != True else submission.remarks
         if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
             if exercise_key.valid_answers:
                 if submission.answer in exercise_key.valid_answers:
