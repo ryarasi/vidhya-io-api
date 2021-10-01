@@ -382,6 +382,26 @@ class ExerciseSubmission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+class SubmissionHistory(models.Model):
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
+    option = models.CharField(
+        max_length=200, blank=True, null=True)
+    answer = models.CharField(max_length=500, blank=True, null=True)
+    link = models.CharField(max_length=5000, blank=True, null=True)
+    images = ArrayField(models.CharField(
+        max_length=200, blank=True), blank=True, null=True)
+
+    status = models.CharField(
+        max_length=2, choices=ExerciseSubmission.StatusChoices.choices, default=ExerciseSubmission.StatusChoices.PENDING)
+    flagged = models.BooleanField(default=False)
+    grader = models.ForeignKey(User, related_name="grader_past", blank=True, null=True, on_delete=models.DO_NOTHING)
+    remarks = models.CharField(max_length=1000, blank=True, null=True)
+    criteriaSatisfied = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
+    active = models.BooleanField(default=True)
+    searchField = models.CharField(max_length=1000, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)    
 
 class Report(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)

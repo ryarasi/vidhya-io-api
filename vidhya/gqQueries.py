@@ -2,9 +2,9 @@ from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import Institution, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
+from vidhya.models import Institution, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS
 from django.conf import settings
 from graphql import GraphQLError
@@ -121,6 +121,8 @@ class Query(ObjectType):
         ExerciseSubmissionType, id=graphene.ID())
     exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
+
+    submission_history = graphene.List(SubmissionHistoryType, exercise_id=graphene.ID(), participant_id=graphene.ID())
 
     exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     assignments = graphene.List(AssignmentType, status=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
@@ -539,16 +541,16 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_chapters(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        status = Course.StatusChoices.PUBLISHED
+        published = Course.StatusChoices.PUBLISHED
         if has_access(current_user, RESOURCES['CHAPTER'], ACTIONS['CREATE']):
             qs = Chapter.objects.all().filter(active=True).order_by('index')
         else:
-            qs = Chapter.objects.all().filter(active=True, status=status).order_by('index')
+            qs = Chapter.objects.all().filter(active=True, status=published).order_by('index')
 
         
         if course_id is not None:
             try:
-                course = Course.objects.get( Q(status=Course.StatusChoices.PUBLISHED) | Q(instructor_id=current_user.id),pk=course_id, active=True )
+                course = Course.objects.get( Q(status=published) | Q(instructor_id=current_user.id),pk=course_id, active=True )
             except:
                 raise GraphQLError('Course unavailable')            
             filter = (
@@ -676,6 +678,15 @@ class Query(ObjectType):
             qs = qs[:limit]
 
         return qs
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['LIST']))
+    def resolve_submission_history(root, info, exercise_id=None, participant_id=None):
+        qs = []
+        if exercise_id and participant_id:
+            qs = SubmissionHistory.objects.filter(exercise_id=exercise_id, participant_id=participant_id, active=True).order_by('-id')
+        return qs
+
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
     def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
