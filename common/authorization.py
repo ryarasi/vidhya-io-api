@@ -46,3 +46,17 @@ def has_access(user=None, resource=None, action=None, silent=True):
     if result is False and silent is False:
         raise GraphQLError('You are not authorized to access this resource')
     return result
+
+def redact_user(root, info, user):
+    current_user = info.context.user
+    redact = False
+    if current_user.is_anonymous:
+        redact = True # We redact the user if the current user is not logged in
+    elif current_user.institution:
+        if user.institution_id != current_user.institution.id:
+            redact = True # We redact the user's info if the current user is not of the same institution
+            
+    if redact == True:
+        user.avatar = settings.DEFAULT_AVATARS['USER']
+
+    return user
