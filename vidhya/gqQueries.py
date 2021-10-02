@@ -5,10 +5,11 @@ from graphql_jwt.decorators import login_required, user_passes_test
 from vidhya.models import Institution, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
 from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
-from common.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS
+from common.authorization import USER_ROLES_NAMES, has_access, redact_user, RESOURCES, ACTIONS
 from django.conf import settings
 from graphql import GraphQLError
 
+    
 class Users(graphene.ObjectType):
     records = graphene.List(UserType)
     total = graphene.Int()
@@ -201,6 +202,7 @@ class Query(ObjectType):
     def resolve_user(root, info, id, **kwargs):
         user_instance = User.objects.get(pk=id, active=True)
         if user_instance is not None:
+            user_instance = redact_user(user_instance)
             return user_instance
         else:
             return None
@@ -214,6 +216,7 @@ class Query(ObjectType):
             raise GraphQLError('User does not exist!')
         courses = Report.objects.filter(active=True, participant_id=user.id)
         if user is not None:
+            user = redact_user(user)
             new_user = PublicUserType(id=user.id, username=user.username, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution, courses=courses)
             return new_user      
         else:
@@ -260,8 +263,7 @@ class Query(ObjectType):
         else:
             # Replacing the user avatar if the requesting user is not of the same institution and is not a super admin
             for user in qs:
-                if user.institution_id != institution_id:
-                    user.avatar = settings.DEFAULT_AVATARS['USER']
+                user = redact_user(user)
                 redacted_qs.append(user)
         
         pending = []
