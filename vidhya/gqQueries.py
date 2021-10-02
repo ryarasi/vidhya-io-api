@@ -202,7 +202,7 @@ class Query(ObjectType):
     def resolve_user(root, info, id, **kwargs):
         user_instance = User.objects.get(pk=id, active=True)
         if user_instance is not None:
-            user_instance = redact_user(user_instance)
+            user_instance = redact_user(root, info, user_instance)
             return user_instance
         else:
             return None
@@ -216,7 +216,7 @@ class Query(ObjectType):
             raise GraphQLError('User does not exist!')
         courses = Report.objects.filter(active=True, participant_id=user.id)
         if user is not None:
-            user = redact_user(user)
+            user = redact_user(root, info, user)
             new_user = PublicUserType(id=user.id, username=user.username, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution, courses=courses)
             return new_user      
         else:
@@ -263,7 +263,7 @@ class Query(ObjectType):
         else:
             # Replacing the user avatar if the requesting user is not of the same institution and is not a super admin
             for user in qs:
-                user = redact_user(user)
+                user = redact_user(root, info, user)
                 redacted_qs.append(user)
         
         pending = []
