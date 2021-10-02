@@ -1,4 +1,5 @@
 from graphql import GraphQLError
+from django.conf import settings
 
 USER_ROLES_NAMES = {
     'SUPER_ADMIN': 'Super Admin',
