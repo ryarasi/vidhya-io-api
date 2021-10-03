@@ -391,7 +391,8 @@ class SubmissionHistory(models.Model):
     link = models.CharField(max_length=5000, blank=True, null=True)
     images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
-
+    points = models.DecimalField(
+        max_digits=4, decimal_places=1, blank=True, null=True)
     status = models.CharField(
         max_length=2, choices=ExerciseSubmission.StatusChoices.choices, default=ExerciseSubmission.StatusChoices.PENDING)
     flagged = models.BooleanField(default=False)
