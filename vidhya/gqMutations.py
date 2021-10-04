@@ -514,7 +514,7 @@ class CreateGroup(graphene.Mutation):
         searchField += input.description if input.description is not None else ""
         searchField = searchField.lower()
 
-        group_instance = Group(name=input.name, avatar=input.avatar, description=input.description,
+        group_instance = Group(name=input.name, avatar=input.avatar, description=input.description, group_type=input.group_type,
                                institution_id=input.institution_id, searchField=searchField)
         group_instance.save()
 
@@ -563,7 +563,7 @@ class UpdateGroup(graphene.Mutation):
             group_instance.description = input.description if input.description is not None else group.description
             group_instance.institution_id = input.institution_id if input.institution_id is not None else group.institution_id
             group_instance.avatar = input.avatar if input.avatar is not None else group.avatar
-
+            group_instance.group_type = input.group_type if input.group_type is not None else group.group_type
             searchField = group_instance.name if group_instance.name is not None else ""
             searchField += group_instance.description if group_instance.description is not None else ""
             group_instance.searchField = searchField.lower()
@@ -1760,6 +1760,34 @@ class CreateReport(graphene.Mutation):
             payload=payload)
         return CreateReport(ok=ok, report=report_instance)
 
+class PatchReportsSearchFields(graphene.Mutation):
+    class Meta:
+        description = "Mutation to patch searchFields of all reports"
+
+    class Arguments:
+        pass
+
+    ok = graphene.Boolean()
+    reports_count = graphene.Int()
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
+    def mutate(root, info):
+        ok = False
+
+        all_reports = Report.objects.filter(active=True)
+        total_count = all_reports.count()
+        processed_count = 0
+        for report_instance in all_reports:
+            # Generating a global searchField
+            report_instance = UpdateReport.generate_searchfield(report_instance)
+
+            report_instance.save()
+            processed_count += 1
+
+        ok = True if processed_count == total_count else False
+        return PatchReportsSearchFields(ok=ok, reports_count=processed_count)    
 
 class UpdateReport(graphene.Mutation):
     class Meta:
@@ -1771,6 +1799,19 @@ class UpdateReport(graphene.Mutation):
 
     ok = graphene.Boolean()
     report = graphene.Field(ReportType)
+
+    def generate_searchfield(report):
+        participant = report.participant
+        searchField = report.participant.name if participant else ""
+        institution = report.institution
+        searchField += report.institution.name if institution else "" 
+        course = report.course
+        searchField += report.course.title if course else ""
+        searchField += str(report.completed) if report.completed else ""
+        searchField += str(report.percentage) if report.percentage else ""
+        searchField = searchField.lower()
+        report.searchField = searchField
+        return report
 
     def remove_duplicate_submissions(all_submissions):
         unique_submissions = []
@@ -1829,6 +1870,8 @@ class UpdateReport(graphene.Mutation):
                     participant = User.objects.all().get(pk=participant_id)
                     report_instance = Report(participant_id=participant_id, course_id=course_id, institution_id=participant.institution.id,
                                         completed=completed, percentage=percentage)
+                # Generating searchField
+                report_instance = UpdateReport.generate_searchfield(report_instance)
 
                 report_instance.save()
                 payload = {"report": report_instance,
@@ -2210,3 +2253,4 @@ class Mutation(graphene.ObjectType):
     reorder_exercises = ReorderExercises.Field()
     reorder_course_sections = ReorderCourseSections.Field()
     patch_exercise_submissions_searchFields = PatchExerciseSubmissionsSearchFields.Field()
+    patch_reports_searchFields = PatchReportsSearchFields.Field()
