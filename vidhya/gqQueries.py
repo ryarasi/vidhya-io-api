@@ -22,6 +22,10 @@ class Institutions(graphene.ObjectType):
     records = graphene.List(InstitutionType)
     total = graphene.Int()
 
+class Reports(graphene.ObjectType):
+    records = graphene.List(ReportType)
+    total = graphene.Int()
+
 class ActiveChats(graphene.ObjectType):
     chats = graphene.List(ChatType)
     groups = graphene.List(GroupType)
@@ -134,7 +138,7 @@ class Query(ObjectType):
     ), limit=graphene.Int(), offset=graphene.Int())
 
     report = graphene.Field(ReportType, id=graphene.ID())
-    reports = graphene.List(ReportType, participant_id=graphene.ID(), course_id=graphene.ID(), institution_id=graphene.ID(), searchField=graphene.String(
+    reports = graphene.Field(Reports, participant_id=graphene.ID(), course_id=graphene.ID(), institution_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     chat = graphene.Field(ChatType, id=graphene.ID())
@@ -883,7 +887,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['LIST']))
     def resolve_reports(root, info, participant_id=None, course_id=None, institution_id=None, searchField=None, limit=None, offset=None, **kwargs):
 
-        qs = Report.objects.all().filter(active=True).order_by('-id')
+        qs = Report.objects.all().filter(active=True).order_by('-completed')
 
         if participant_id is not None:
             filter = (
@@ -909,13 +913,17 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
 
+        total = len(qs)
+        # Sorting according to completion
+
         if offset is not None:
             qs = qs[offset:]
 
         if limit is not None:
             qs = qs[:limit]
 
-        return qs
+        result = Reports(records= qs,total= total )
+        return result
 
     @login_required
     def resolve_chat(root, info, id, **kwargs):
