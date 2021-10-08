@@ -48,6 +48,19 @@ def has_access(user=None, resource=None, action=None, silent=True):
         raise GraphQLError('You are not authorized to access this resource')
     return result
 
+def is_admin_user(info):
+    current_user = info.context.user
+    admin_user = False
+
+    try:
+        if not current_user.is_anonmous:
+            current_user_role_name = current_user.role.name
+            admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
+    except:
+        admin_user = False
+        pass
+
+    return admin_user
 def redact_user(root, info, user):
     current_user = info.context.user
     redact = True
@@ -65,3 +78,4 @@ def redact_user(root, info, user):
         user.avatar = settings.DEFAULT_AVATARS['USER']
 
     return user
+
