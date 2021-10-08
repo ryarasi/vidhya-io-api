@@ -379,8 +379,7 @@ class Query(ObjectType):
         current_user = info.context.user
         admin_user = is_admin_user(info)
         if admin_user:
-            qs = Group.objects.all().filter(
-            active=True).order_by('-id')
+            qs = Group.objects.all().filter(active=True).order_by('-id')
         else:
             qs = Group.objects.all().filter(
                 Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).distinct().order_by('-id')
