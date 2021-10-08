@@ -239,7 +239,7 @@ class Query(ObjectType):
             admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
 
         if admin_user or all_institutions == True:
-            # if the user is super user then they
+            # if the user is super user then they see users from all institutions
             qs = User.objects.all().filter(active=True).order_by('-id')
         else:
             # If the user is not a super user, we filter the users by institution

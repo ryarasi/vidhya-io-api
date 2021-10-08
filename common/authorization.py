@@ -50,12 +50,16 @@ def has_access(user=None, resource=None, action=None, silent=True):
 
 def redact_user(root, info, user):
     current_user = info.context.user
-    redact = False
-    if current_user.is_anonymous:
-        redact = True # We redact the user if the current user is not logged in
-    elif current_user.institution:
-        if user.institution_id != current_user.institution.id:
-            redact = True # We redact the user's info if the current user is not of the same institution
+    redact = True
+
+    if not current_user.is_anonymous:
+        current_user_role_name = current_user.role.name
+        admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
+        if admin_user:
+            redact = False # We never redact for the super admin user
+        if current_user.institution:
+            if user.institution_id == current_user.institution.id:
+                redact = False # We redact the user's info if the current user is not of the same institution
             
     if redact == True:
         user.avatar = settings.DEFAULT_AVATARS['USER']
