@@ -5,8 +5,7 @@ from graphql_jwt.decorators import login_required, user_passes_test
 from vidhya.models import Institution, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
 from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
-from common.authorization import USER_ROLES_NAMES, has_access, redact_user, RESOURCES, ACTIONS
-from django.conf import settings
+from common.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS
 from graphql import GraphQLError
 
     
@@ -175,7 +174,7 @@ class Query(ObjectType):
     def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
         current_user_role_name = current_user.role.name
-        admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
+        admin_user = is_admin_user(info)
 
         if admin_user:
             # if the user is super user then they
@@ -227,19 +226,12 @@ class Query(ObjectType):
             return None
 
     def process_users(root, info, searchField=None, all_institutions=False, membership_status_not=[], membership_status_is=[], roles=[], unpaginated = False, limit=None, offset=None, **kwargs):
-        current_user = info.context.user
         institution_id = None
         
-        if current_user.is_anonymous:
-            admin_user = False       
-
-        else:
-            institution_id = current_user.institution.id
-            current_user_role_name = current_user.role.name
-            admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
+        admin_user = is_admin_user(info)
 
         if admin_user or all_institutions == True:
-            # if the user is super user then they
+            # if the user is super user then they see users from all institutions
             qs = User.objects.all().filter(active=True).order_by('-id')
         else:
             # If the user is not a super user, we filter the users by institution
@@ -262,6 +254,7 @@ class Query(ObjectType):
             qs = qs.filter(role__in=roles)
 
         redacted_qs = []
+
         if admin_user:
             redacted_qs = qs
         else:
@@ -384,8 +377,13 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['LIST']))
     def resolve_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        qs = Group.objects.all().filter(
-            Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).distinct().order_by('-id')
+        admin_user = is_admin_user(info)
+        if admin_user:
+            qs = Group.objects.all().filter(
+            active=True).order_by('-id')
+        else:
+            qs = Group.objects.all().filter(
+                Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).distinct().order_by('-id')
 
         if searchField is not None:
             filter = (
