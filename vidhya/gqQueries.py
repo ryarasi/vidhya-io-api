@@ -701,7 +701,7 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
     def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
-        groups = []
+        groups = [] 
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
             unique_exercises = ExerciseSubmission.objects.filter(status=status ).values_list('exercise', flat=True).distinct().order_by()
@@ -714,8 +714,19 @@ class Query(ObjectType):
                 if searchField is not None:
                     filter=Q(searchField__icontains=searchField.lower())
                     submissions = submissions.filter(filter)
-                count = submissions.count()                                
-                card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise.prompt, subtitle=exercise.course.title, count=count)
+                count = submissions.count()                         
+
+                # Generating exercise title
+                section_index = ''
+                section = exercise.section
+                if section:
+                    section_index = str(section.index) +'.' if section.index else ''
+                chapter = exercise.chapter
+                chapter_index = str(chapter.index) +'.' if chapter.index else ''
+                exercise_index = str(exercise.index) + ' ' if exercise.index else ''
+                exercise_prompt = section_index + chapter_index + exercise_index + exercise.prompt
+
+                card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise_prompt, subtitle=exercise.course.title, count=count)
                 groups.append(card)
         
         if group_by == RESOURCES['CHAPTER']:
@@ -729,8 +740,17 @@ class Query(ObjectType):
                 if searchField is not None:
                     filter=Q(searchField__icontains=searchField.lower())
                     submissions = submissions.filter(filter)
-                count = submissions.count()                
-                card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter.title, subtitle=chapter.course.title, count=count)
+                count = submissions.count()    
+
+                # Generating chapter title
+                section_index = ''
+                section = chapter.section
+                if section:
+                    section_index = str(section.index) +'.' if section.index else ''
+                chapter_index = str(chapter.index) +' ' if chapter.index else ''
+                chapter_title = section_index + chapter_index + chapter.title
+
+                card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter_title, subtitle=chapter.course.title, count=count)
                 groups.append(card)        
 
         if group_by == RESOURCES['COURSE']:
