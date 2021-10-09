@@ -53,7 +53,7 @@ def is_admin_user(info):
     admin_user = False
 
     try:
-        if not current_user.is_anonmous:
+        if not current_user.is_anonymous:
             current_user_role_name = current_user.role.name
             admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
     except:
@@ -66,8 +66,7 @@ def redact_user(root, info, user):
     redact = True
 
     if not current_user.is_anonymous:
-        current_user_role_name = current_user.role.name
-        admin_user = current_user_role_name == USER_ROLES_NAMES["SUPER_ADMIN"]
+        admin_user = is_admin_user(info)
         if admin_user:
             redact = False # We never redact for the super admin user
         if current_user.institution:
