@@ -76,70 +76,102 @@ class PublicUsers(graphene.ObjectType):
     records = graphene.List(PublicUserType)
     total = graphene.Int()
 
+class PublicInstitutionType(graphene.ObjectType):
+    id = graphene.ID()
+    name = graphene.String()
+    location = graphene.String()
+    city = graphene.String()
+    website = graphene.String()
+    phone = graphene.String()
+    logo = graphene.String()
+    bio = graphene.String()
+
+class PublicInstitutions(graphene.ObjectType):
+    records = graphene.List(PublicInstitutionType)
+    total = graphene.Int()
+
 class Query(ObjectType):
+    # Public Queries
+    user_by_username = graphene.Field(PublicUserType, username=graphene.String())
+    public_users = graphene.Field(
+        PublicUsers, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
+
+    public_institution = graphene.Field(PublicInstitutionType, id=graphene.ID())
+    public_institutions = graphene.Field(PublicInstitutions, searchField=graphene.String(), limit = graphene.Int(), offset = graphene.Int())
+
+    # Auth Queries
     institution_by_invitecode = graphene.Field(
         InstitutionType, invitecode=graphene.String())
+
+    # Institution Queries
     institution = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
         Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    # User Queries
     user = graphene.Field(UserType, id=graphene.ID())
-    user_by_username = graphene.Field(PublicUserType, username=graphene.String())
     users = graphene.Field(
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
 
-    public_users = graphene.Field(
-        PublicUsers, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
-
+    # User Role Queries
     user_role = graphene.Field(UserRoleType, role_name=graphene.String())
     user_roles = graphene.Field(
         UserRoles, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    # Group Queries
     group = graphene.Field(GroupType, id=graphene.ID())
     groups = graphene.List(
         GroupType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     admin_groups = graphene.List(
         GroupType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())        
 
+    # Announcement Queries
     announcement = graphene.Field(AnnouncementType, id=graphene.ID())
     announcements = graphene.List(
         AnnouncementType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    # Course Queries
     course = graphene.Field(CourseType, id=graphene.ID())
     courses = graphene.List(
         CourseType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    # Course Section Queries
     course_section = graphene.Field(CourseSectionType, id=graphene.ID())
     course_sections = graphene.List(CourseSectionType, course_id=graphene.ID(required=True), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
+    # Chapter Queries
     chapter = graphene.Field(ChapterType, id=graphene.ID())
     chapters = graphene.List(
         ChapterType, course_id=graphene.ID(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    # Exercise Queries
     exercise = graphene.Field(ExerciseType, id=graphene.ID())
     exercises = graphene.Field(ExerciseAndSubmissionType, chapter_id=graphene.ID(required=True), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
+    # Exercise Submission Queries
     exercise_submission = graphene.Field(
         ExerciseSubmissionType, id=graphene.ID())
     exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
-    submission_history = graphene.List(SubmissionHistoryType, exercise_id=graphene.ID(), participant_id=graphene.ID())
-
-    exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    # Grading Queries
     assignments = graphene.List(AssignmentType, status=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-
+    submission_history = graphene.List(SubmissionHistoryType, exercise_id=graphene.ID(), participant_id=graphene.ID())
     exercise_key = graphene.Field(
         ExerciseKeyType, exercise_id=graphene.ID())
     exercise_keys = graphene.List(ExerciseKeyType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
+    exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+  
+    # Report Queries
     report = graphene.Field(ReportType, id=graphene.ID())
     reports = graphene.Field(Reports, participant_id=graphene.ID(), course_id=graphene.ID(), institution_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
+    # Chat Queries
     chat = graphene.Field(ChatType, id=graphene.ID())
     chats = graphene.Field(
         ActiveChats, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
@@ -150,6 +182,40 @@ class Query(ObjectType):
     chat_message = graphene.Field(ChatMessageType, id=graphene.ID())
     chat_messages = graphene.List(ChatMessageType, chat_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
+
+    def resolve_public_institution(root, info, id, **kwargs):
+        institution = Institution.objects.get(pk=id, active=True)
+        if institution is not None:
+            public_institution = PublicInstitutionType(id=institution.id, name=institution.name, location=institution.location, city=institution.city, website=institution.website, phone=institution.phone, logo=institution.logo, bio=institution.bio)
+            return public_institution
+        else:
+            return None
+
+    def resolve_public_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
+
+        qs = Institution.objects.all().filter(active=True).order_by('-id')  
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField.lower())
+            )
+            qs = qs.filter(filter)
+        total = len(qs)
+
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+        
+        public_qs = []
+        for institution in qs:
+            public_institution = PublicInstitutionType(id=institution.id, name=institution.name, location=institution.location, city=institution.city, website=institution.city, phone=institution.phone, logo=institution.logo, bio=institution.bio)
+            public_qs.append(public_institution)
+
+        results = PublicInstitutions(records=public_qs, total=total)
+        return results            
 
     @login_required
     def resolve_institution_by_invitecode(root, info, invitecode, **kwargs):
