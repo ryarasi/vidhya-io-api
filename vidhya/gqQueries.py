@@ -226,8 +226,13 @@ class Query(ObjectType):
             return None
 
     def process_users(root, info, searchField=None, all_institutions=False, membership_status_not=[], membership_status_is=[], roles=[], unpaginated = False, limit=None, offset=None, **kwargs):
+        current_user = info.context.user
         institution_id = None
-        
+        try:
+            institution_id = current_user.institution.id
+        except:
+            pass
+
         admin_user = is_admin_user(info)
 
         if admin_user or all_institutions == True:
