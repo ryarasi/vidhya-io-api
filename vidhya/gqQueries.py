@@ -226,8 +226,13 @@ class Query(ObjectType):
             return None
 
     def process_users(root, info, searchField=None, all_institutions=False, membership_status_not=[], membership_status_is=[], roles=[], unpaginated = False, limit=None, offset=None, **kwargs):
+        current_user = info.context.user
         institution_id = None
-        
+        try:
+            institution_id = current_user.institution.id
+        except:
+            pass
+
         admin_user = is_admin_user(info)
 
         if admin_user or all_institutions == True:
@@ -379,8 +384,7 @@ class Query(ObjectType):
         current_user = info.context.user
         admin_user = is_admin_user(info)
         if admin_user:
-            qs = Group.objects.all().filter(
-            active=True).order_by('-id')
+            qs = Group.objects.all().filter(active=True).order_by('-id')
         else:
             qs = Group.objects.all().filter(
                 Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).distinct().order_by('-id')
