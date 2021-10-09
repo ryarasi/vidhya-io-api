@@ -372,10 +372,13 @@ class Query(ObjectType):
     def resolve_group(root, info, id, **kwargs):
         current_user = info.context.user
         group_instance = Group.objects.get(pk=id, active=True)
-        # Checking if the user requesting the group is not a member or an admin
-        if current_user.id not in group_instance.members.values_list('id',flat=True) and current_user.id not in group_instance.admins.values_list('id',flat=True):
+        # Fetching the group only if the user is a super admin or a group member/admin
+        admin_user = is_admin_user(info)
+        user_is_a_group_member = current_user.id in group_instance.members.values_list('id',flat=True)
+        user_is_a_group_admin = current_user.id in group_instance.admins.values_list('id',flat=True)
+        if not admin_user and not user_is_a_group_member and not user_is_a_group_admin:
             group_instance = None
-            
+
         return group_instance
 
     @login_required
