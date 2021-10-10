@@ -34,7 +34,7 @@ def generate_public_institution(institution):
         completed = total_completed/learnerCount
         percentage = total_percentage/learnerCount
 
-    public_institution = PublicInstitutionType(id=institution.id, name=institution.name, location=institution.location, city=institution.city, website=institution.website, phone=institution.phone, logo=institution.logo, bio=institution.bio, learnerCount=learnerCount, score=score, completed=completed, percentage=percentage)
+    public_institution = PublicInstitutionType(id=institution.id, name=institution.name, code=institution.code, location=institution.location, city=institution.city, website=institution.website, phone=institution.phone, logo=institution.logo, bio=institution.bio, learnerCount=learnerCount, score=score, completed=completed, percentage=percentage)
     return public_institution
 
 class Users(graphene.ObjectType):
@@ -107,6 +107,7 @@ class PublicUsers(graphene.ObjectType):
 class PublicInstitutionType(graphene.ObjectType):
     id = graphene.ID()
     name = graphene.String()
+    code = graphene.String()
     location = graphene.String()
     city = graphene.String()
     website = graphene.String()

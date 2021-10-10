@@ -163,6 +163,7 @@ class ChatSearchType(DjangoObjectType):
 class InstitutionInput(graphene.InputObjectType):
     id = graphene.ID()
     name = graphene.String(required=True)
+    code = graphene.String(required=True)
     location = graphene.String(required=True)
     city = graphene.String(required=True)
     website = graphene.String()
