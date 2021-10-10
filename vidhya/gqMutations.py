@@ -33,23 +33,24 @@ class CreateInstitution(graphene.Mutation):
         error = ""
         if input.name is None:
             error += "Name is a required field<br />"
-            # raise GraphQLError('Name is a required field')
+        if input.code is None:
+            error += "Code is a required field<br />"            
         if input.location is None:
             error += "Location is a required field<br />"
-            # raise GraphQLError('Location is a required field')
         if input.city is None:
             error += "City is a required field<br />"
         if error:
             raise GraphQLError(error)
 
         searchField = input.name
+        searchField += input.code if input.code is not None else ""
         searchField += input.location if input.location is not None else ""
         searchField += input.city if input.city is not None else ""
         searchField += input.website if input.website is not None else ""
         searchField += input.bio if input.bio is not None else ""
         searchField = searchField.lower()
 
-        institution_instance = Institution(name=input.name, location=input.location, city=input.city,
+        institution_instance = Institution(name=input.name, code=input.code, location=input.location, city=input.city,
                                            website=input.website, phone=input.phone, logo=input.logo, bio=input.bio, searchField=searchField)
         institution_instance.save()
 
@@ -82,6 +83,7 @@ class UpdateInstitution(graphene.Mutation):
         if institution_instance:
             ok = True
             institution_instance.name = input.name if input.name is not None else institution.name
+            institution_instance.code = input.code if input.code is not None else institution.code
             institution_instance.location = input.location if input.location is not None else institution.location
             institution_instance.city = input.city if input.city is not None else institution.city
             institution_instance.website = input.website if input.website is not None else institution.website
@@ -90,6 +92,7 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.bio = input.bio if input.bio is not None else institution.bio
 
             searchField = institution_instance.name if institution_instance.name is not None else ""
+            searchField = institution_instance.code if institution_instance.code is not None else ""
             searchField += institution_instance.location if institution_instance.location is not None else ""
             searchField += institution_instance.city if institution_instance.city is not None else ""
             searchField += institution_instance.website if institution_instance.website is not None else ""

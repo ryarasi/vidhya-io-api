@@ -128,7 +128,7 @@ class Query(ObjectType):
     public_users = graphene.Field(
         PublicUsers, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
 
-    public_institution = graphene.Field(PublicInstitutionType, id=graphene.ID())
+    public_institution = graphene.Field(PublicInstitutionType, code=graphene.String())
     public_institutions = graphene.Field(PublicInstitutions, searchField=graphene.String(), limit = graphene.Int(), offset = graphene.Int())
 
     # Auth Queries
@@ -215,8 +215,8 @@ class Query(ObjectType):
     chat_messages = graphene.List(ChatMessageType, chat_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
-    def resolve_public_institution(root, info, id, **kwargs):
-        institution = Institution.objects.get(pk=id, active=True)
+    def resolve_public_institution(root, info, code, **kwargs):
+        institution = Institution.objects.get(code=code, public=True, active=True)
         if institution is not None:
             public_institution = generate_public_institution(institution)
             return public_institution
@@ -225,7 +225,7 @@ class Query(ObjectType):
 
     def resolve_public_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
-        qs = Institution.objects.all().filter(active=True).order_by('-id')  
+        qs = Institution.objects.all().filter(public=True, active=True).order_by('-id')  
 
         if searchField is not None:
             filter = (
