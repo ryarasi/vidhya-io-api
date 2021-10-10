@@ -8,7 +8,35 @@ from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmis
 from common.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS
 from graphql import GraphQLError
 
-    
+def generate_public_institution(institution):
+    learnerCount = 0
+    score = 0
+    completed = 0
+    percentage = 0
+
+    learners = User.objects.all().filter(role=USER_ROLES_NAMES['LEARNER'], institution_id=institution.id, active=True)
+
+    if len(learners):
+        learner_ids = learners.values_list('id',flat=True)
+        learnerCount = len(learners)
+
+        institution_reports = Report.objects.all().filter(institution_id=institution.id, participant_id__in=learner_ids, active=True)
+
+        total_completed = 0
+        total_percentage = 0
+        total_score = 0
+        for report in institution_reports:
+            total_completed += report.completed
+            total_percentage += report.percentage
+            total_score += report.completed * report.percentage
+
+        score = total_score/learnerCount
+        completed = total_completed/learnerCount
+        percentage = total_percentage/learnerCount
+
+    public_institution = PublicInstitutionType(id=institution.id, name=institution.name, code=institution.code, location=institution.location, city=institution.city, website=institution.website, phone=institution.phone, logo=institution.logo, bio=institution.bio, learnerCount=learnerCount, score=score, completed=completed, percentage=percentage)
+    return public_institution
+
 class Users(graphene.ObjectType):
     records = graphene.List(UserType)
     total = graphene.Int()
@@ -76,70 +104,107 @@ class PublicUsers(graphene.ObjectType):
     records = graphene.List(PublicUserType)
     total = graphene.Int()
 
+class PublicInstitutionType(graphene.ObjectType):
+    id = graphene.ID()
+    name = graphene.String()
+    code = graphene.String()
+    location = graphene.String()
+    city = graphene.String()
+    website = graphene.String()
+    phone = graphene.String()
+    logo = graphene.String()
+    bio = graphene.String()
+    learnerCount = graphene.Int()
+    score = graphene.Int()
+    completed = graphene.Int()
+    percentage = graphene.Int()
+
+class PublicInstitutions(graphene.ObjectType):
+    records = graphene.List(PublicInstitutionType)
+    total = graphene.Int()
+
 class Query(ObjectType):
+    # Public Queries
+    user_by_username = graphene.Field(PublicUserType, username=graphene.String())
+    public_users = graphene.Field(
+        PublicUsers, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
+
+    public_institution = graphene.Field(PublicInstitutionType, code=graphene.String())
+    public_institutions = graphene.Field(PublicInstitutions, searchField=graphene.String(), limit = graphene.Int(), offset = graphene.Int())
+
+    # Auth Queries
     institution_by_invitecode = graphene.Field(
         InstitutionType, invitecode=graphene.String())
+
+    # Institution Queries
     institution = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
         Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    # User Queries
     user = graphene.Field(UserType, id=graphene.ID())
-    user_by_username = graphene.Field(PublicUserType, username=graphene.String())
     users = graphene.Field(
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
 
-    public_users = graphene.Field(
-        PublicUsers, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
-
+    # User Role Queries
     user_role = graphene.Field(UserRoleType, role_name=graphene.String())
     user_roles = graphene.Field(
         UserRoles, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    # Group Queries
     group = graphene.Field(GroupType, id=graphene.ID())
     groups = graphene.List(
         GroupType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     admin_groups = graphene.List(
         GroupType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())        
 
+    # Announcement Queries
     announcement = graphene.Field(AnnouncementType, id=graphene.ID())
     announcements = graphene.List(
         AnnouncementType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    # Course Queries
     course = graphene.Field(CourseType, id=graphene.ID())
     courses = graphene.List(
         CourseType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    # Course Section Queries
     course_section = graphene.Field(CourseSectionType, id=graphene.ID())
     course_sections = graphene.List(CourseSectionType, course_id=graphene.ID(required=True), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
+    # Chapter Queries
     chapter = graphene.Field(ChapterType, id=graphene.ID())
     chapters = graphene.List(
         ChapterType, course_id=graphene.ID(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
+    # Exercise Queries
     exercise = graphene.Field(ExerciseType, id=graphene.ID())
     exercises = graphene.Field(ExerciseAndSubmissionType, chapter_id=graphene.ID(required=True), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
+    # Exercise Submission Queries
     exercise_submission = graphene.Field(
         ExerciseSubmissionType, id=graphene.ID())
     exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
-    submission_history = graphene.List(SubmissionHistoryType, exercise_id=graphene.ID(), participant_id=graphene.ID())
-
-    exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    # Grading Queries
     assignments = graphene.List(AssignmentType, status=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-
+    submission_history = graphene.List(SubmissionHistoryType, exercise_id=graphene.ID(), participant_id=graphene.ID())
     exercise_key = graphene.Field(
         ExerciseKeyType, exercise_id=graphene.ID())
     exercise_keys = graphene.List(ExerciseKeyType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
+    exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+  
+    # Report Queries
     report = graphene.Field(ReportType, id=graphene.ID())
     reports = graphene.Field(Reports, participant_id=graphene.ID(), course_id=graphene.ID(), institution_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
+    # Chat Queries
     chat = graphene.Field(ChatType, id=graphene.ID())
     chats = graphene.Field(
         ActiveChats, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
@@ -150,6 +215,43 @@ class Query(ObjectType):
     chat_message = graphene.Field(ChatMessageType, id=graphene.ID())
     chat_messages = graphene.List(ChatMessageType, chat_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
+
+    def resolve_public_institution(root, info, code, **kwargs):
+        institution = Institution.objects.get(code=code, public=True, active=True)
+        if institution is not None:
+            public_institution = generate_public_institution(institution)
+            return public_institution
+        else:
+            return None
+
+    def resolve_public_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
+
+        qs = Institution.objects.all().filter(public=True, active=True).order_by('-id')  
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField.lower())
+            )
+            qs = qs.filter(filter)
+        total = len(qs)
+
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+        
+        public_institutions = []
+        for institution in qs:
+
+            public_institution = generate_public_institution(institution)
+            public_institutions.append(public_institution)
+        
+        public_institutions.sort(key=lambda x: x.score, reverse=True) # Sorting the results by score before proceeding with pagination        
+
+        results = PublicInstitutions(records=public_institutions, total=total)
+        return results            
 
     @login_required
     def resolve_institution_by_invitecode(root, info, invitecode, **kwargs):
@@ -701,7 +803,7 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
     def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
-        groups = []
+        groups = [] 
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
             unique_exercises = ExerciseSubmission.objects.filter(status=status ).values_list('exercise', flat=True).distinct().order_by()
@@ -714,8 +816,19 @@ class Query(ObjectType):
                 if searchField is not None:
                     filter=Q(searchField__icontains=searchField.lower())
                     submissions = submissions.filter(filter)
-                count = submissions.count()                                
-                card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise.prompt, subtitle=exercise.course.title, count=count)
+                count = submissions.count()                         
+
+                # Generating exercise title
+                section_index = ''
+                section = exercise.section
+                if section:
+                    section_index = str(section.index) +'.' if section.index else ''
+                chapter = exercise.chapter
+                chapter_index = str(chapter.index) +'.' if chapter.index else ''
+                exercise_index = str(exercise.index) + ' ' if exercise.index else ''
+                exercise_prompt = section_index + chapter_index + exercise_index + exercise.prompt
+
+                card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise_prompt, subtitle=exercise.course.title, count=count)
                 groups.append(card)
         
         if group_by == RESOURCES['CHAPTER']:
@@ -729,8 +842,17 @@ class Query(ObjectType):
                 if searchField is not None:
                     filter=Q(searchField__icontains=searchField.lower())
                     submissions = submissions.filter(filter)
-                count = submissions.count()                
-                card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter.title, subtitle=chapter.course.title, count=count)
+                count = submissions.count()    
+
+                # Generating chapter title
+                section_index = ''
+                section = chapter.section
+                if section:
+                    section_index = str(section.index) +'.' if section.index else ''
+                chapter_index = str(chapter.index) +' ' if chapter.index else ''
+                chapter_title = section_index + chapter_index + chapter.title
+
+                card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter_title, subtitle=chapter.course.title, count=count)
                 groups.append(card)        
 
         if group_by == RESOURCES['COURSE']:
