@@ -8,7 +8,35 @@ from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmis
 from common.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS
 from graphql import GraphQLError
 
-    
+def generate_public_institution(institution):
+    learnerCount = 0
+    score = 0
+    completed = 0
+    percentage = 0
+
+    learners = User.objects.all().filter(role=USER_ROLES_NAMES['LEARNER'], institution_id=institution.id, active=True)
+
+    if len(learners):
+        learner_ids = learners.values_list('id',flat=True)
+        learnerCount = len(learners)
+
+        institution_reports = Report.objects.all().filter(institution_id=institution.id, participant_id__in=learner_ids, active=True)
+
+        total_completed = 0
+        total_percentage = 0
+        total_score = 0
+        for report in institution_reports:
+            total_completed += report.completed
+            total_percentage += report.percentage
+            total_score += report.completed * report.percentage
+
+        score = total_score/learnerCount
+        completed = total_completed/learnerCount
+        percentage = total_percentage/learnerCount
+
+    public_institution = PublicInstitutionType(id=institution.id, name=institution.name, location=institution.location, city=institution.city, website=institution.website, phone=institution.phone, logo=institution.logo, bio=institution.bio, learnerCount=learnerCount, score=score, completed=completed, percentage=percentage)
+    return public_institution
+
 class Users(graphene.ObjectType):
     records = graphene.List(UserType)
     total = graphene.Int()
@@ -85,6 +113,10 @@ class PublicInstitutionType(graphene.ObjectType):
     phone = graphene.String()
     logo = graphene.String()
     bio = graphene.String()
+    learnerCount = graphene.Int()
+    score = graphene.Int()
+    completed = graphene.Int()
+    percentage = graphene.Int()
 
 class PublicInstitutions(graphene.ObjectType):
     records = graphene.List(PublicInstitutionType)
@@ -186,7 +218,7 @@ class Query(ObjectType):
     def resolve_public_institution(root, info, id, **kwargs):
         institution = Institution.objects.get(pk=id, active=True)
         if institution is not None:
-            public_institution = PublicInstitutionType(id=institution.id, name=institution.name, location=institution.location, city=institution.city, website=institution.website, phone=institution.phone, logo=institution.logo, bio=institution.bio)
+            public_institution = generate_public_institution(institution)
             return public_institution
         else:
             return None
@@ -209,12 +241,15 @@ class Query(ObjectType):
         if limit is not None:
             qs = qs[:limit]
         
-        public_qs = []
+        public_institutions = []
         for institution in qs:
-            public_institution = PublicInstitutionType(id=institution.id, name=institution.name, location=institution.location, city=institution.city, website=institution.city, phone=institution.phone, logo=institution.logo, bio=institution.bio)
-            public_qs.append(public_institution)
 
-        results = PublicInstitutions(records=public_qs, total=total)
+            public_institution = generate_public_institution(institution)
+            public_institutions.append(public_institution)
+        
+        public_institutions.sort(key=lambda x: x.score, reverse=True) # Sorting the results by score before proceeding with pagination        
+
+        results = PublicInstitutions(records=public_institutions, total=total)
         return results            
 
     @login_required

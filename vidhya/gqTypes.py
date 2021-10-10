@@ -5,12 +5,14 @@ from graphene_django.types import DjangoObjectType
 from vidhya.models import CompletedChapters, CompletedCourses, MandatoryChapters, MandatoryRequiredCourses, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
 from django.db import models
 from common.authorization import USER_ROLES_NAMES
+
 ##############
 # Query Types
 ##############
 
 
 class InstitutionType(DjangoObjectType):
+
     class Meta:
         model = Institution
 
