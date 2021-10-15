@@ -1475,7 +1475,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
     ok = graphene.Boolean()
     exercise_submissions = graphene.List(ExerciseSubmissionType)
 
-    def check_errors(exercise_submissions=None):
+    def check_errors(exercise_submissions=None, grading=None):
         error = ""
         for submission in exercise_submissions:
             exercise_instance = Exercise.objects.get(pk=submission.exercise_id, active=True)
@@ -1499,7 +1499,13 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                         error += "At least one image is required<br />"
                 if exercise_instance.question_type ==  Exercise.QuestionTypeChoices.LINK:
                     if not submission.link:
-                        error += "A link is required<br />"    
+                        error += "A link is required<br />"
+                    elif not grading:
+                        try:
+                            validator = URLValidator()
+                            validator(submission.link)
+                        except ValidationError:                
+                            error += "Link should be a valid URL<br />"                        
         if error:
             raise GraphQLError(error)
 
@@ -1569,7 +1575,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
     def mutate(root, info, exercise_submissions=None, grading=False, bulkauto=False):
         ok = False
         current_user = info.context.user
-        CreateUpdateExerciseSubmissions.check_errors(exercise_submissions) # validating the input
+        CreateUpdateExerciseSubmissions.check_errors(exercise_submissions, grading) # validating the input
         finalSubmissions = []
 
         # If we're trying to do a bulk automatic grading of eligible submissions...
