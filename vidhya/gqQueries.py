@@ -829,7 +829,7 @@ class Query(ObjectType):
                         section_index = str(section.index) +'.' if section.index else ''
                     chapter = exercise.chapter
                     chapter_index = str(chapter.index) +'.' if chapter.index else ''
-                    exercise_index = str(exercise.index) + ' ' if exercise.index else ''
+                    exercise_index = str(exercise.index) + ') ' if exercise.index else ''
                     exercise_prompt = section_index + chapter_index + exercise_index + exercise.prompt
 
                     card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise_prompt, subtitle=exercise.course.title, count=count)
