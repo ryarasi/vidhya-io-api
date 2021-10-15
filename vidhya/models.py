@@ -177,7 +177,7 @@ class Announcement(models.Model):
     recipients_institution = models.BooleanField(default=False)
     groups = models.ManyToManyField(Group, through="AnnouncementGroup", through_fields=(
         'announcement', 'group'), blank=True)
-    searchField = models.CharField(max_length=1200, blank=True, null=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
 
     seenBy = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="announcementSeenBy", blank=True, null=True)
@@ -224,7 +224,7 @@ class Course(models.Model):
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.DRAFT)
 
 
-    searchField = models.CharField(max_length=1200, blank=True, null=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
 
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -291,7 +291,7 @@ class Chapter(models.Model):
     status = models.CharField(
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.DRAFT)
         
-    searchField = models.CharField(max_length=1200, blank=True, null=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -304,7 +304,7 @@ class MandatoryChapters(models.Model):
     requirement = models.ForeignKey(Chapter, related_name="requirement", on_delete=models.CASCADE)
 
 class Exercise(models.Model):
-    prompt = models.CharField(max_length=1000)
+    prompt = models.CharField(max_length=2000)
     index = models.IntegerField(default=100)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
@@ -322,7 +322,7 @@ class Exercise(models.Model):
         max_length=200, blank=True), blank=True, null=True)
     points = models.IntegerField(blank=True, null=True)
     active = models.BooleanField(default=True)
-    searchField = models.CharField(max_length=1000, blank=True, null=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
     def default_rubric():
         return []
     rubric = JSONField(default=default_rubric)
@@ -380,7 +380,7 @@ class ExerciseSubmission(models.Model):
     remarks = models.CharField(max_length=1000, blank=True, null=True)
     criteriaSatisfied = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
     active = models.BooleanField(default=True)
-    searchField = models.CharField(max_length=1000, blank=True, null=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -402,7 +402,7 @@ class SubmissionHistory(models.Model):
     remarks = models.CharField(max_length=1000, blank=True, null=True)
     criteriaSatisfied = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
     active = models.BooleanField(default=True)
-    searchField = models.CharField(max_length=1000, blank=True, null=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)    
 
@@ -414,7 +414,7 @@ class Report(models.Model):
     completed = models.IntegerField(default=0)
     percentage = models.IntegerField(default=0)
     active = models.BooleanField(default=True)
-    searchField = models.CharField(max_length=1000, blank=True, null=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
