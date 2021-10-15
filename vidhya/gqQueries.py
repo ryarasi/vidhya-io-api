@@ -186,7 +186,7 @@ class Query(ObjectType):
     # Exercise Submission Queries
     exercise_submission = graphene.Field(
         ExerciseSubmissionType, id=graphene.ID())
-    exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), participant_id=graphene.ID(), status=graphene.String(), searchField=graphene.String(
+    exercise_submissions = graphene.List(ExerciseSubmissionType, exercise_id=graphene.ID(), chapter_id=graphene.ID(), course_id=graphene.ID(), participant_id=graphene.ID(), submission_id =graphene.ID(), status=graphene.String(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
     # Grading Queries
@@ -745,50 +745,53 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['LIST']))
-    def resolve_exercise_submissions(root, info, exercise_id=None, chapter_id=None, course_id=None, participant_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
-        qs = ExerciseSubmission.objects.all().filter(active=True).order_by('-id')
+    def resolve_exercise_submissions(root, info, exercise_id=None, chapter_id=None, course_id=None, participant_id=None, submission_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
+        if submission_id is not None:
+            qs = ExerciseSubmission.objects.all().filter(active=True, pk=submission_id)
+        else:
+            qs = ExerciseSubmission.objects.all().filter(active=True).order_by('-id')
 
-        if exercise_id is not None:
-            filter = (
-                Q(exercise_id=exercise_id)
-            )
-            qs = qs.filter(filter)
+            if exercise_id is not None:
+                filter = (
+                    Q(exercise_id=exercise_id)
+                )
+                qs = qs.filter(filter)
 
-        if participant_id is not None:
-            filter = (
-                Q(participant_id=participant_id)
-            )
-            qs = qs.filter(filter)
+            if participant_id is not None:
+                filter = (
+                    Q(participant_id=participant_id)
+                )
+                qs = qs.filter(filter)
 
-        if chapter_id is not None:
-            filter = (
-                Q(chapter_id=chapter_id)
-            )
-            qs = qs.filter(filter)
+            if chapter_id is not None:
+                filter = (
+                    Q(chapter_id=chapter_id)
+                )
+                qs = qs.filter(filter)
 
-        if course_id is not None:
-            filter = (
-                Q(course_id=course_id)
-            )
-            qs = qs.filter(filter)
+            if course_id is not None:
+                filter = (
+                    Q(course_id=course_id)
+                )
+                qs = qs.filter(filter)
 
-        if status is not None:
-            filter = (
-                Q(status=status)
-            )
-            qs = qs.filter(filter)
+            if status is not None:
+                filter = (
+                    Q(status=status)
+                )
+                qs = qs.filter(filter)
 
-        if searchField is not None:
-            filter = (
-                Q(searchField__icontains=searchField.lower())
-            )
-            qs = qs.filter(filter)
+            if searchField is not None:
+                filter = (
+                    Q(searchField__icontains=searchField.lower())
+                )
+                qs = qs.filter(filter)
 
-        if offset is not None:
-            qs = qs[offset:]
+            if offset is not None:
+                qs = qs[offset:]
 
-        if limit is not None:
-            qs = qs[:limit]
+            if limit is not None:
+                qs = qs[:limit]
 
         return qs
 
@@ -812,24 +815,25 @@ class Query(ObjectType):
                 unique_exercises = unique_exercises.filter(filter)
             for exercise_id in unique_exercises:
                 exercise = Exercise.objects.get(pk=exercise_id)
-                submissions = ExerciseSubmission.objects.all().filter(exercise=exercise, status=status)
-                if searchField is not None:
-                    filter=Q(searchField__icontains=searchField.lower())
-                    submissions = submissions.filter(filter)
-                count = submissions.count()                         
+                if exercise:
+                    submissions = ExerciseSubmission.objects.all().filter(exercise=exercise, status=status)
+                    if searchField is not None:
+                        filter=Q(searchField__icontains=searchField.lower())
+                        submissions = submissions.filter(filter)
+                    count = submissions.count()                         
 
-                # Generating exercise title
-                section_index = ''
-                section = exercise.section
-                if section:
-                    section_index = str(section.index) +'.' if section.index else ''
-                chapter = exercise.chapter
-                chapter_index = str(chapter.index) +'.' if chapter.index else ''
-                exercise_index = str(exercise.index) + ' ' if exercise.index else ''
-                exercise_prompt = section_index + chapter_index + exercise_index + exercise.prompt
+                    # Generating exercise title
+                    section_index = ''
+                    section = exercise.chapter.section
+                    if section:
+                        section_index = str(section.index) +'.' if section.index else ''
+                    chapter = exercise.chapter
+                    chapter_index = str(chapter.index) +'.' if chapter.index else ''
+                    exercise_index = str(exercise.index) + ') ' if exercise.index else ''
+                    exercise_prompt = section_index + chapter_index + exercise_index + exercise.prompt
 
-                card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise_prompt, subtitle=exercise.course.title, count=count)
-                groups.append(card)
+                    card = ExerciseSubmissionGroup(id=exercise_id, type=group_by, title=exercise_prompt, subtitle=exercise.course.title, count=count)
+                    groups.append(card)
         
         if group_by == RESOURCES['CHAPTER']:
             unique_chapters = ExerciseSubmission.objects.filter(status=status).values_list('chapter', flat=True).distinct().order_by()
