@@ -171,7 +171,7 @@ class Announcement(models.Model):
     title = models.CharField(max_length=80)
     author = models.ForeignKey(
         User, related_name="announcementAuthor", on_delete=models.PROTECT)
-    message = models.CharField(max_length=1000)
+    message = models.CharField(max_length=2000)
     institution = models.ForeignKey(Institution, on_delete=models.PROTECT)
     recipients_global = models.BooleanField(default=False)
     recipients_institution = models.BooleanField(default=False)
