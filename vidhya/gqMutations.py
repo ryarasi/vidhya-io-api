@@ -1835,14 +1835,16 @@ class UpdateReport(graphene.Mutation):
                 unique_submissions.append(submission)
         return unique_submissions
 
-    def markCompletedCoursesChapters(submission):
+    def markCompletedCoursesAndChapters(submission):
         chapter_exercises_count = Exercise.objects.all().filter(chapter_id=submission.chapter.id, active=True).count()
-        chapter_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, chapter_id=submission.chapter.id,active=True).count()
-        course_exercises_count = Exercise.objects.all().filter(course_id=submission.course.id, active=True).count()
+        chapter_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, requried=True, chapter_id=submission.chapter.id,active=True).count()
+        course_exercises_count = Exercise.objects.all().filter(course_id=submission.course.id, required=True, active=True).count()
         course_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, course_id=submission.course.id,active=True).count()        
-        if chapter_exercises_count == chapter_submissions_count:
+        if chapter_submissions_count >= chapter_exercises_count:
+            # We're checking for greater than or equal to because we're only counting the required exercises and comparing it with the submission count
             submission.participant.chapters.add(submission.chapter.id)
-        if course_exercises_count == course_submissions_count:
+        if course_submissions_count >= course_exercises_count:
+            #If the number of course exercises submitted is equal to or greater than the required exercises in the course, the coures is added in the completed course for the userl
             submission.participant.courses.add(submission.course.id)            
 
 
@@ -1850,7 +1852,7 @@ class UpdateReport(graphene.Mutation):
     def recalculate(all_submissions):
         unique_submissions = UpdateReport.remove_duplicate_submissions(all_submissions)
         for submission in unique_submissions:
-            UpdateReport.markCompletedCoursesChapters(submission) # This is to mark the courses and chapters completed for the participant            
+            UpdateReport.markCompletedCoursesAndChapters(submission) # This is to mark the courses and chapters completed for the participant            
             ok = False
             report_instance = None
             method = CREATE_METHOD
