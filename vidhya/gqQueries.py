@@ -809,14 +809,14 @@ class Query(ObjectType):
         groups = [] 
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
-            unique_exercises = ExerciseSubmission.objects.filter(status=status ).values_list('exercise', flat=True).distinct().order_by()
+            unique_exercises = ExerciseSubmission.objects.filter(status=status, active=True).values_list('exercise', flat=True).distinct().order_by()
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_exercises = unique_exercises.filter(filter)
             for exercise_id in unique_exercises:
                 exercise = Exercise.objects.get(pk=exercise_id)
                 if exercise:
-                    submissions = ExerciseSubmission.objects.all().filter(exercise=exercise, status=status)
+                    submissions = ExerciseSubmission.objects.all().filter(exercise=exercise, status=status, active=True)
                     if searchField is not None:
                         filter=Q(searchField__icontains=searchField.lower())
                         submissions = submissions.filter(filter)
@@ -836,13 +836,13 @@ class Query(ObjectType):
                     groups.append(card)
         
         if group_by == RESOURCES['CHAPTER']:
-            unique_chapters = ExerciseSubmission.objects.filter(status=status).values_list('chapter', flat=True).distinct().order_by()
+            unique_chapters = ExerciseSubmission.objects.filter(status=status, active=True).values_list('chapter', flat=True).distinct().order_by()
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_chapters = unique_chapters.filter(filter)                   
             for chapter_id in unique_chapters:
                 chapter = Chapter.objects.get(pk=chapter_id)
-                submissions = ExerciseSubmission.objects.all().filter(chapter=chapter, status=status)
+                submissions = ExerciseSubmission.objects.all().filter(chapter=chapter, status=status, active=True)
                 if searchField is not None:
                     filter=Q(searchField__icontains=searchField.lower())
                     submissions = submissions.filter(filter)
@@ -860,13 +860,13 @@ class Query(ObjectType):
                 groups.append(card)        
 
         if group_by == RESOURCES['COURSE']:
-            unique_courses = ExerciseSubmission.objects.filter(status=status).values_list('course', flat=True).distinct().order_by()
+            unique_courses = ExerciseSubmission.objects.filter(status=status, active=True).values_list('course', flat=True).distinct().order_by()
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_courses = unique_courses.filter(filter)                                  
             for course_id in unique_courses:
                 course = Course.objects.get(pk=course_id)
-                submissions = ExerciseSubmission.objects.all().filter(course=course, status=status)
+                submissions = ExerciseSubmission.objects.all().filter(course=course, status=status, active=True)
                 if searchField is not None:
                     filter=Q(searchField__icontains=searchField.lower())
                     submissions = submissions.filter(filter)
