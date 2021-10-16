@@ -1837,7 +1837,7 @@ class UpdateReport(graphene.Mutation):
 
     def markCompletedCoursesAndChapters(submission):
         chapter_exercises_count = Exercise.objects.all().filter(chapter_id=submission.chapter.id, active=True).count()
-        chapter_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, requried=True, chapter_id=submission.chapter.id,active=True).count()
+        chapter_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, chapter_id=submission.chapter.id,active=True).count()
         course_exercises_count = Exercise.objects.all().filter(course_id=submission.course.id, required=True, active=True).count()
         course_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, course_id=submission.course.id,active=True).count()        
         if chapter_submissions_count >= chapter_exercises_count:
