@@ -37,12 +37,7 @@ class AnnouncementType(DjangoObjectType):
 
     def resolve_seen(self, info):
         seen = False
-        user = info.context.user
-        # Checking if the user is the author of the announcement
-        if self.author.id == user.id:
-            # If yes, we mark it as seen
-            seen = True
-            return seen        
+        user = info.context.user  
         announcements_seen = AnnouncementsSeen.objects.all().filter(user_id=user.id)
         announcements_seen_ids = announcements_seen.values_list('announcement_id',flat=True)
 
