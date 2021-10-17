@@ -673,6 +673,8 @@ class CreateAnnouncement(graphene.Mutation):
         if input.group_ids:
             announcement_instance.groups.add(*input.group_ids)
 
+        current_user.announcements.add(announcement_instance.id)
+
         payload = {"announcement": announcement_instance,
                    "method": CREATE_METHOD}
         NotifyAnnouncement.broadcast(

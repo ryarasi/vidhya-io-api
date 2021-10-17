@@ -2,7 +2,7 @@ from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import Institution, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, Institution, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
 from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS
@@ -123,6 +123,11 @@ class PublicInstitutions(graphene.ObjectType):
     records = graphene.List(PublicInstitutionType)
     total = graphene.Int()
 
+class UnreadCount(graphene.ObjectType):
+    announcements = graphene.Int()
+    assignments = graphene.Int()
+
+
 class Query(ObjectType):
     # Public Queries
     user_by_username = graphene.Field(PublicUserType, username=graphene.String())
@@ -215,6 +220,8 @@ class Query(ObjectType):
     chat_message = graphene.Field(ChatMessageType, id=graphene.ID())
     chat_messages = graphene.List(ChatMessageType, chat_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
+
+    unread_count = graphene.Field(UnreadCount) # Fetches the count of unread announcements, assignments etc.
 
     def resolve_public_institution(root, info, code, **kwargs):
         institution = Institution.objects.get(code=code, public=True, active=True)
@@ -1146,3 +1153,18 @@ class Query(ObjectType):
             qs = qs[:limit]
 
         return qs
+
+    @login_required
+    def resolve_unread_count(root, info, **kwargs):
+        current_user = info.context.user
+        
+        announcements=0
+        assignments=0
+
+        announcements_seen = AnnouncementsSeen.objects.all().filter(user_id=current_user.id)
+        announcements_seen_ids = announcements_seen.values_list('announcement_id',flat=True)
+
+        announcements=Announcement.objects.all().filter(~Q(pk__in=announcements_seen_ids), active=True).count()
+
+        unread_count = UnreadCount(announcements=announcements, assignments=assignments)
+        return unread_count
