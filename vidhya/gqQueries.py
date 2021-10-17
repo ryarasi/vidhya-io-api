@@ -537,6 +537,7 @@ class Query(ObjectType):
         announcement_instance = Announcement.objects.get(
             Q(recipients_global=True) | (Q(recipients_institution=True) & Q(institution_id=current_user.institution_id)) | Q(groups__in=groups),pk=id, active=True)
         if announcement_instance is not None:
+            current_user.announcements.add(announcement_instance.id) # Marking this announcement as seen by this user
             return announcement_instance
         else:
             return None

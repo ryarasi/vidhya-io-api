@@ -2,7 +2,7 @@ from django.db.models.deletion import DO_NOTHING
 import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
-from vidhya.models import CompletedChapters, CompletedCourses, MandatoryChapters, MandatoryRequiredCourses, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, MandatoryChapters, MandatoryRequiredCourses, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
 from django.db import models
 from common.authorization import USER_ROLES_NAMES
 
@@ -33,6 +33,23 @@ class GroupType(DjangoObjectType):
 
 
 class AnnouncementType(DjangoObjectType):
+    seen = graphene.Boolean()
+
+    def resolve_seen(self, info):
+        seen = False
+        user = info.context.user
+        # Checking if the user is the author of the announcement
+        if self.author.id == user.id:
+            # If yes, we mark it as seen
+            seen = True
+            return seen        
+        announcements_seen = AnnouncementsSeen.objects.all().filter(user_id=user.id)
+        announcements_seen_ids = announcements_seen.values_list('announcement_id',flat=True)
+
+        if self.id in announcements_seen_ids:
+            seen = True
+        return seen
+
     class Meta:
         model = Announcement
 

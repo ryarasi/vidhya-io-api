@@ -50,6 +50,7 @@ class User(AbstractUser):
                                   MinLengthValidator(10)], blank=True, null=True)
     chapters = models.ManyToManyField('Chapter', through='CompletedChapters', through_fields=('participant', 'chapter'), blank=True)
     courses = models.ManyToManyField('Course', through='CompletedCourses', through_fields=('participant', 'course'), blank=True)
+    announcements = models.ManyToManyField('Announcement', through='AnnouncementsSeen', through_fields=('user','announcement'), blank=True)
     searchField = models.CharField(max_length=600, blank=True, null=True)
     last_active = models.DateTimeField(
         blank=True, null=True, default=timezone.now)
@@ -76,6 +77,13 @@ class CompletedCourses(models.Model):
 
     def __str__(self):
         return f'{self.course.title}'
+
+class AnnouncementsSeen(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    announcement = models.ForeignKey('Announcement', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.announcement.title}'
 
 class UserRole(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
@@ -178,16 +186,12 @@ class Announcement(models.Model):
     groups = models.ManyToManyField(Group, through="AnnouncementGroup", through_fields=(
         'announcement', 'group'), blank=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
-
-    seenBy = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="announcementSeenBy", blank=True, null=True)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f'{self.title}'
-
 
 class AnnouncementGroup(models.Model):
     announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE)
