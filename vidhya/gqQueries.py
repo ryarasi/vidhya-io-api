@@ -553,11 +553,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['LIST']))
     def resolve_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        groups = Group.objects.all().filter(
-            Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).order_by('-id')
-
-        qs = Announcement.objects.all().filter(Q(recipients_global=True) | (Q(recipients_institution=True) & Q(institution_id=current_user.institution_id)) | Q(groups__in=groups),active=True).order_by('-id')
-
+        qs = AnnouncementType.get_relevant_announcements(current_user)
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -1164,7 +1160,8 @@ class Query(ObjectType):
         announcements_seen = AnnouncementsSeen.objects.all().filter(user_id=current_user.id)
         announcements_seen_ids = announcements_seen.values_list('announcement_id',flat=True)
 
-        announcements=Announcement.objects.all().filter(~Q(pk__in=announcements_seen_ids), active=True).count()
+        relevant_announcements = AnnouncementType.get_relevant_announcements(current_user)
+        announcements=relevant_announcements.filter(~Q(pk__in=announcements_seen_ids)).count()
 
         unread_count = UnreadCount(announcements=announcements, assignments=assignments)
         return unread_count
