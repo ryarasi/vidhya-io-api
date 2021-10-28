@@ -370,11 +370,16 @@ class ExerciseSubmission(models.Model):
         max_digits=4, decimal_places=1, blank=True, null=True)
     percentage = models.IntegerField(blank=True, null=True)
 
+    def default_rubric():
+        return []
+    rubric = JSONField(default=default_rubric)
+    
     class StatusChoices(models.TextChoices):
         PENDING = 'PE', _('PENDING')
         SUBMITTED = "SU", _('SUBMITTED')
         GRADED = "GR", _('GRADED')
         RETURNED = "RE", _('RETURNED')
+        FLAGGED = "FL", _('FLAGGED')
     # End of Type Choices
 
     status = models.CharField(
