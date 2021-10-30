@@ -368,12 +368,13 @@ class ExerciseSubmission(models.Model):
         max_length=200, blank=True), blank=True, null=True)
     points = models.DecimalField(
         max_digits=4, decimal_places=1, blank=True, null=True)
-    percentage = models.IntegerField(blank=True, null=True)
 
     def default_rubric():
         return []
     rubric = JSONField(default=default_rubric)
-    
+
+    percentage = models.IntegerField(blank=True, null=True)
+
     class StatusChoices(models.TextChoices):
         PENDING = 'PE', _('PENDING')
         SUBMITTED = "SU", _('SUBMITTED')
@@ -404,6 +405,11 @@ class SubmissionHistory(models.Model):
         max_length=200, blank=True), blank=True, null=True)
     points = models.DecimalField(
         max_digits=4, decimal_places=1, blank=True, null=True)
+
+    def default_rubric():
+        return []
+    rubric = JSONField(default=default_rubric)
+    
     status = models.CharField(
         max_length=2, choices=ExerciseSubmission.StatusChoices.choices, default=ExerciseSubmission.StatusChoices.PENDING)
     flagged = models.BooleanField(default=False)
