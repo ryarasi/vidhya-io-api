@@ -138,7 +138,7 @@ class ExerciseType(DjangoObjectType):
     rubric = graphene.List(CriterionType)
 
     def resolve_rubric(self, info):
-        rubric = Criterion.objects.filter(exercise_id=self.id).order_by('id')
+        rubric = Criterion.objects.filter(exercise_id=self.id, active=True).order_by('id')
         return rubric        
 
     class Meta:
@@ -154,7 +154,7 @@ class ExerciseSubmissionType(DjangoObjectType):
     rubric = graphene.List(CriterionResponseType)
 
     def resolve_rubric(self, info):
-        rubric = CriterionResponse.objects.filter(exercise_id=self.exercise.id, participant_id=self.participant.id).order_by('id')
+        rubric = CriterionResponse.objects.filter(exercise_id=self.exercise.id, participant_id=self.participant.id, active=True).order_by('id')
         return rubric        
     class Meta:
         model = ExerciseSubmission
@@ -291,6 +291,13 @@ class ChapterInput(graphene.InputObjectType):
     points = graphene.Int()
     status = graphene.String()
 
+class CriterionInput(graphene.InputObjectType):
+    id = graphene.ID()
+    exercise_id = graphene.ID(name="exercise")
+    description = graphene.String(required=True)
+    points = graphene.Int(required=True)
+    active = graphene.Boolean()
+
 class ExerciseInput(graphene.InputObjectType):
     id = graphene.ID()
     prompt = graphene.String(required=True)
@@ -306,13 +313,8 @@ class ExerciseInput(graphene.InputObjectType):
     reference_link = graphene.String()
     reference_images = graphene.List(graphene.String)
     remarks= graphene.String()
-    rubric= generic.GenericScalar()
+    rubric= graphene.List(CriterionInput)
 
-class CriterionInput(graphene.InputObjectType):
-    id = graphene.ID()
-    exercise_id = graphene.ID(name="exercise", required=True)
-    description = graphene.String(required=True)
-    points = graphene.Int(required=True)
 
 class CriterionResponseInput(graphene.InputObjectType):
     id = graphene.ID()
@@ -345,7 +347,7 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     link = graphene.String()
     images = graphene.List(graphene.String)
     points = graphene.Decimal()
-    rubric = generic.GenericScalar()
+    rubric = graphene.List(CriterionResponseInput)
     percentage = graphene.Int()
     status = graphene.String()
     remarks = graphene.String()

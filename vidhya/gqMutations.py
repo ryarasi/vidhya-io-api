@@ -1289,8 +1289,14 @@ class CreateExercise(graphene.Mutation):
         index = input.index if input.index is not None else 100
 
         exercise_instance = Exercise(prompt=input.prompt, index=index, course_id=input.course_id, chapter_id=input.chapter_id,
-                                     question_type=input.question_type, required=input.required, options=input.options, points=points, rubric=input.rubric, searchField=searchField)
+                                     question_type=input.question_type, required=input.required, options=input.options, points=points, searchField=searchField)
         exercise_instance.save()
+
+        # Creating criterion if rubric exists
+        if input.rubric:
+            for criterion in input.rubric:
+                criterion_instance = Criterion(exercise_id= exercise_instance.id, description=criterion.description, points = criterion.points)
+                criterion_instance.save()
 
         CreateChapter.update_points(input.chapter_id) # Updating the points on the chapter
 
@@ -1342,7 +1348,26 @@ class UpdateExercise(graphene.Mutation):
             exercise_instance.required = input.required if input.required is not None else exercise_instance.required
             exercise_instance.options = input.options if input.options is not None else exercise_instance.options
             exercise_instance.points = input.points if input.points is not None else exercise_instance.points
-            exercise_instance.rubric = input.rubric if input.rubric is not None else exercise_instance.rubric
+
+            if input.rubric:
+                print('rubric exists => ', input.rubric)
+                for criterion in input.rubric:
+                    criterion_new = False
+                    if criterion.id:
+                        print('criterion id exists => ', criterion)
+                        try:
+                            criterion_instance = Criterion.objects.get(pk=criterion.id, active=True)
+                            criterion_instance.description = criterion.description if criterion.description is not None else criterion_instance.description
+                            criterion_instance.points = criterion.points if criterion.points is not None else criterion_instance.points
+                            criterion_instance.exercise_id = exercise_instance.id
+                            print('the active value of criterion => ', criterion)
+                            criterion_instance.active = True if criterion.active is None or criterion.active != False else criterion.active
+                            criterion_instance.save()
+                        except:
+                            criterion_new = True
+                    elif not criterion.id or criterion_new:
+                        criterion_instance = Criterion(description=criterion.description, exercise_id=exercise_instance.id, points=criterion.points)
+                        criterion_instance.save()
 
             searchField = input.prompt
             exercise_instance.searchField = searchField.lower()
@@ -1392,14 +1417,30 @@ class DeleteExercise(graphene.Mutation):
         if exercise:
             ok = True
             exercise.active = False
+            exercise.save()
+
+            # Marking the exercise key as inactive as well
             try:
                 exercise_key = ExerciseKey.objects.all().get(exercise_id=exercise.id, active=True)
                 exercise_key.active = False
                 exercise_key.save()
             except:
                 pass
+
+            # Marking the criteria for this exercise as inactive
+            rubric = Criterion.objects.all().filter(exercise_id=exercise.id, active=True)
+            for criterion in rubric:
+                criterion.active = False
+                criterion.save()
+
+            # Marking the criteria of the submissions for this exercise also as inactive
+            submissionRubric = CriterionResponse.objects.all().filter(exercise_id = exercise.id, active=True)
+            for criterion in submissionRubric:
+                criterion.active = False
+                criterion.save()          
+                      
+            # Marking any submissions of this exercise as inactive
             exercise_submissions = ExerciseSubmission.objects.all().filter(exercise_id=exercise.id, active=True)
-            exercise.save()
             CreateChapter.update_points(exercise.chapter_id) # Updating the points on the chapter
             for submission in exercise_submissions:
                 submission.active = False
