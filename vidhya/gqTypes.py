@@ -319,8 +319,8 @@ class ExerciseInput(graphene.InputObjectType):
 class CriterionResponseInput(graphene.InputObjectType):
     id = graphene.ID()
     criterion_id = graphene.ID(name="criterion", required=True)
-    exercise_id = graphene.ID(name="exercise", required=True)
-    participant_id = graphene.ID(name="participant", required=True)
+    exercise_id = graphene.ID(name="exercise")
+    participant_id = graphene.ID(name="participant")
     score = graphene.Int()
     remarks = graphene.String()
 

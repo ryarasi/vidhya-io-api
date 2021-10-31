@@ -1438,7 +1438,7 @@ class DeleteExercise(graphene.Mutation):
             for criterion in submissionRubric:
                 criterion.active = False
                 criterion.save()          
-                      
+
             # Marking any submissions of this exercise as inactive
             exercise_submissions = ExerciseSubmission.objects.all().filter(exercise_id=exercise.id, active=True)
             CreateChapter.update_points(exercise.chapter_id) # Updating the points on the chapter
@@ -1868,6 +1868,24 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         if error:
             raise GraphQLError(error)
 
+    def process_submission_rubric(submission, exercise):
+        create_new_criterion_response = False     
+        if exercise.rubric and submission.id:
+            if not submission.rubric:
+                create_new_criterion_response = True
+            else:
+                for criterion_response in submission.rubric:            
+                    criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion_response.criterion_id, participant_id=submission.participant.id, active=True)
+                    criterion_response_instance.criterion_id = criterion_response.criterion_id
+                    criterion_response_instance.exercise_id = exercise.id
+                    criterion_response_instance.participant_id = submission.participant_id
+                    criterion_response_instance.score = criterion_response_instance.score if criterion_response_instance.score else 0
+                    criterion_response_instance.save()
+        elif exercise.rubric and not submission.id or create_new_criterion_response == True:
+            # While creating the submission, or if for some reason criteria for submissions don't exist yet
+            for criterion in exercise.rubric:
+                criterion_response_instance = CriterionResponse(criterion_id=criterion.id, exercise_id=exercise.id, participant_id=submission.participant.id, score=0)
+                criterion_response_instance.save()     
 
     def process_submission(submission, grading):
         autograded = False
@@ -1896,9 +1914,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 points = 0
                 remarks = 'Correct Option is "' + exercise_key.valid_option + '"'
         submission.points = points
-        if grading and exercise.rubric is not None:
-            rubric = submission.rubric if submission.rubric else exercise.rubric
-            submission.rubric = rubric
+        CreateUpdateExerciseSubmissions.process_submission_rubric(submission, exercise)
         submission.status = status 
         submission.remarks = remarks
         totalPoints = exercise.points if exercise.points is not None else 0
