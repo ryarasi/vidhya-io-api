@@ -1,7 +1,7 @@
 import channels_graphql_ws
 import graphene
 from graphql_jwt.decorators import login_required
-from .gqTypes import InstitutionType, UserType, UserRoleType, GroupType, AnnouncementType, CourseType, CourseSectionType, ChapterType, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, ChatType, ChatMessageType
+from .gqTypes import CriterionResponseType, CriterionType, InstitutionType, UserType, UserRoleType, GroupType, AnnouncementType, CourseType, CourseSectionType, ChapterType, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, ChatType, ChatMessageType
 
 
 class NotifyInstitution(channels_graphql_ws.Subscription):
@@ -147,6 +147,38 @@ class NotifyExercise(channels_graphql_ws.Subscription):
     def publish(payload, info):
         return NotifyExercise(exercise=payload["exercise"], method=payload["method"])
 
+class NotifyCriterion(channels_graphql_ws.Subscription):
+    criterion = graphene.Field(CriterionType)
+    method = graphene.String()
+    # class Arguments:
+
+    @staticmethod
+    @login_required
+    def subscribe(root, info):
+        return None
+
+    @staticmethod
+    @login_required
+    def publish(payload, info):
+        return NotifyCriterion(criterion=payload["criterion"], method=payload["method"])
+
+class NotifyCriterionResponse(channels_graphql_ws.Subscription):
+    criterion_response = graphene.Field(CriterionResponseType)
+    method = graphene.String()
+    # class Arguments:
+
+    @staticmethod
+    @login_required
+    def subscribe(root, info):
+        return None
+
+    @staticmethod
+    @login_required
+    def publish(payload, info):
+        return NotifyCriterion(criterion_response=payload["criterion_response"], method=payload["method"])
+
+
+
 class NotifyExerciseKey(channels_graphql_ws.Subscription):
     exerciseKey = graphene.Field(ExerciseKeyType)
     method = graphene.String()
@@ -238,6 +270,8 @@ class Subscription(graphene.ObjectType):
     notify_course_section = NotifyCourseSection.Field()
     notify_chapter = NotifyChapter.Field()
     notify_exercise = NotifyExercise.Field()
+    notify_criterion_response = NotifyCriterionResponse.Field()
+    notify_criterion = NotifyCriterion.Field()
     notify_exercise_key = NotifyExerciseKey.Field()
     notify_exercise_submission = NotifyExerciseSubmission.Field()
     notify_report = NotifyReport.Field()
