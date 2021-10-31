@@ -124,12 +124,6 @@ class ChapterType(DjangoObjectType):
     class Meta:
         model = Chapter
 
-
-class ExerciseType(DjangoObjectType):
-
-    class Meta:
-        model = Exercise
-
 class CriterionType(DjangoObjectType):
 
     class Meta:
@@ -140,13 +134,28 @@ class CriterionResponseType(DjangoObjectType):
     class Meta:
         model = CriterionResponse
 
+class ExerciseType(DjangoObjectType):
+    rubric = graphene.List(CriterionType)
+
+    def resolve_rubric(self, info):
+        rubric = Criterion.objects.filter(exercise_id=self.id).order_by('id')
+        return rubric        
+
+    class Meta:
+        model = Exercise
+
+
 class ExerciseKeyType(DjangoObjectType):
 
     class Meta:
         model = ExerciseKey
 
 class ExerciseSubmissionType(DjangoObjectType):
+    rubric = graphene.List(CriterionResponseType)
 
+    def resolve_rubric(self, info):
+        rubric = CriterionResponse.objects.filter(exercise_id=self.exercise.id, participant_id=self.participant.id).order_by('id')
+        return rubric        
     class Meta:
         model = ExerciseSubmission
 
