@@ -337,6 +337,22 @@ class Exercise(models.Model):
     def __str__(self):
         return f'{self.prompt}'
 
+class Criterion(models.Model):
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    description = models.CharField(max_length=500)
+    points = models.IntegerField()
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
+    active = models.BooleanField(default=True)
+
+class CriterionResponse(models.Model):
+    criterion = models.ForeignKey(Criterion, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
+    grader = models.ForeignKey(User, related_name="remarksBy", on_delete=models.DO_NOTHING)
+    score = models.IntegerField(default=0)
+    remarks = models.CharField(max_length=1000, null=True, blank=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
+    active = models.BooleanField(default=True)
 
 class ExerciseKey(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)

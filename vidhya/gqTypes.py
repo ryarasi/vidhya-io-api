@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, MandatoryChapters, MandatoryRequiredCourses, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
 from django.db import models
 from common.authorization import USER_ROLES_NAMES
 
@@ -129,6 +129,16 @@ class ExerciseType(DjangoObjectType):
 
     class Meta:
         model = Exercise
+
+class CriterionType(DjangoObjectType):
+
+    class Meta:
+        model = Criterion
+
+class CriterionResponseType(DjangoObjectType):
+
+    class Meta:
+        model = CriterionResponse
 
 class ExerciseKeyType(DjangoObjectType):
 
@@ -288,6 +298,21 @@ class ExerciseInput(graphene.InputObjectType):
     reference_images = graphene.List(graphene.String)
     remarks= graphene.String()
     rubric= generic.GenericScalar()
+
+class CriterionInput(graphene.InputObjectType):
+    id = graphene.ID()
+    exercise_id = graphene.ID(name="exercise", required=True)
+    description = graphene.String(required=True)
+    points = graphene.Int(required=True)
+
+class CriterionResponseInput(graphene.InputObjectType):
+    id = graphene.ID()
+    criterion_id = graphene.ID(name="criterion", required=True)
+    exercise_id = graphene.ID(name="exercise", required=True)
+    participant_id = graphene.ID(name="participant", required=True)
+    score = graphene.Int()
+    remarks = graphene.String()
+
 
 class ExerciseKeyInput(graphene.InputObjectType):
     id = graphene.ID()
