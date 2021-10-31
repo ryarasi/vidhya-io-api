@@ -1689,15 +1689,10 @@ class PatchRubric(graphene.Mutation):
         processed_submissions_count = 0 
 
         for exercise in exercises_with_rubric:
-            # rubric = json.loads(exercise.rubric)
             rubric = exercise.rubric
-            print('rubric after json load ', rubric)
             
             processed_exercises_count += 1
             for criterion in rubric:
-                print('criterion', criterion)
-                print('criterion description', criterion['description'])
-                print('criterion points', criterion['points'])
                 description = criterion['description'] if criterion['description'] else ''
                 points = criterion['points'] if criterion['points'] is not None else 0
                 try:
@@ -1713,8 +1708,6 @@ class PatchRubric(graphene.Mutation):
                 total_submissions_count += submissions_with_rubric.count()
                 for submission in submissions_with_rubric:
                     processed_submissions_count += 1
-                    print('submission with rubric => ', submission)
-                    # rubric = json.loads(submission.exercise.rubric)
                     submissionRubric = submission.exercise.rubric
                     for submissionCriterion in submissionRubric:
                         try:
