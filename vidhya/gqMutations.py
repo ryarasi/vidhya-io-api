@@ -1440,8 +1440,8 @@ class CreateCriterion(graphene.Mutation):
             raise GraphQLError(error)
 
     def generate_searchField(criterion):
-        searchField = criterion.description
-        searchField += criterion.points
+        searchField = criterion.description if criterion.description is not None else ''
+        searchField += str(criterion.points if criterion.points is not None else '')
         searchField = searchField.lower()
         return searchField
 
@@ -1549,8 +1549,13 @@ class CreateCriterionResponse(graphene.Mutation):
     criterion_response = graphene.Field(CriterionResponseType)
 
     def generate_searchField(response):
-        searchField = response.remarks if response.remarks else ''
-        searchField += response.score
+        searchField = ''
+        try:
+            searchField = response.remarks if response.remarks is not None else ''
+            searchField += str(response.score if response.score is not None else '')
+        except:
+            pass
+        
         searchField = searchField.lower()
         return searchField
 
@@ -1665,8 +1670,11 @@ class PatchRubric(graphene.Mutation):
         pass
 
     ok = graphene.Boolean()
-    exercise_count = graphene.Int()
-    exercise_submissions_count = graphene.Int()
+    total_exercises_count = graphene.Int()
+    total_submissions_count = graphene.Int()
+    processed_exercises_count = graphene.Int()
+    processed_submissions_count = graphene.Int()
+
 
     @staticmethod
     @login_required
@@ -1675,43 +1683,51 @@ class PatchRubric(graphene.Mutation):
         ok = False
 
         exercises_with_rubric = Exercise.objects.filter(~Q(rubric = []), active=True)
-        total_exercise_count = exercises_with_rubric.count()
+        total_exercises_count = exercises_with_rubric.count()
         processed_exercises_count = 0
         total_submissions_count = 0
         processed_submissions_count = 0 
 
         for exercise in exercises_with_rubric:
-            rubric = json.load(exercise.rubric)
+            # rubric = json.loads(exercise.rubric)
+            rubric = exercise.rubric
+            print('rubric after json load ', rubric)
             
+            processed_exercises_count += 1
             for criterion in rubric:
+                print('criterion', criterion)
+                print('criterion description', criterion['description'])
+                print('criterion points', criterion['points'])
+                description = criterion['description'] if criterion['description'] else ''
+                points = criterion['points'] if criterion['points'] is not None else 0
                 try:
-                    criterion_instance = Criterion.objects.get(exercise_id=exercise.id, description = criterion.description)
-                    criterion_instance.points = criterion.points
+                    criterion_instance = Criterion.objects.get(exercise_id=exercise.id, description = criterion['description'])
+                    criterion_instance.points = points
                     criterion_instance.searchField = CreateCriterion.generate_searchField(criterion_instance)
-                    criterion_instance.save()
                 except:
-                    criterion_instance = Criterion(exercise_id=exercise.id, description=criterion.description, points = criterion.points)
+                    criterion_instance = Criterion(exercise_id=exercise.id, description=description, points = points)
                     criterion_instance.searchField = CreateCriterion.generate_searchField(criterion_instance)
-                    criterion_instance.save()
+
+                criterion_instance.save()
                 submissions_with_rubric = ExerciseSubmission.objects.filter(exercise_id=exercise.id, active=True)
                 total_submissions_count += submissions_with_rubric.count()
                 for submission in submissions_with_rubric:
-                    rubric = json.load(submission.exercise.rubric)
-                    for criterion in rubric:
+                    processed_submissions_count += 1
+                    print('submission with rubric => ', submission)
+                    # rubric = json.loads(submission.exercise.rubric)
+                    submissionRubric = submission.exercise.rubric
+                    for submissionCriterion in submissionRubric:
                         try:
-                            criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion.id, participant_id = submission.participant.id)
+                            criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion_instance.id, participant_id = submission.participant.id)
                             criterion_response_instance.searchField = CreateCriterionResponse.generate_searchField(criterion_response_instance)
-                            criterion_response_instance.save()
                         except:
-                            criterion_response_instance = CriterionResponse(criterion_id=criterion.id, exercise_id=exercise.id, participant_id=submission.participant.id, grader_id=submission.grader.id, remarks='', score = 0)
+                            criterion_response_instance = CriterionResponse(criterion_id=criterion_instance.id, exercise_id=exercise.id, participant_id=submission.participant.id, grader_id=submission.grader.id, remarks='', score = 0)
                             criterion_response_instance.searchField = CreateCriterionResponse.generate_searchField(criterion_instance)
-                            criterion_response_instance.save()
-                        processed_submissions_count += 1
-                processed_exercises_count += 1
+                        criterion_response_instance.save()
         
 
-        ok = True if total_exercise_count == processed_exercises_count and total_submissions_count == processed_submissions_count else False
-        return PatchExerciseSubmissionsSearchFields(ok=ok, exercise_count=processed_exercises_count, submission_count=processed_submissions_count)    
+        ok = True if total_exercises_count == processed_exercises_count and total_submissions_count == processed_submissions_count else False
+        return PatchRubric(ok=ok, total_exercises_count = total_exercises_count, total_submissions_count = total_submissions_count, processed_exercises_count=processed_exercises_count, processed_submissions_count=processed_submissions_count)    
         
 class PatchExerciseSubmissionsSearchFields(graphene.Mutation):
     class Meta:
