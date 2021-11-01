@@ -127,6 +127,7 @@ REDIS_URL="Needs to be set on Heroku to use Redis add-on "
 3. If you have issues with connecting to the docker database on pgadmin, try the following step:-
    1. Stop docker and start it again with `docker-compose down && docker-compose up`
    2. If the above step doesn't help, try restarting postgresql. First stop it with `sudo service postgresql stop` and then start it up again with `sudo service postgresql start`
+4. If you remove the docker images and reset it all, the database should still be intact because we have static volumes of the database in ./data. If the build fails while rebuilding the database, change the permissions of the folder with this `sudo chmod -R a+rwx ./data`
 
 ## Useful PGAdmin commands:-
 

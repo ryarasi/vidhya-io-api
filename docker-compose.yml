@@ -19,12 +19,12 @@ services:
     command: ["redis-server", "/redis.conf"]
     restart: "on-failure"
   db:
-    image: postgres
+    image: postgres:13
     volumes:
       - ./data/db:/var/lib/postgresql/data
     env_file:
       - database.env
-    restart: "on-failure"
+    restart: always
   pg_admin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin4

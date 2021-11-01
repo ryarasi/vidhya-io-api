@@ -2,7 +2,8 @@ from django.db.models.deletion import DO_NOTHING
 import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, MandatoryChapters, MandatoryRequiredCourses, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
+from django.db.models import Q
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
 from django.db import models
 from common.authorization import USER_ROLES_NAMES
 
@@ -34,6 +35,13 @@ class GroupType(DjangoObjectType):
 
 class AnnouncementType(DjangoObjectType):
     seen = graphene.Boolean()
+
+    def get_relevant_announcements(user):
+        groups = Group.objects.all().filter(
+        Q(members__in=[user]) | Q(admins__in=[user]), active=True).order_by('-id')
+
+        qs = Announcement.objects.all().filter(Q(recipients_global=True) | (Q(recipients_institution=True) & Q(institution_id=user.institution_id)) | Q(groups__in=groups),active=True).order_by('-id')
+        return qs
 
     def resolve_seen(self, info):
         seen = False
@@ -116,11 +124,26 @@ class ChapterType(DjangoObjectType):
     class Meta:
         model = Chapter
 
+class CriterionType(DjangoObjectType):
+
+    class Meta:
+        model = Criterion
+
+class CriterionResponseType(DjangoObjectType):
+
+    class Meta:
+        model = CriterionResponse
 
 class ExerciseType(DjangoObjectType):
+    rubric = graphene.List(CriterionType)
+
+    def resolve_rubric(self, info):
+        rubric = Criterion.objects.filter(exercise_id=self.id, active=True).order_by('id')
+        return rubric        
 
     class Meta:
         model = Exercise
+
 
 class ExerciseKeyType(DjangoObjectType):
 
@@ -128,7 +151,11 @@ class ExerciseKeyType(DjangoObjectType):
         model = ExerciseKey
 
 class ExerciseSubmissionType(DjangoObjectType):
+    rubric = graphene.List(CriterionResponseType)
 
+    def resolve_rubric(self, info):
+        rubric = CriterionResponse.objects.filter(exercise_id=self.exercise.id, participant_id=self.participant.id, active=True).order_by('id')
+        return rubric        
     class Meta:
         model = ExerciseSubmission
 
@@ -264,6 +291,13 @@ class ChapterInput(graphene.InputObjectType):
     points = graphene.Int()
     status = graphene.String()
 
+class CriterionInput(graphene.InputObjectType):
+    id = graphene.ID()
+    exercise_id = graphene.ID(name="exercise")
+    description = graphene.String(required=True)
+    points = graphene.Int(required=True)
+    active = graphene.Boolean()
+
 class ExerciseInput(graphene.InputObjectType):
     id = graphene.ID()
     prompt = graphene.String(required=True)
@@ -279,7 +313,18 @@ class ExerciseInput(graphene.InputObjectType):
     reference_link = graphene.String()
     reference_images = graphene.List(graphene.String)
     remarks= graphene.String()
-    rubric= generic.GenericScalar()
+    rubric= graphene.List(CriterionInput)
+
+
+class CriterionResponseInput(graphene.InputObjectType):
+    id = graphene.ID()
+    criterion_id = graphene.ID(name="criterion", required=True)
+    exercise_id = graphene.ID(name="exercise")
+    participant_id = graphene.ID(name="participant")
+    remarker_id = graphene.ID(name="remarker")
+    score = graphene.Int()
+    remarks = graphene.String()
+
 
 class ExerciseKeyInput(graphene.InputObjectType):
     id = graphene.ID()
@@ -303,6 +348,7 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     link = graphene.String()
     images = graphene.List(graphene.String)
     points = graphene.Decimal()
+    rubric = graphene.List(CriterionResponseInput)
     percentage = graphene.Int()
     status = graphene.String()
     remarks = graphene.String()

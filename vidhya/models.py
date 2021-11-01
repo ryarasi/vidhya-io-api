@@ -337,6 +337,22 @@ class Exercise(models.Model):
     def __str__(self):
         return f'{self.prompt}'
 
+class Criterion(models.Model):
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    description = models.CharField(max_length=500)
+    points = models.IntegerField()
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
+    active = models.BooleanField(default=True)
+
+class CriterionResponse(models.Model):
+    criterion = models.ForeignKey(Criterion, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
+    score = models.IntegerField(default=0)
+    remarks = models.CharField(max_length=1000, null=True, blank=True)
+    remarker = models.ForeignKey(User, related_name="remarker", null=True, blank=True, on_delete=models.DO_NOTHING)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
+    active = models.BooleanField(default=True)
 
 class ExerciseKey(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
@@ -368,6 +384,11 @@ class ExerciseSubmission(models.Model):
         max_length=200, blank=True), blank=True, null=True)
     points = models.DecimalField(
         max_digits=4, decimal_places=1, blank=True, null=True)
+
+    def default_rubric():
+        return []
+    rubric = JSONField(default=default_rubric)
+
     percentage = models.IntegerField(blank=True, null=True)
 
     class StatusChoices(models.TextChoices):
@@ -375,6 +396,7 @@ class ExerciseSubmission(models.Model):
         SUBMITTED = "SU", _('SUBMITTED')
         GRADED = "GR", _('GRADED')
         RETURNED = "RE", _('RETURNED')
+        FLAGGED = "FL", _('FLAGGED')
     # End of Type Choices
 
     status = models.CharField(
@@ -399,6 +421,11 @@ class SubmissionHistory(models.Model):
         max_length=200, blank=True), blank=True, null=True)
     points = models.DecimalField(
         max_digits=4, decimal_places=1, blank=True, null=True)
+
+    def default_rubric():
+        return []
+    rubric = JSONField(default=default_rubric)
+    
     status = models.CharField(
         max_length=2, choices=ExerciseSubmission.StatusChoices.choices, default=ExerciseSubmission.StatusChoices.PENDING)
     flagged = models.BooleanField(default=False)
