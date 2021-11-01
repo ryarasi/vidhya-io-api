@@ -1747,13 +1747,16 @@ class PatchRubric(graphene.Mutation):
                 for submission in submissions_with_rubric:
                     processed_submissions_count += 1
                     submissionRubric = submission.exercise.rubric
+                    score = 0
+                    if submission.criteriaSatisfied is not None:
+                        score = points if description in submission.criteriaSatisfied else score # giving full points if criteriaSatisfied field contains the description in the submission
                     for submissionCriterion in submissionRubric:
                         try:
                             criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion_instance.id, participant_id = submission.participant.id)
-                            criterion_response_instance.searchField = CreateCriterionResponse.generate_searchField(criterion_response_instance)
                         except:
-                            criterion_response_instance = CriterionResponse(criterion_id=criterion_instance.id, exercise_id=exercise.id, participant_id=submission.participant.id, remarker_id=submission.remarker.id, remarks='', score = 0)
-                            criterion_response_instance.searchField = CreateCriterionResponse.generate_searchField(criterion_instance)
+                            criterion_response_instance = CriterionResponse(criterion_id=criterion_instance.id, exercise_id=exercise.id, participant_id=submission.participant.id, remarker_id=submission.remarker.id, remarks='', score = score)
+                        criterion_response_instance.score = score
+                        criterion_response_instance.searchField = CreateCriterionResponse.generate_searchField(criterion_response_instance)
                         criterion_response_instance.save()
         
 
