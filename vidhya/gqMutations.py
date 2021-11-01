@@ -1350,17 +1350,14 @@ class UpdateExercise(graphene.Mutation):
             exercise_instance.points = input.points if input.points is not None else exercise_instance.points
 
             if input.rubric:
-                print('rubric exists => ', input.rubric)
                 for criterion in input.rubric:
                     criterion_new = False
                     if criterion.id:
-                        print('criterion id exists => ', criterion)
                         try:
                             criterion_instance = Criterion.objects.get(pk=criterion.id, active=True)
                             criterion_instance.description = criterion.description if criterion.description is not None else criterion_instance.description
                             criterion_instance.points = criterion.points if criterion.points is not None else criterion_instance.points
                             criterion_instance.exercise_id = exercise_instance.id
-                            print('the active value of criterion => ', criterion)
                             criterion_instance.active = True if criterion.active is None or criterion.active != False else criterion.active
                             criterion_instance.save()
                         except:
