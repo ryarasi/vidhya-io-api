@@ -4,6 +4,8 @@ import django.contrib.postgres.fields.jsonb
 from django.db import migrations, models
 import vidhya.models
 
+def default_rubric():
+    return []
 
 class Migration(migrations.Migration):
 
@@ -15,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='exercisesubmission',
             name='rubric',
-            field=django.contrib.postgres.fields.jsonb.JSONField(default=vidhya.models.ExerciseSubmission.default_rubric),
+            field=django.contrib.postgres.fields.jsonb.JSONField(default=default_rubric),
         ),
         migrations.AlterField(
             model_name='exercisesubmission',

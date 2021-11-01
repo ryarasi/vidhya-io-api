@@ -1748,8 +1748,6 @@ class PatchRubric(graphene.Mutation):
                     processed_submissions_count += 1
                     submissionRubric = submission.exercise.rubric
                     score = 0
-                    if submission.criteriaSatisfied is not None:
-                        score = points if description in submission.criteriaSatisfied else score # giving full points if criteriaSatisfied field contains the description in the submission
                     for submissionCriterion in submissionRubric:
                         try:
                             criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion_instance.id, participant_id = submission.participant.id)
@@ -1948,7 +1946,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         exercise_submission_instance.rubric = submission.rubric if submission.rubric is not None else exercise_submission_instance.rubric
         exercise_submission_instance.percentage = submission.percentage if submission.percentage is not None else exercise_submission_instance.percentage
         exercise_submission_instance.status = submission.status if submission.status is not None else exercise_submission_instance.status
-        exercise_submission_instance.criteriaSatisfied = submission.criteriaSatisfied if submission.criteriaSatisfied is not None else exercise_submission_instance.criteriaSatisfied
         exercise_submission_instance.remarks = submission.remarks 
         exercise_submission_instance.flagged = submission.flagged if submission.flagged is not None else exercise_submission_instance.flagged
         exercise_submission_instance.grader_id = grader_id
@@ -1996,7 +1993,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             if existing_submission is None:
                 #If not found, we create it and store it in exercise_submission_instance
                 exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
-                                                            answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, rubric=submission.rubric, percentage=submission.percentage, status=submission.status, criteriaSatisfied=submission.criteriaSatisfied, remarks=submission.remarks, searchField=searchField)
+                                                            answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, rubric=submission.rubric, percentage=submission.percentage, status=submission.status, remarks=submission.remarks, searchField=searchField)
             else:
                 exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField)
 
@@ -2014,7 +2011,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             # Freezing rubric for submission history
             frozen_rubric = CreateUpdateExerciseSubmissions.freeze_rubric(exercise_submission_instance)
 
-            history = SubmissionHistory(exercise_id=exercise_submission_instance.exercise_id, participant_id=exercise_submission_instance.participant_id, option=exercise_submission_instance.option, answer=exercise_submission_instance.answer, link=exercise_submission_instance.link, images=exercise_submission_instance.images, points=exercise_submission_instance.points, rubric = frozen_rubric, status=exercise_submission_instance.status, flagged=exercise_submission_instance.flagged, grader=exercise_submission_instance.grader, remarks=exercise_submission_instance.remarks, criteriaSatisfied=exercise_submission_instance.criteriaSatisfied,active=exercise_submission_instance.active, searchField=searchField)
+            history = SubmissionHistory(exercise_id=exercise_submission_instance.exercise_id, participant_id=exercise_submission_instance.participant_id, option=exercise_submission_instance.option, answer=exercise_submission_instance.answer, link=exercise_submission_instance.link, images=exercise_submission_instance.images, points=exercise_submission_instance.points, rubric = frozen_rubric, status=exercise_submission_instance.status, flagged=exercise_submission_instance.flagged, grader=exercise_submission_instance.grader, remarks=exercise_submission_instance.remarks, active=exercise_submission_instance.active, searchField=searchField)
             history.save()
 
             # Adding it to the list of submissions that will then be passed on for report generation
