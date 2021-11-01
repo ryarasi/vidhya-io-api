@@ -1924,6 +1924,17 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
         return {'submission': submission, 'autograded': autograded}
 
+    def freeze_rubric(submission):
+        rubric = []
+        for criterion_response in submission.rubric:
+            criterion = Criterion.objects.all().get(pk=int(criterion_response.criterion_id))
+            criterion_response['criterion'] = {'description': criterion.description, 'points': criterion.points}
+            if criterion_response.remarker_id is not None:
+                remarker = User.objects.all().get(pk=int(criterion_response.remarker_id))
+                criterion_response['remarker'] = {'id': remarker.id, 'name': remarker.name}
+            rubric.append(criterion_response)
+        return rubric
+
     def update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField):
         grader_id = info.context.user.id if grading and not autograded else None# If it is update, that means it is being graded, so here we add the grader_id
         exercise_submission_instance.exercise_id = submission.exercise_id if submission.exercise_id is not None else exercise_submission_instance.exercise_id
@@ -2000,7 +2011,10 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             # Processing rubric for submission
             CreateUpdateExerciseSubmissions.process_submission_rubric(exercise_submission_instance)
 
-            history = SubmissionHistory(exercise_id=exercise_submission_instance.exercise_id, participant_id=exercise_submission_instance.participant_id, option=exercise_submission_instance.option, answer=exercise_submission_instance.answer, link=exercise_submission_instance.link, images=exercise_submission_instance.images, points=exercise_submission_instance.points, rubric = exercise_submission_instance.rubric, status=exercise_submission_instance.status, flagged=exercise_submission_instance.flagged, grader=exercise_submission_instance.grader, remarks=exercise_submission_instance.remarks, criteriaSatisfied=exercise_submission_instance.criteriaSatisfied,active=exercise_submission_instance.active, searchField=searchField)
+            # Freezing rubric for submission history
+            frozen_rubric = CreateUpdateExerciseSubmissions.freeze_rubric(exercise_submission_instance)
+
+            history = SubmissionHistory(exercise_id=exercise_submission_instance.exercise_id, participant_id=exercise_submission_instance.participant_id, option=exercise_submission_instance.option, answer=exercise_submission_instance.answer, link=exercise_submission_instance.link, images=exercise_submission_instance.images, points=exercise_submission_instance.points, rubric = frozen_rubric, status=exercise_submission_instance.status, flagged=exercise_submission_instance.flagged, grader=exercise_submission_instance.grader, remarks=exercise_submission_instance.remarks, criteriaSatisfied=exercise_submission_instance.criteriaSatisfied,active=exercise_submission_instance.active, searchField=searchField)
             history.save()
 
             # Adding it to the list of submissions that will then be passed on for report generation
