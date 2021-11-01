@@ -1604,8 +1604,8 @@ class CreateCriterionResponse(graphene.Mutation):
         error = ""
         if not input.participant_id:
             error += "Participant is a required field<br />"        
-        if not input.grader_id:
-            error += "Grader is a required field<br />"
+        if not input.remarker_id:
+            error += "Remarker is a required field<br />"
         if not input.exercise_id:
             error += "Exercise is a required field<br />"
         if not input.score:
@@ -1621,7 +1621,7 @@ class CreateCriterionResponse(graphene.Mutation):
         CreateCriterionResponse.validate_criterion_response_input(input)
 
 
-        criterion_response_instance = CriterionResponse(criterion_id=input.criterion_id, exercise_id=input.exercise_id, participant_id = input.participant_id, grader_id = input.grader_id, score = input.score)
+        criterion_response_instance = CriterionResponse(criterion_id=input.criterion_id, exercise_id=input.exercise_id, participant_id = input.participant_id, remarker_id = input.remarker_id, score = input.score)
         criterion_response_instance.searchField= CreateCriterionResponse.generate_searchField(criterion_response_instance)
         criterion_response_instance.save()
 
@@ -1755,7 +1755,7 @@ class PatchRubric(graphene.Mutation):
                             criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion_instance.id, participant_id = submission.participant.id)
                             criterion_response_instance.searchField = CreateCriterionResponse.generate_searchField(criterion_response_instance)
                         except:
-                            criterion_response_instance = CriterionResponse(criterion_id=criterion_instance.id, exercise_id=exercise.id, participant_id=submission.participant.id, grader_id=submission.grader.id, remarks='', score = 0)
+                            criterion_response_instance = CriterionResponse(criterion_id=criterion_instance.id, exercise_id=exercise.id, participant_id=submission.participant.id, remarker_id=submission.remarker.id, remarks='', score = 0)
                             criterion_response_instance.searchField = CreateCriterionResponse.generate_searchField(criterion_instance)
                         criterion_response_instance.save()
         
@@ -1868,7 +1868,8 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         if error:
             raise GraphQLError(error)
 
-    def process_submission_rubric(submission, exercise):
+    def process_submission_rubric(submission):
+        exercise = submission.exercise
         create_new_criterion_response = False     
         if exercise.rubric and submission.id:
             if not submission.rubric:
@@ -1878,10 +1879,12 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion_response.criterion_id, participant_id=submission.participant.id, active=True)
                     criterion_response_instance.criterion_id = criterion_response.criterion_id
                     criterion_response_instance.exercise_id = exercise.id
-                    criterion_response_instance.participant_id = submission.participant_id
-                    criterion_response_instance.score = criterion_response_instance.score if criterion_response_instance.score else 0
+                    criterion_response_instance.participant_id = criterion_response.participant_id
+                    criterion_response_instance.remarker_id = criterion_response.remarker_id
+                    criterion_response_instance.remarks = criterion_response.remarks
+                    criterion_response_instance.score = criterion_response.score if criterion_response.score is not None else 0
                     criterion_response_instance.save()
-        elif exercise.rubric and not submission.id or create_new_criterion_response == True:
+        elif (exercise.rubric and not submission.id) or create_new_criterion_response == True:
             # While creating the submission, or if for some reason criteria for submissions don't exist yet
             for criterion in exercise.rubric:
                 criterion_response_instance = CriterionResponse(criterion_id=criterion.id, exercise_id=exercise.id, participant_id=submission.participant.id, score=0)
@@ -1914,7 +1917,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 points = 0
                 remarks = 'Correct Option is "' + exercise_key.valid_option + '"'
         submission.points = points
-        CreateUpdateExerciseSubmissions.process_submission_rubric(submission, exercise)
         submission.status = status 
         submission.remarks = remarks
         totalPoints = exercise.points if exercise.points is not None else 0
@@ -1994,6 +1996,10 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
             # Saving the variable to the database
             exercise_submission_instance.save()
+
+            # Processing rubric for submission
+            CreateUpdateExerciseSubmissions.process_submission_rubric(exercise_submission_instance)
+
             history = SubmissionHistory(exercise_id=exercise_submission_instance.exercise_id, participant_id=exercise_submission_instance.participant_id, option=exercise_submission_instance.option, answer=exercise_submission_instance.answer, link=exercise_submission_instance.link, images=exercise_submission_instance.images, points=exercise_submission_instance.points, rubric = exercise_submission_instance.rubric, status=exercise_submission_instance.status, flagged=exercise_submission_instance.flagged, grader=exercise_submission_instance.grader, remarks=exercise_submission_instance.remarks, criteriaSatisfied=exercise_submission_instance.criteriaSatisfied,active=exercise_submission_instance.active, searchField=searchField)
             history.save()
 

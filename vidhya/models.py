@@ -348,9 +348,9 @@ class CriterionResponse(models.Model):
     criterion = models.ForeignKey(Criterion, on_delete=models.CASCADE)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
-    grader = models.ForeignKey(User, related_name="remarksBy", on_delete=models.DO_NOTHING)
     score = models.IntegerField(default=0)
     remarks = models.CharField(max_length=1000, null=True, blank=True)
+    remarker = models.ForeignKey(User, related_name="remarker", null=True, blank=True, on_delete=models.DO_NOTHING)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
     active = models.BooleanField(default=True)
 
