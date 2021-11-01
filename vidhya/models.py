@@ -327,10 +327,6 @@ class Exercise(models.Model):
     points = models.IntegerField(blank=True, null=True)
     active = models.BooleanField(default=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
-    def default_rubric():
-        return []
-    rubric = JSONField(default=default_rubric)
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -385,10 +381,6 @@ class ExerciseSubmission(models.Model):
     points = models.DecimalField(
         max_digits=4, decimal_places=1, blank=True, null=True)
 
-    def default_rubric():
-        return []
-    rubric = JSONField(default=default_rubric)
-
     percentage = models.IntegerField(blank=True, null=True)
 
     class StatusChoices(models.TextChoices):
@@ -404,7 +396,6 @@ class ExerciseSubmission(models.Model):
     flagged = models.BooleanField(default=False)
     grader = models.ForeignKey(User, related_name="grader", blank=True, null=True, on_delete=models.DO_NOTHING)
     remarks = models.CharField(max_length=1000, blank=True, null=True)
-    criteriaSatisfied = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
     active = models.BooleanField(default=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
