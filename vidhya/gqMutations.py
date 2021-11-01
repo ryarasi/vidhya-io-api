@@ -1754,7 +1754,7 @@ class PatchRubric(graphene.Mutation):
                         try:
                             criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion_instance.id, participant_id = submission.participant.id)
                         except:
-                            criterion_response_instance = CriterionResponse(criterion_id=criterion_instance.id, exercise_id=exercise.id, participant_id=submission.participant.id, remarker_id=submission.remarker.id, remarks='', score = score)
+                            criterion_response_instance = CriterionResponse(criterion_id=criterion_instance.id, exercise_id=exercise.id, participant_id=submission.participant.id, remarker_id=None, remarks=None, score = score)
                         criterion_response_instance.score = score
                         criterion_response_instance.searchField = CreateCriterionResponse.generate_searchField(criterion_response_instance)
                         criterion_response_instance.save()
