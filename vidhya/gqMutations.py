@@ -1700,67 +1700,7 @@ class DeleteCriterionResponse(graphene.Mutation):
             return DeleteCriterionResponse(ok=ok, criterion_response=criterion_response)
         return DeleteCriterionResponse(ok=ok, criterion_response=None)
 
-class PatchRubric(graphene.Mutation):
-    class Meta:
-        description = "Mutation to patch the rubric for exercises and submissions in bulk"
-    
-    class Arguments:
-        pass
 
-    ok = graphene.Boolean()
-    total_exercises_count = graphene.Int()
-    total_submissions_count = graphene.Int()
-    processed_exercises_count = graphene.Int()
-    processed_submissions_count = graphene.Int()
-
-
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
-    def mutate(root, info):
-        ok = False
-
-        exercises_with_rubric = Exercise.objects.filter(~Q(rubric = []), active=True)
-        total_exercises_count = exercises_with_rubric.count()
-        processed_exercises_count = 0
-        total_submissions_count = 0
-        processed_submissions_count = 0 
-
-        for exercise in exercises_with_rubric:
-            rubric = exercise.rubric
-            
-            processed_exercises_count += 1
-            for criterion in rubric:
-                description = criterion['description'] if criterion['description'] else ''
-                points = criterion['points'] if criterion['points'] is not None else 0
-                try:
-                    criterion_instance = Criterion.objects.get(exercise_id=exercise.id, description = criterion['description'])
-                    criterion_instance.points = points
-                    criterion_instance.searchField = CreateCriterion.generate_searchField(criterion_instance)
-                except:
-                    criterion_instance = Criterion(exercise_id=exercise.id, description=description, points = points)
-                    criterion_instance.searchField = CreateCriterion.generate_searchField(criterion_instance)
-
-                criterion_instance.save()
-                submissions_with_rubric = ExerciseSubmission.objects.filter(exercise_id=exercise.id, active=True)
-                total_submissions_count += submissions_with_rubric.count()
-                for submission in submissions_with_rubric:
-                    processed_submissions_count += 1
-                    submissionRubric = submission.exercise.rubric
-                    score = 0
-                    for submissionCriterion in submissionRubric:
-                        try:
-                            criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion_instance.id, participant_id = submission.participant.id)
-                        except:
-                            criterion_response_instance = CriterionResponse(criterion_id=criterion_instance.id, exercise_id=exercise.id, participant_id=submission.participant.id, remarker_id=None, remarks=None, score = score)
-                        criterion_response_instance.score = score
-                        criterion_response_instance.searchField = CreateCriterionResponse.generate_searchField(criterion_response_instance)
-                        criterion_response_instance.save()
-        
-
-        ok = True if total_exercises_count == processed_exercises_count and total_submissions_count == processed_submissions_count else False
-        return PatchRubric(ok=ok, total_exercises_count = total_exercises_count, total_submissions_count = total_submissions_count, processed_exercises_count=processed_exercises_count, processed_submissions_count=processed_submissions_count)    
-        
 class PatchExerciseSubmissionsSearchFields(graphene.Mutation):
     class Meta:
         description = "Mutation to patch searchFields of all submissions"
@@ -1784,11 +1724,6 @@ class PatchExerciseSubmissionsSearchFields(graphene.Mutation):
             # Generating a global searchFieldyy
             submission.searchField = CreateUpdateExerciseSubmissions.generate_searchField(submission)
 
-            # Also updating the rubric
-            if grading and submission.exercise.rubric is not None:
-                rubric = submission.rubric if submission.rubric else submission.exercise.rubric
-                submission.rubric = rubric
-                
             # Saving the submission to the database
             submission.save()
             processed_count += 1
@@ -1869,7 +1804,8 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
     def process_submission_rubric(submission):
         exercise = submission.exercise
         create_new_criterion_response = False     
-        if exercise.rubric and submission.id:
+        exercise_rubric = Criterion.objects.all().filter(exercise_id=exercise.id, active=True).order_by('id')
+        if exercise_rubric and submission.id:
             if not submission.rubric:
                 create_new_criterion_response = True
             else:
@@ -1882,9 +1818,9 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     criterion_response_instance.remarks = criterion_response.remarks
                     criterion_response_instance.score = criterion_response.score if criterion_response.score is not None else 0
                     criterion_response_instance.save()
-        elif (exercise.rubric and not submission.id) or create_new_criterion_response == True:
+        elif (exercise_rubric and not submission.id) or create_new_criterion_response == True:
             # While creating the submission, or if for some reason criteria for submissions don't exist yet
-            for criterion in exercise.rubric:
+            for criterion in exercise_rubric:
                 criterion_response_instance = CriterionResponse(criterion_id=criterion.id, exercise_id=exercise.id, participant_id=submission.participant.id, score=0)
                 criterion_response_instance.save()     
 
@@ -2643,4 +2579,4 @@ class Mutation(graphene.ObjectType):
     # Bulk patching/sanitizing mutations
     patch_exercise_submissions_searchFields = PatchExerciseSubmissionsSearchFields.Field()
     patch_reports_searchFields = PatchReportsSearchFields.Field()
-    patch_rubric = PatchRubric.Field()
+
