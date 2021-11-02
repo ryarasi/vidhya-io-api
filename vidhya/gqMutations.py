@@ -1724,11 +1724,6 @@ class PatchExerciseSubmissionsSearchFields(graphene.Mutation):
             # Generating a global searchFieldyy
             submission.searchField = CreateUpdateExerciseSubmissions.generate_searchField(submission)
 
-            # Also updating the rubric
-            if grading and submission.exercise.rubric is not None:
-                rubric = submission.rubric if submission.rubric else submission.exercise.rubric
-                submission.rubric = rubric
-                
             # Saving the submission to the database
             submission.save()
             processed_count += 1
@@ -1809,7 +1804,8 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
     def process_submission_rubric(submission):
         exercise = submission.exercise
         create_new_criterion_response = False     
-        if exercise.rubric and submission.id:
+        exercise_rubric = Criterion.objects.all().filter(exercise_id=exercise.id, active=True).order_by('id')
+        if exercise_rubric and submission.id:
             if not submission.rubric:
                 create_new_criterion_response = True
             else:
@@ -1822,9 +1818,9 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     criterion_response_instance.remarks = criterion_response.remarks
                     criterion_response_instance.score = criterion_response.score if criterion_response.score is not None else 0
                     criterion_response_instance.save()
-        elif (exercise.rubric and not submission.id) or create_new_criterion_response == True:
+        elif (exercise_rubric and not submission.id) or create_new_criterion_response == True:
             # While creating the submission, or if for some reason criteria for submissions don't exist yet
-            for criterion in exercise.rubric:
+            for criterion in exercise_rubric:
                 criterion_response_instance = CriterionResponse(criterion_id=criterion.id, exercise_id=exercise.id, participant_id=submission.participant.id, score=0)
                 criterion_response_instance.save()     
 
