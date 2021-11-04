@@ -1801,15 +1801,15 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         if error:
             raise GraphQLError(error)
 
-    def process_submission_rubric(submission):
+    def process_submission_rubric(submission, rubric):
         exercise = submission.exercise
         create_new_criterion_response = False     
         exercise_rubric = Criterion.objects.all().filter(exercise_id=exercise.id, active=True).order_by('id')
         if exercise_rubric and submission.id:
-            if not submission.rubric:
+            if not rubric:
                 create_new_criterion_response = True
             else:
-                for criterion_response in submission.rubric:            
+                for criterion_response in rubric:            
                     criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion_response.criterion_id, participant_id=submission.participant.id, active=True)
                     criterion_response_instance.criterion_id = criterion_response.criterion_id
                     criterion_response_instance.exercise_id = exercise.id
@@ -1944,7 +1944,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             exercise_submission_instance.save()
 
             # Processing rubric for submission
-            CreateUpdateExerciseSubmissions.process_submission_rubric(exercise_submission_instance)
+            CreateUpdateExerciseSubmissions.process_submission_rubric(exercise_submission_instance, submission.rubric)
 
             # Freezing rubric for submission history
             frozen_rubric = CreateUpdateExerciseSubmissions.freeze_rubric(exercise_submission_instance)
