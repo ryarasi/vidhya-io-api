@@ -1879,7 +1879,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         exercise_submission_instance.link = submission.link if submission.link is not None else exercise_submission_instance.link
         exercise_submission_instance.images = submission.images if submission.images is not None else exercise_submission_instance.images
         exercise_submission_instance.points = submission.points if submission.points is not None else exercise_submission_instance.points
-        exercise_submission_instance.rubric = submission.rubric if submission.rubric is not None else exercise_submission_instance.rubric
         exercise_submission_instance.percentage = submission.percentage if submission.percentage is not None else exercise_submission_instance.percentage
         exercise_submission_instance.status = submission.status if submission.status is not None else exercise_submission_instance.status
         exercise_submission_instance.remarks = submission.remarks 
@@ -1929,7 +1928,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             if existing_submission is None:
                 #If not found, we create it and store it in exercise_submission_instance
                 exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
-                                                            answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, rubric=submission.rubric, percentage=submission.percentage, status=submission.status, remarks=submission.remarks, searchField=searchField)
+                                                            answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, remarks=submission.remarks, searchField=searchField)
             else:
                 exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField)
 
