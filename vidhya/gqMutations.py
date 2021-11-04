@@ -1801,15 +1801,19 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         if error:
             raise GraphQLError(error)
 
-    def process_submission_rubric(submission, rubric):
+    def process_submission_rubric(submission, input_rubric):
         exercise = submission.exercise
-        create_new_criterion_response = False     
         exercise_rubric = Criterion.objects.all().filter(exercise_id=exercise.id, active=True).order_by('id')
-        if exercise_rubric and submission.id:
-            if not rubric:
-                create_new_criterion_response = True
+        submission_rubric = CriterionResponse.objects.all().filter(exercise_id=exercise.id, participant_id=submission.participant.id, active=True)
+        if exercise_rubric:
+            if not submission_rubric:
+                # While creating the submission, or if for some reason criteria for submissions don't exist yet, we create new
+                for criterion in exercise_rubric:
+                    criterion_response_instance = CriterionResponse(criterion_id=criterion.id, exercise_id=exercise.id, participant_id=submission.participant.id, score=0)
+                    criterion_response_instance.save()     
             else:
-                for criterion_response in rubric:            
+                # If it exists already, we simply update them.
+                for criterion_response in input_rubric:            
                     criterion_response_instance = CriterionResponse.objects.get(criterion_id=criterion_response.criterion_id, participant_id=submission.participant.id, active=True)
                     criterion_response_instance.criterion_id = criterion_response.criterion_id
                     criterion_response_instance.exercise_id = exercise.id
@@ -1818,11 +1822,8 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     criterion_response_instance.remarks = criterion_response.remarks
                     criterion_response_instance.score = criterion_response.score if criterion_response.score is not None else 0
                     criterion_response_instance.save()
-        elif (exercise_rubric and not submission.id) or create_new_criterion_response == True:
-            # While creating the submission, or if for some reason criteria for submissions don't exist yet
-            for criterion in exercise_rubric:
-                criterion_response_instance = CriterionResponse(criterion_id=criterion.id, exercise_id=exercise.id, participant_id=submission.participant.id, score=0)
-                criterion_response_instance.save()     
+
+
 
     def process_submission(submission, grading):
         autograded = False
