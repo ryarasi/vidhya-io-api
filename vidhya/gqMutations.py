@@ -1860,13 +1860,14 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
     def freeze_rubric(submission):
         rubric = []
-        for criterion_response in submission.rubric:
-            criterion = Criterion.objects.all().get(pk=int(criterion_response.criterion_id))
-            criterion_response['criterion'] = {'description': criterion.description, 'points': criterion.points}
-            if criterion_response.remarker_id is not None:
-                remarker = User.objects.all().get(pk=int(criterion_response.remarker_id))
-                criterion_response['remarker'] = {'id': remarker.id, 'name': remarker.name}
-            rubric.append(criterion_response)
+        if submission.rubric:
+            for criterion_response in submission.rubric:
+                criterion = Criterion.objects.all().get(pk=int(criterion_response.criterion_id))
+                criterion_response['criterion'] = {'description': criterion.description, 'points': criterion.points}
+                if criterion_response.remarker_id is not None:
+                    remarker = User.objects.all().get(pk=int(criterion_response.remarker_id))
+                    criterion_response['remarker'] = {'id': remarker.id, 'name': remarker.name}
+                rubric.append(criterion_response)
         return rubric
 
     def update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField):
