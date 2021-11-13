@@ -24,15 +24,13 @@ def generate_public_institution(institution):
 
         total_completed = 0
         total_percentage = 0
-        total_score = 0
         for report in institution_reports:
             total_completed += report.completed
             total_percentage += report.percentage
-            total_score += report.completed * report.percentage
 
-        score = total_score/learnerCount
         completed = total_completed/learnerCount
         percentage = total_percentage/learnerCount
+        score = completed * percentage
 
     public_institution = PublicInstitutionType(id=institution.id, name=institution.name, code=institution.code, location=institution.location, city=institution.city, website=institution.website, phone=institution.phone, logo=institution.logo, bio=institution.bio, learnerCount=learnerCount, score=score, completed=completed, percentage=percentage)
     return public_institution
