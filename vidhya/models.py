@@ -46,8 +46,6 @@ class User(AbstractUser):
 
     membership_status = models.CharField(
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.UNINITIALIZED)
-    invitecode = models.CharField(max_length=10, validators=[
-                                  MinLengthValidator(10)], blank=True, null=True)
     chapters = models.ManyToManyField('Chapter', through='CompletedChapters', through_fields=('participant', 'chapter'), blank=True)
     courses = models.ManyToManyField('Course', through='CompletedCourses', through_fields=('participant', 'course'), blank=True)
     announcements = models.ManyToManyField('Announcement', through='AnnouncementsSeen', through_fields=('user','announcement'), blank=True)

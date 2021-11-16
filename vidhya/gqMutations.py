@@ -184,7 +184,6 @@ class AddInvitecode(graphene.Mutation):
                 "There was an error in your registration. Please contact the admin.")
         if user and institution:
             ok = True
-            user.invitecode = invitecode
             user.institution_id = institution.id
             user.save()
         return AddInvitecode(ok=ok)
