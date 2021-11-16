@@ -354,7 +354,7 @@ class ExerciseKey(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     valid_option = models.CharField(
         max_length=200, blank=True, null=True)
-    valid_answers = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
+    valid_answers = ArrayField(models.CharField(max_length=5000, blank=True, null=True), blank=True, null=True)
     reference_link = models.CharField(max_length=500, blank=True, null=True)
     reference_images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
@@ -372,7 +372,7 @@ class ExerciseSubmission(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     option = models.CharField(
         max_length=200, blank=True, null=True)
-    answer = models.CharField(max_length=500, blank=True, null=True)
+    answer = models.CharField(max_length=5000, blank=True, null=True)
     link = models.CharField(max_length=5000, blank=True, null=True)
     images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
@@ -404,7 +404,7 @@ class SubmissionHistory(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
     option = models.CharField(
         max_length=200, blank=True, null=True)
-    answer = models.CharField(max_length=500, blank=True, null=True)
+    answer = models.CharField(max_length=5000, blank=True, null=True)
     link = models.CharField(max_length=5000, blank=True, null=True)
     images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
