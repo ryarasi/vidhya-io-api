@@ -46,8 +46,6 @@ class User(AbstractUser):
 
     membership_status = models.CharField(
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.UNINITIALIZED)
-    invitecode = models.CharField(max_length=10, validators=[
-                                  MinLengthValidator(10)], blank=True, null=True)
     chapters = models.ManyToManyField('Chapter', through='CompletedChapters', through_fields=('participant', 'chapter'), blank=True)
     courses = models.ManyToManyField('Course', through='CompletedCourses', through_fields=('participant', 'course'), blank=True)
     announcements = models.ManyToManyField('Announcement', through='AnnouncementsSeen', through_fields=('user','announcement'), blank=True)
@@ -356,7 +354,7 @@ class ExerciseKey(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     valid_option = models.CharField(
         max_length=200, blank=True, null=True)
-    valid_answers = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
+    valid_answers = ArrayField(models.CharField(max_length=5000, blank=True, null=True), blank=True, null=True)
     reference_link = models.CharField(max_length=500, blank=True, null=True)
     reference_images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
@@ -374,7 +372,7 @@ class ExerciseSubmission(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     option = models.CharField(
         max_length=200, blank=True, null=True)
-    answer = models.CharField(max_length=500, blank=True, null=True)
+    answer = models.CharField(max_length=5000, blank=True, null=True)
     link = models.CharField(max_length=5000, blank=True, null=True)
     images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
@@ -406,7 +404,7 @@ class SubmissionHistory(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
     option = models.CharField(
         max_length=200, blank=True, null=True)
-    answer = models.CharField(max_length=500, blank=True, null=True)
+    answer = models.CharField(max_length=5000, blank=True, null=True)
     link = models.CharField(max_length=5000, blank=True, null=True)
     images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
