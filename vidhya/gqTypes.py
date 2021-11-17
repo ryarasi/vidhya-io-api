@@ -269,6 +269,8 @@ class CourseInput(graphene.InputObjectType):
     start_date = graphene.String()
     end_date = graphene.String()
     credit_hours = graphene.Int()
+    pass_score_percentage = graphene.Int()
+    pass_completion_percentage = graphene.Int()
     status = graphene.String()
 
 
