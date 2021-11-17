@@ -903,6 +903,16 @@ class DeleteCourse(graphene.Mutation):
             ok = True
             course_instance.active = False
 
+            #Deleting chapters in the course
+            chapters = Chapter.objects.filter(course_id=id, active=True)
+            for chapter in chapters:
+                DeleteChapter.mutate(root, info, chapter.id)
+
+            #Deleting course sections in the course
+            sections = CourseSection.objects.filter(course_id=id, active=True)
+            for section in sections:
+                DeleteCourseSection.mutate(root, info, section.id)
+                
             course_instance.save()
 
             payload = {"course": course_instance,
