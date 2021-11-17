@@ -1187,6 +1187,11 @@ class DeleteChapter(graphene.Mutation):
             ok = True
             chapter_instance.active = False
 
+            # Deleting all exercises (and its associated entities such as key, submissions etc.) that are part of this chapter
+            exercises = Exercise.objects.filter(chapter_id=id, active=True)
+            for exercise in exercises:
+                DeleteExercise.mutate(root, info, exercise.id)
+
             chapter_instance.save()
 
             payload = {"chapter": chapter_instance,
