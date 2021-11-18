@@ -1,5 +1,6 @@
 from enum import unique
 import json
+from typing import final
 
 from django.db.models.query_utils import Q
 import graphene
@@ -1753,7 +1754,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
     class Arguments:
         exercise_submissions = graphene.List(ExerciseSubmissionInput, required=True)
-        chapter_id = graphene.ID() # To know which chapter to mark as complete
         grading = graphene.Boolean(required=True)
         bulkauto = graphene.Boolean()
 
@@ -1818,9 +1818,37 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         if error:
             raise GraphQLError(error)
 
+    def updateCompletedChapterStatus(root, info, chapter_id, participant_id):
+        # Calculating the status of this chapter
+        exercises = Exercise.objects.filter(chapter_id=chapter_id, active=True)
+        exerciseCount = Exercise.objects.all().filter(chapter_id=chapter_id,active=True).count()
+        submittedCount = ExerciseSubmission.objects.all().filter(participant_id=participant_id, chapter_id=chapter_id, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True).count()
+        gradedCount = ExerciseSubmission.objects.all().filter(participant_id=participant_id, chapter_id=chapter_id, status=ExerciseSubmission.StatusChoices.GRADED,active=True).count()        
+        chapter_status = ExerciseSubmission.StatusChoices.PENDING
+        if submittedCount == exerciseCount - gradedCount:
+            chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
+        if gradedCount == exerciseCount: 
+            chapter_status = ExerciseSubmission.StatusChoices.GRADED
+        for exercise in exercises:
+            try:
+                submission = ExerciseSubmission.objects.all().get(participant_id=participant_id, exercise_id=exercise.id, active=True)
+                if submission.status == ExerciseSubmission.StatusChoices.RETURNED:
+                    chapter_status = ExerciseSubmission.StatusChoices.RETURNED                    
+            except:
+                pass            
+        # End of chapter status calculation
+
+        try:
+            completed_chapter = CompletedChapters.objects.get(chapter_id=chapter_id, participant_id=participant_id)
+            completed_chapter.status = chapter_status
+            completed_chapter.save()
+        except:
+            pass 
+
     # Method returns ok if the chapter provided is completed by the participant
     def markChapterCompleted(root, info, chapter_id, participant_id):
         ok = False
+        # Start of process to check if the chapter is completed or not
         try:
             chapter = Chapter.objects.get(pk=chapter_id, active=True)
             if chapter:
@@ -1839,14 +1867,12 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     all_required_exercises_submitted = all(item in submitted_exercise_ids for item in required_exercise_ids)
 
                     if all_required_exercises_submitted is True:
-                        # If required exercise ids match submitted exercise ids, thene mark the chapter as completed for the user and return
-                        participant = User.objects.get(id=participant_id, active=True)
-                        participant.chapters.add(chapter_id)
-                        course_id = chapter.course_id
-                        # Updating completion % and score % in the report
-                        UpdateReport.mutate(root, info, course_id, participant_id)
-                        ok = True
-                        return
+                        participant = User.objects.get(pk=participant_id, active=True)
+                        participant.chapters.add(chapter)
+
+                        # Updating the status in the completed chapter list for the participant
+                        CreateUpdateExerciseSubmissions.updateCompletedChapterStatus(root, info, chapter_id, participant_id)
+
         except:
             pass
         return ok
@@ -1971,10 +1997,17 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         exercise_submission_instance.searchField = searchField    
         return exercise_submission_instance    
 
+    """
+        This method is a bit complicated as it handles two different scenarios.
+        First scenario - the student submits the exercises in a chapter. This is when the exercise submissions for the chapter are first created
+        Second scenario - the grader updates the submissions with their updated score
+        The difference is determined by the grading boolean argument. 
+        Different things need to happen depending on this boolean value.
+    """
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
-    def mutate(root, info, exercise_submissions=None, chapter_id=None, grading=False, bulkauto=False):
+    def mutate(root, info, exercise_submissions=None, grading=False, bulkauto=False):
         ok = False
         current_user = info.context.user
         CreateUpdateExerciseSubmissions.check_errors(exercise_submissions, grading) # validating the input
@@ -1985,7 +2018,8 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             eligible_exercises = Exercise.objects.filter(question_type__in=[Exercise.QuestionTypeChoices.DESCRIPTION,Exercise.QuestionTypeChoices.OPTIONS],active=True)
             exercise_submissions = ExerciseSubmission.objects.filter(exercise__in=eligible_exercises, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True)
 
-
+        
+        print('Submissions to process ', exercise_submissions)
         # Looping through the array of submissions to process them individually
         for submission in exercise_submissions:
             ok = True
@@ -1994,7 +2028,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             # Calculating whether the submission is empty or not (regardless of whether it is for a required exercise)
             empty_submission = CreateUpdateExerciseSubmissions.is_submission_empty(submission, submission.exercise_id)
 
-
+            print('empty_submission ', empty_submission, ' for exercise id ', submission.exercise_id)
             if not empty_submission:
 
                 # Processing the indivdual submission
@@ -2039,24 +2073,37 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 history = SubmissionHistory(exercise_id=exercise_submission_instance.exercise_id, participant_id=exercise_submission_instance.participant_id, option=exercise_submission_instance.option, answer=exercise_submission_instance.answer, link=exercise_submission_instance.link, images=exercise_submission_instance.images, points=exercise_submission_instance.points, rubric = frozen_rubric, status=exercise_submission_instance.status, flagged=exercise_submission_instance.flagged, grader=exercise_submission_instance.grader, remarks=exercise_submission_instance.remarks, active=exercise_submission_instance.active, searchField=searchField)
                 history.save()
 
+                if grading:
+                    # Updating the submission status in the completed chapters field for the participant only when it is being graded,
+                    # Because when the student is submitting it, this step is taken care of cumulatively for all submissions down below outside of the loop for all submissions since all of those submissions will belong to one chapter
+                    # But when the grading is happening, the submissions in the loop may each belong to different chapters and we can be sure that each of those chapters is already in the participant's completed chapters list, 
+                    # so while it is being graded it is possible to have it work for each submission since it will definitely have its chapter in the completed chapters list
+                    CreateUpdateExerciseSubmissions.updateCompletedChapterStatus(root, info, exercise_submission_instance.chapter.id, exercise_submission_instance.participant.id)
+
                 # Adding it to the list of submissions that will then be passed on for report generation
                 finalSubmissions.append(exercise_submission_instance)
-
 
                 payload = {"exercise_submission": exercise_submission_instance,
                         "method": method}
                 NotifyExerciseSubmission.broadcast(
                     payload=payload)
-            participant_id = finalSubmissions.first().participant.id
+                
+                # End of grading the submission
 
-            if not grading:
-                #Marking chapter completed and subsequently updating report from there
-                if chapter_id is not None:
-                    ok = CreateUpdateExerciseSubmissions.markChapterCompleted(root, info, chapter_id, participant_id)
-            else:
-                UpdateReport.recalculate(root, info, finalSubmissions) # updating the reports
+        # Marking the chapter as submitted and updating scores
+        if not grading:
+            chapter_id = finalSubmissions[0].chapter.id
+            course_id = finalSubmissions[0].course_id
+            participant_id = finalSubmissions[0].participant.id
+            #Marking chapter completed
+            CreateUpdateExerciseSubmissions.markChapterCompleted(root, info, chapter_id, participant_id)
+            # Updating completion % and score % in the report
+            UpdateReport.mutate(root, info, course_id, participant_id)
+            ok = True
+        else:
+            UpdateReport.recalculate(root, info, finalSubmissions) # updating the reports
 
-            return CreateUpdateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
+        return CreateUpdateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
 
 
 # class UpdateExerciseSubmission(graphene.Mutation):
@@ -2250,7 +2297,7 @@ class UpdateReport(graphene.Mutation):
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']) or has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))    
     def mutate(root, info, course_id, participant_id):
         # Method takes in the course id and the participant id and recalculates the score and completion % in the report, creates new if it doesn't exist
         ok = False
@@ -2271,10 +2318,12 @@ class UpdateReport(graphene.Mutation):
             except:            
                 report_instance = Report(participant_id=participant_id, course_id=course_id, institution_id=participant.institution.id,
                                     completed=0, percentage=0)
+        
+        print('report instance from mutate in updateReport', report_instance)
         if report_instance:
             # Only if report_instance exists, we proceed, otherwise we exit
             ok = True
-            
+            print('Updating the report for course ', course_id, ' and participant => ', participant_id)
             # Calculating score %
             total_percentage = 0
             participant_id = report_instance.participant.id

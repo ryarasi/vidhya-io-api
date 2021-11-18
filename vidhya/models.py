@@ -65,6 +65,7 @@ class User(AbstractUser):
 class CompletedChapters(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
     chapter = models.ForeignKey('Chapter', on_delete=models.CASCADE)
+    status=models.CharField(max_length=2, default='SU')
 
     def __str__(self):
         return f'{self.chapter.title}' 
