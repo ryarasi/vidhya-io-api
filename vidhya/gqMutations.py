@@ -4,7 +4,7 @@ import json
 from django.db.models.query_utils import Q
 import graphene
 from graphql import GraphQLError
-from vidhya.models import Criterion, CriterionResponse, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, Criterion, CriterionResponse, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
@@ -1818,6 +1818,52 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         if error:
             raise GraphQLError(error)
 
+    # Method returns ok if the chapter provided is completed by the participant
+    def markChapterCompleted(root, info, chapter_id, participant_id):
+        ok = False
+        try:
+            chapter = Chapter.objects.get(pk=chapter_id, active=True)
+            if chapter:
+                # First making sure that the chapter exists, if it does then we proceed to the next steps
+                required_exercise_ids = Exercise.objects.filter(chapter_id=chapter_id, required=True, active=True).values_list('id', flat=True)
+                if not required_exercise_ids:
+                    # If the chapter has no required exercises, return the method without any further action
+                    ok = True
+                    return
+                else:
+                    # If the chapter has any required exercises, then check if each of the exercises has a corresponding submission
+                    # Calculating the ids of the exercises for which active submissions belonging to this participant exist 
+                    submitted_exercise_ids = ExerciseSubmission.objects.filter(chapter_id=chapter_id, participant_id=participant_id, active=True).values_list('exercise', flat=True)
+                    
+                    # Checking if each of the ids of the required exercise ids list exist in the submitted exercise ids list
+                    all_required_exercises_submitted = all(item in submitted_exercise_ids for item in required_exercise_ids)
+
+                    if all_required_exercises_submitted is True:
+                        # If required exercise ids match submitted exercise ids, thene mark the chapter as completed for the user and return
+                        participant = User.objects.get(id=participant_id, active=True)
+                        participant.chapters.add(chapter_id)
+                        course_id = chapter.course_id
+                        # Updating completion % and score % in the report
+                        UpdateReport.mutate(root, info, course_id, participant_id)
+                        ok = True
+                        return
+        except:
+            pass
+        return ok
+
+    # Method checks if the course is completed by the participant and if yes, adds it to the completed courses for the participant
+    def markCourseCompleted(course_id, participant):
+        try:
+            course = Course.objects.get(pk=course_id, active=True)
+            if course:
+                report = Report.objects.get(course_id=course_id, participant_id=participant.id, active=True)
+                course_completion_pass = report.completed >= course.pass_completed_percentage
+                course_score_pass = report.percentage >= course.pass_score_percentage
+                if course_completion_pass and course_score_pass: 
+                    participant.courses.add(course_id)
+        except:
+            pass      
+
     def process_submission_rubric(submission, input_rubric):
         exercise = submission.exercise
         exercise_rubric = Criterion.objects.all().filter(exercise_id=exercise.id, active=True).order_by('id')
@@ -2001,13 +2047,15 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                         "method": method}
                 NotifyExerciseSubmission.broadcast(
                     payload=payload)
+            participant_id = finalSubmissions.first().participant.id
+
             if not grading:
+                #Marking chapter completed and subsequently updating report from there
                 if chapter_id is not None:
-                    participant_id = finalSubmissions.first().participant.id
-                    ok = UpdateReport.markChapterCompleted(chapter_id, participant_id)
+                    ok = CreateUpdateExerciseSubmissions.markChapterCompleted(root, info, chapter_id, participant_id)
+            else:
+                UpdateReport.recalculate(root, info, finalSubmissions) # updating the reports
 
-
-            UpdateReport.recalculate(finalSubmissions) # updating the reports
             return CreateUpdateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
 
 
@@ -2160,8 +2208,8 @@ class UpdateReport(graphene.Mutation):
         description = "Mutation to update a Report"
 
     class Arguments:
-        id = graphene.ID(required=True)
-        input = ReportInput(required=True)
+        course_id = graphene.ID(required=True)
+        participant_id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     report = graphene.Field(ReportType)
@@ -2192,119 +2240,75 @@ class UpdateReport(graphene.Mutation):
                 unique_submissions.append(submission)
         return unique_submissions
 
-    # Method returns ok if the chapter provided is completed by the participant
-    def markChapterCompleted(chapter_id, participant_id):
-        ok = False
-        try:
-            chapter = Chapter.objects.get(pk=chapter_id, active=True)
-            if chapter:
-                # First making sure that the chapter exists, if it does then we proceed to the next steps
-                required_exercise_ids = Exercise.objects.filter(chapter_id=chapter_id, required=True, active=True).values_list('id', flat=True)
-                if not required_exercise_ids:
-                    # If the chapter has no required exercises, return the method without any further action
-                    ok = True
-                    return
-                else:
-                    # If the chapter has any required exercises, then check if each of the exercises has a corresponding submission
-                    # Calculating the ids of the exercises for which active submissions belonging to this participant exist 
-                    submitted_exercise_ids = ExerciseSubmission.objects.filter(chapter_id=chapter_id, participant_id=participant_id, active=True).values_list('exercise', flat=True)
-                    
-                    # Checking if each of the ids of the required exercise ids list exist in the submitted exercise ids list
-                    all_required_exercises_submitted = all(item in submitted_exercise_ids for item in required_exercise_ids)
-
-                    if all_required_exercises_submitted is True:
-                        # If required exercise ids match submitted exercise ids, thene mark the chapter as completed for the user and return
-                        participant = User.objects.get(id=participant_id, active=True)
-                        participant.chapters.add(chapter_id)
-                        ok = True
-                        return
-        except:
-            pass
-        return ok
-
-    def markCompletedCoursesAndChapters(submission):
-        # Getting count of required exercises in a chapter
-        chapter_exercises_count = Exercise.objects.all().filter(chapter_id=submission.chapter.id, required=True, active=True).count()
-        chapter_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, chapter_id=submission.chapter.id,active=True).count()
-        course_exercises_count = Exercise.objects.all().filter(course_id=submission.course.id, required=True, active=True).count()
-        course_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, course_id=submission.course.id,active=True).count()        
-        if chapter_submissions_count >= chapter_exercises_count:
-            # We're checking for greater than or equal to because we're only counting the required exercises and comparing it with the submission count
-            submission.participant.chapters.add(submission.chapter.id)
-        if course_submissions_count >= course_exercises_count:
-            #If the number of course exercises submitted is equal to or greater than the required exercises in the course, the coures is added in the completed course for the userl
-            submission.participant.courses.add(submission.course.id)            
-
-
     # This is the method used to update grading every time grading happens
-    def recalculate(all_submissions):
+    def recalculate(root, info, all_submissions):
         unique_submissions = UpdateReport.remove_duplicate_submissions(all_submissions)
         for submission in unique_submissions:
-            UpdateReport.markCompletedCoursesAndChapters(submission) # This is to mark the courses and chapters completed for the participant            
-            ok = False
-            report_instance = None
-            method = CREATE_METHOD
             participant_id = submission.participant_id
             course_id = submission.course_id
-            if participant_id is not None and course_id is not None:
-                ok = True
-                submissions = ExerciseSubmission.objects.all().filter(participant_id=participant_id, course_id=course_id,active=True)
-                total_percentage = 0
-                for submission in submissions:
-                    submission_percentage = submission.percentage if submission.percentage is not None else 0
-                    total_percentage = total_percentage + submission_percentage
-                percentage = total_percentage/len(submissions)
-                completed = 0
-                exercise_count = Exercise.objects.all().filter(course_id=course_id, active=True).count()
-                exercise_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=participant_id, course_id=course_id, active=True).count()
-                if exercise_count is not None and exercise_submissions_count is not None:
-                    completed =exercise_submissions_count*100/exercise_count
-                try:
-                    report_instance = Report.objects.get(
-                        participant_id=participant_id, course_id=course_id, active=True)
-                    report_instance.percentage = percentage
-                    report_instance.completed = completed
-                    method = UPDATE_METHOD
-                except:            
-                    participant = User.objects.all().get(pk=participant_id)
-                    report_instance = Report(participant_id=participant_id, course_id=course_id, institution_id=participant.institution.id,
-                                        completed=completed, percentage=percentage)
-                # Generating searchField
-                report_instance = UpdateReport.generate_searchfield(report_instance)
-
-                report_instance.save()
-                payload = {"report": report_instance,
-                        "method": method}
-                NotifyReport.broadcast(
-                    payload=payload)
-                return UpdateReport(ok=ok, report=report_instance)
-
-            return UpdateReport(ok=ok, report=report_instance)
+            UpdateReport.mutate(root, info, course_id, participant_id)
 
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
-    def mutate(root, info, id, input=None):
+    def mutate(root, info, course_id, participant_id):
+        # Method takes in the course id and the participant id and recalculates the score and completion % in the report, creates new if it doesn't exist
         ok = False
-        report_instance = Report.objects.get(pk=id, active=True)
-        if report_instance:
-            ok = True
-            report_instance.participant_id = input.participant_id if input.participant_id is not None else report_instance.participant_id
-            report_instance.institution_id = input.institution_id if input.institution_id is not None else report_instance.institution_id
-            report_instance.course_id = input.course_id if input.course_id is not None else report_instance.course_id
-            report_instance.completed = input.completed if input.completed is not None else report_instance.completed
-            report_instance.score = input.score if input.score is not None else report_instance.score
+        method = CREATE_METHOD
+        report_instance=None
 
-            searchField = ""
-            report_instance.searchField = searchField.lower()
+        if course_id is not None and participant_id is not None:
+            # Getting the report instance from the course and participant
+            participant=None
+            try:
+                participant = User.objects.all().get(pk=participant_id)
+            except:
+                pass            
+            try:
+                report_instance = Report.objects.get(
+                    participant_id=participant_id, course_id=course_id, active=True)
+                method = UPDATE_METHOD
+            except:            
+                report_instance = Report(participant_id=participant_id, course_id=course_id, institution_id=participant.institution.id,
+                                    completed=0, percentage=0)
+        if report_instance:
+            # Only if report_instance exists, we proceed, otherwise we exit
+            ok = True
+            
+            # Calculating score %
+            total_percentage = 0
+            participant_id = report_instance.participant.id
+            course_id=report_instance.course.id
+            submissions = ExerciseSubmission.objects.all().filter(participant_id=participant_id, course_id=course_id,active=True)            
+            for submission in submissions:
+                submission_percentage = submission.percentage if submission.percentage is not None else 0
+                total_percentage = total_percentage + submission_percentage
+            percentage = total_percentage/len(submissions)
+
+            # Calculating Completion %
+            completed = 0
+            course_chapters_count = Chapter.objects.all().filter(course_id=course_id, active=True).count()
+            completed_chapter_count = CompletedChapters.objects.filter(participant_id=participant_id).count()
+            completed = (completed_chapter_count/course_chapters_count)*100
+
+            report_instance.percentage = percentage
+            report_instance.completed = completed
+
+            # Generating searchField
+            report_instance = UpdateReport.generate_searchfield(report_instance)
 
             report_instance.save()
+
+            # Marking course as completed
+            CreateUpdateExerciseSubmissions.markCourseCompleted(course_id, participant)
+            
             payload = {"report": report_instance,
-                       "method": UPDATE_METHOD}
+                    "method": method}
             NotifyReport.broadcast(
                 payload=payload)
             return UpdateReport(ok=ok, report=report_instance)
-        return UpdateReport(ok=ok, report=None)
+
+        return UpdateReport(ok=ok, report=report_instance)
 
 
 class DeleteReport(graphene.Mutation):
