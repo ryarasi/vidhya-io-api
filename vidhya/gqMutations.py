@@ -1838,7 +1838,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             if submittedCount == exerciseCount - gradedCount:
                 chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
             if gradedCount == exerciseCount: 
-                chapter_status = ExerciseSubmission.StatusChoices.GRADED
+                chapter_status = ExerciseSubmission.StatusChoices.GRADED             
             totalPoints = chapter.points
             pointsScored = 0
             percentage = 0            
@@ -1856,10 +1856,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             percentageCount = gradedCount + submittedCount
             percentage = percentage/percentageCount if percentageCount > 0 else 0
             percentage = percentage if exerciseCount > 0 else 100 # Giving them 100% if there are no exercises in the chapter
-            if submittedCount == exerciseCount - gradedCount:
-                chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
-            if gradedCount == exerciseCount:
-                chapter_status = ExerciseSubmission.StatusChoices.GRADED
+
             # End of chapter status, score and total points and percentage calculation
 
             completed_chapter.status = chapter_status
