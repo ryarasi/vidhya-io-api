@@ -2285,7 +2285,7 @@ class PatchCompletedChapters(graphene.Mutation):
     def mutate(root, info):
         ok = True
         try:
-            completed_chapters = CompletedChapters.objects.all()
+            completed_chapters = CompletedChapters.objects.filter(status="SU")
             for chapter in completed_chapters:
                 CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter.chapter_id, chapter.participant_id)
         except:
