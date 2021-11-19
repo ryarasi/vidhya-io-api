@@ -2285,6 +2285,8 @@ class PatchCompletedChapters(graphene.Mutation):
     def mutate(root, info):
         ok = True
         try:
+            count = CompletedChapters.objects.filter(status="SU").count()
+            print('Patching through ', count,' completed chapters')
             completed_chapters = CompletedChapters.objects.filter(status="SU")
             for chapter in completed_chapters:
                 CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter.chapter_id, chapter.participant_id)
