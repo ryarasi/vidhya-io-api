@@ -949,9 +949,7 @@ class Query(ObjectType):
                totalPoints = completed_chapter.total_points
                pointsScored = completed_chapter.scored_points
                percentage = completed_chapter.percentage
-               print('Getting completed chapter SUCCEEDED for user id => ', current_user.id, ' chapter id ', chapter.id )
             except:
-               print('Getting completed chapter FAILED for user id => ', current_user.id, ' chapter id ', chapter.id )
                pass
 
             card = AssignmentType(id=chapter.id, index=index, title=chapter.title, course=course, section=section, status=chapter_status, dueDate=dueDate, exerciseCount=exerciseCount, submittedCount=submittedCount, gradedCount=gradedCount, totalPoints = totalPoints, percentage=percentage,pointsScored=pointsScored)

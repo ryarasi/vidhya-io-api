@@ -1861,7 +1861,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             if gradedCount == exerciseCount:
                 chapter_status = ExerciseSubmission.StatusChoices.GRADED
             # End of chapter status, score and total points and percentage calculation
-            
+
             completed_chapter.status = chapter_status
             completed_chapter.scored_points = pointsScored
             completed_chapter.total_points = totalPoints
@@ -2041,8 +2041,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             eligible_exercises = Exercise.objects.filter(question_type__in=[Exercise.QuestionTypeChoices.DESCRIPTION,Exercise.QuestionTypeChoices.OPTIONS],active=True)
             exercise_submissions = ExerciseSubmission.objects.filter(exercise__in=eligible_exercises, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True)
 
-        
-        print('Submissions to process ', exercise_submissions)
         # Looping through the array of submissions to process them individually
         for submission in exercise_submissions:
             ok = True
@@ -2051,7 +2049,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             # Calculating whether the submission is empty or not (regardless of whether it is for a required exercise)
             empty_submission = CreateUpdateExerciseSubmissions.is_submission_empty(submission, submission.exercise_id)
 
-            print('empty_submission ', empty_submission, ' for exercise id ', submission.exercise_id)
             if not empty_submission:
 
                 # Processing the indivdual submission
@@ -2365,11 +2362,9 @@ class UpdateReport(graphene.Mutation):
                 report_instance = Report(participant_id=participant_id, course_id=course_id, institution_id=participant.institution.id,
                                     completed=0, percentage=0)
         
-        print('report instance from mutate in updateReport', report_instance)
         if report_instance:
             # Only if report_instance exists, we proceed, otherwise we exit
             ok = True
-            print('Updating the report for course ', course_id, ' and participant => ', participant_id)
             # Calculating score %
             total_percentage = 0
             participant_id = report_instance.participant.id
