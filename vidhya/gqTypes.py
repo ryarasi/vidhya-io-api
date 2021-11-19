@@ -56,10 +56,28 @@ class AnnouncementType(DjangoObjectType):
     class Meta:
         model = Announcement
 
+class ReportType(DjangoObjectType):
+
+    class Meta:
+        model = Report
 
 class CourseType(DjangoObjectType):
-
+    completed = graphene.Boolean()
+    report = graphene.Field(ReportType)
     locked = graphene.Boolean()
+
+    def resolve_completed(self, info):
+        user = info.context.user
+        completed = CompletedCourses.objects.filter(participant_id=user.id, course_id=self.id).exists()
+        return completed
+
+    def resolve_report(self, info):
+        report = None
+        try:
+            report = Report.objects.get(participant_id=info.context.user.id, course_id=self.id, active=True)
+        except:
+            pass
+        return report
 
     def resolve_locked(self, info):
         locked = False
@@ -90,7 +108,25 @@ class CourseSectionType(DjangoObjectType):
 
 
 class ChapterType(DjangoObjectType):
+    completed = graphene.Boolean()
+    completion_status = graphene.String()
     locked = graphene.Boolean()
+
+    def resolve_completed(self, info):
+        user = info.context.user
+        completed = CompletedChapters.objects.filter(participant_id=user.id, chapter_id=self.id).exists()
+        return completed
+
+
+    def resolve_completion_status(self, info):
+        user = info.context.user
+        status = ExerciseSubmission.StatusChoices.PENDING
+        try:
+            completed = CompletedChapters.objects.get(participant_id=user.id, chapter_id=self.id)
+            status = completed.status
+        except:
+            pass
+        return status      
 
     def resolve_locked(self, info):
         locked = False
@@ -163,12 +199,6 @@ class SubmissionHistoryType(DjangoObjectType):
 
     class Meta:
         model = SubmissionHistory
-
-class ReportType(DjangoObjectType):
-
-    class Meta:
-        model = Report
-
 
 class ChatType(DjangoObjectType):
 
@@ -269,6 +299,8 @@ class CourseInput(graphene.InputObjectType):
     start_date = graphene.String()
     end_date = graphene.String()
     credit_hours = graphene.Int()
+    pass_score_percentage = graphene.Int()
+    pass_completion_percentage = graphene.Int()
     status = graphene.String()
 
 

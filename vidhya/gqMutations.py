@@ -1,10 +1,11 @@
 from enum import unique
 import json
+from typing import final
 
 from django.db.models.query_utils import Q
 import graphene
 from graphql import GraphQLError
-from vidhya.models import Criterion, CriterionResponse, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, Criterion, CriterionResponse, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
@@ -793,7 +794,7 @@ class CreateCourse(graphene.Mutation):
         searchField = searchField.lower()
 
         course_instance = Course(title=input.title, blurb=input.blurb, description=input.description,
-                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, searchField=searchField)
+                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, pass_score_percentage = input.pass_score_percentage, pass_completion_percentage = input.pass_complete_percentage, searchField=searchField)
         course_instance.save()
 
         if input.institution_ids:
@@ -845,6 +846,8 @@ class UpdateCourse(graphene.Mutation):
             course_instance.start_date = input.start_date if input.start_date is not None else course.start_date
             course_instance.end_date = input.end_date if input.end_date is not None else course.end_date
             course_instance.credit_hours = input.credit_hours if input.credit_hours is not None else course.credit_hours
+            course_instance.pass_score_percentage = input.pass_score_percentage if input.pass_score_percentage is not None else course.pass_score_percentage
+            course_instance.pass_completion_percentage = input.pass_completion_percentage if input.pass_completion_percentage is not None else course.pass_completion_percentage
             course_instance.status = input.status if input.status is not None else course.status
 
             searchField = input.title
@@ -903,6 +906,16 @@ class DeleteCourse(graphene.Mutation):
             ok = True
             course_instance.active = False
 
+            #Deleting chapters in the course
+            chapters = Chapter.objects.filter(course_id=id, active=True)
+            for chapter in chapters:
+                DeleteChapter.mutate(root, info, chapter.id)
+
+            #Deleting course sections in the course
+            sections = CourseSection.objects.filter(course_id=id, active=True)
+            for section in sections:
+                DeleteCourseSection.mutate(root, info, section.id)
+                
             course_instance.save()
 
             payload = {"course": course_instance,
@@ -1186,6 +1199,11 @@ class DeleteChapter(graphene.Mutation):
         if chapter_instance:
             ok = True
             chapter_instance.active = False
+
+            # Deleting all exercises (and its associated entities such as key, submissions etc.) that are part of this chapter
+            exercises = Exercise.objects.filter(chapter_id=id, active=True)
+            for exercise in exercises:
+                DeleteExercise.mutate(root, info, exercise.id)
 
             chapter_instance.save()
 
@@ -1800,6 +1818,101 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         if error:
             raise GraphQLError(error)
 
+    def updateCompletedChapter(root, info, chapter_id, participant_id):
+        chapter = None
+        participant = None
+        completed_chapter = None
+        try:
+            chapter = Chapter.objects.get(pk=chapter_id, active=True)
+            participant = User.objects.get(pk=participant_id, active=True)
+            completed_chapter = CompletedChapters.objects.get(chapter_id=chapter_id, participant_id=participant_id)
+        except:
+            pass
+
+        if chapter and participant and completed_chapter:
+            exercises = Exercise.objects.filter(chapter_id=chapter_id, active=True)
+            exerciseCount = Exercise.objects.all().filter(chapter_id=chapter_id,active=True).count()
+            submittedCount = ExerciseSubmission.objects.all().filter(participant_id=participant_id, chapter_id=chapter_id, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True).count()
+            gradedCount = ExerciseSubmission.objects.all().filter(participant_id=participant_id, chapter_id=chapter_id, status=ExerciseSubmission.StatusChoices.GRADED,active=True).count()        
+            chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
+            if submittedCount == exerciseCount - gradedCount:
+                chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
+            if gradedCount == exerciseCount: 
+                chapter_status = ExerciseSubmission.StatusChoices.GRADED
+            totalPoints = chapter.points
+            pointsScored = 0
+            percentage = 0            
+            for exercise in exercises:
+                try:
+                    submission = ExerciseSubmission.objects.all().get(participant_id=participant.id, exercise_id=exercise.id,active=True)
+                    if submission.points is not None:
+                        pointsScored += submission.points
+                    if submission.percentage is not None:
+                        percentage  += submission.percentage
+                    if submission.status == ExerciseSubmission.StatusChoices.RETURNED:
+                        chapter_status = ExerciseSubmission.StatusChoices.RETURNED                    
+                except:
+                    pass
+            percentageCount = gradedCount + submittedCount
+            percentage = percentage/percentageCount if percentageCount > 0 else 0
+            percentage = percentage if exerciseCount > 0 else 100 # Giving them 100% if there are no exercises in the chapter
+            if submittedCount == exerciseCount - gradedCount:
+                chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
+            if gradedCount == exerciseCount:
+                chapter_status = ExerciseSubmission.StatusChoices.GRADED
+            # End of chapter status, score and total points and percentage calculation
+
+            completed_chapter.status = chapter_status
+            completed_chapter.scored_points = pointsScored
+            completed_chapter.total_points = totalPoints
+            completed_chapter.percentage = percentage
+            completed_chapter.save()
+
+
+    # Method returns ok if the chapter provided is completed by the participant
+    def markChapterCompleted(root, info, chapter_id, participant_id):
+        ok = False
+        # Start of process to check if the chapter is completed or not
+        try:
+            chapter = Chapter.objects.get(pk=chapter_id, active=True)
+            if chapter:
+                # First making sure that the chapter exists, if it does then we proceed to the next steps
+                required_exercise_ids = Exercise.objects.filter(chapter_id=chapter_id, required=True, active=True).values_list('id', flat=True)
+                if not required_exercise_ids:
+                    # If the chapter has no required exercises, return the method without any further action
+                    ok = True
+                    return
+                else:
+                    # If the chapter has any required exercises, then check if each of the exercises has a corresponding submission
+                    # Calculating the ids of the exercises for which active submissions belonging to this participant exist 
+                    submitted_exercise_ids = ExerciseSubmission.objects.filter(chapter_id=chapter_id, participant_id=participant_id, active=True).values_list('exercise', flat=True)
+                    
+                    # Checking if each of the ids of the required exercise ids list exist in the submitted exercise ids list
+                    all_required_exercises_submitted = all(item in submitted_exercise_ids for item in required_exercise_ids)
+
+                    if all_required_exercises_submitted is True:
+                        completed_chapter = CompletedChapters(participant_id=participant_id, chapter_id=chapter.id, total_points=chapter.points, status=ExerciseSubmission.StatusChoices.PENDING)
+                        completed_chapter.save()
+                        # Updating the status in the completed chapter list for the participant
+                        CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter_id, participant_id)
+
+        except:
+            pass
+        return ok
+
+    # Method checks if the course is completed by the participant and if yes, adds it to the completed courses for the participant
+    def markCourseCompleted(course_id, participant):
+        try:
+            course = Course.objects.get(pk=course_id, active=True)
+            if course:
+                report = Report.objects.get(course_id=course_id, participant_id=participant.id, active=True)
+                course_completion_pass = report.completed >= course.pass_completed_percentage
+                course_score_pass = report.percentage >= course.pass_score_percentage
+                if course_completion_pass and course_score_pass: 
+                    participant.courses.add(course_id)
+        except:
+            pass      
+
     def process_submission_rubric(submission, input_rubric):
         exercise = submission.exercise
         exercise_rubric = Criterion.objects.all().filter(exercise_id=exercise.id, active=True).order_by('id')
@@ -1822,7 +1935,22 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     criterion_response_instance.score = criterion_response.score if criterion_response.score is not None else 0
                     criterion_response_instance.save()
 
-
+    def is_submission_empty(submission, exercise_id):
+        exercise = Exercise.objects.get(pk=exercise_id)
+        empty = True
+        if exercise.question_type == Exercise.QuestionTypeChoices.OPTIONS:
+            if submission.option:
+               empty = False
+        if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
+            if submission.answer:
+               empty = False
+        if exercise.question_type == Exercise.QuestionTypeChoices.IMAGE:
+            if submission.images:
+               empty = False
+        if exercise.question_type ==  Exercise.QuestionTypeChoices.LINK:
+            if submission.link:
+               empty = False    
+        return empty
 
     def process_submission(submission, grading):
         autograded = False
@@ -1836,6 +1964,8 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         status = ExerciseSubmission.StatusChoices.SUBMITTED if grading != True  else submission.status
         points = submission.points if submission.points is not None else 0
         remarks = None if grading != True else submission.remarks
+
+        # Automatic grading for description and multiple choice questions
         if exercise.question_type == Exercise.QuestionTypeChoices.DESCRIPTION:
             if exercise_key.valid_answers:
                 if submission.answer in exercise_key.valid_answers:
@@ -1890,6 +2020,13 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         exercise_submission_instance.searchField = searchField    
         return exercise_submission_instance    
 
+    """
+        This method is a bit complicated as it handles two different scenarios.
+        First scenario - the student submits the exercises in a chapter. This is when the exercise submissions for the chapter are first created
+        Second scenario - the grader updates the submissions with their updated score
+        The difference is determined by the grading boolean argument. 
+        Different things need to happen depending on this boolean value.
+    """
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
@@ -1904,63 +2041,88 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             eligible_exercises = Exercise.objects.filter(question_type__in=[Exercise.QuestionTypeChoices.DESCRIPTION,Exercise.QuestionTypeChoices.OPTIONS],active=True)
             exercise_submissions = ExerciseSubmission.objects.filter(exercise__in=eligible_exercises, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True)
 
-
         # Looping through the array of submissions to process them individually
         for submission in exercise_submissions:
             ok = True
             autograded = False
 
-            # Processing the indivdual submission
-            processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading)
-            submission = processed_submission['submission']
-            autograded = processed_submission['autograded']
-            searchField = '' # Initializing an empty searchField. This will be added before we save it.
+            # Calculating whether the submission is empty or not (regardless of whether it is for a required exercise)
+            empty_submission = CreateUpdateExerciseSubmissions.is_submission_empty(submission, submission.exercise_id)
 
-            # Checking if this is an update or a creation
-            existing_submission = None
-            method = CREATE_METHOD
-            try:
-                # Looking for existing submission
-                existing_submission = ExerciseSubmission.objects.get(participant_id=submission.participant_id, exercise_id=submission.exercise_id, active=True)
-                if existing_submission is not None:
-                    # If found, we store it in exercise_submission_instance
-                    exercise_submission_instance = existing_submission
-                    method = UPDATE_METHOD
-            except:
-                pass                                           
-            if existing_submission is None:
-                #If not found, we create it and store it in exercise_submission_instance
-                exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
-                                                            answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, remarks=submission.remarks, searchField=searchField)
-            else:
-                exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField)
+            if not empty_submission:
 
-            # Adding additional attributes to searchField
-            searchField = CreateUpdateExerciseSubmissions.generate_searchField(exercise_submission_instance)
-            exercise_submission_instance.searchField = searchField
+                # Processing the indivdual submission
+                processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading)
+                submission = processed_submission['submission']
+                autograded = processed_submission['autograded']
+                searchField = '' # Initializing an empty searchField. This will be added before we save it.
 
+                # Checking if this is an update or a creation
+                existing_submission = None
+                method = CREATE_METHOD
+                try:
+                    # Looking for existing submission
+                    existing_submission = ExerciseSubmission.objects.get(participant_id=submission.participant_id, exercise_id=submission.exercise_id, active=True)
+                    if existing_submission is not None:
+                        # If found, we store it in exercise_submission_instance
+                        exercise_submission_instance = existing_submission
+                        method = UPDATE_METHOD
+                except:
+                    pass                                           
+                if existing_submission is None:
+                    #If not found, we create it and store it in exercise_submission_instance
+                    exercise_submission_instance = ExerciseSubmission(exercise_id=submission.exercise_id, course_id=submission.course_id, chapter_id=submission.chapter_id, participant_id=submission.participant_id, option=submission.option,
+                                                                answer=submission.answer, link=submission.link, images=submission.images, points=submission.points, percentage=submission.percentage, status=submission.status, remarks=submission.remarks, searchField=searchField)
+                else:
+                    exercise_submission_instance = CreateUpdateExerciseSubmissions.update_submission(root, info, exercise_submission_instance, grading, autograded, submission, searchField)
 
-            # Saving the variable to the database
-            exercise_submission_instance.save()
-
-            # Processing rubric for submission
-            CreateUpdateExerciseSubmissions.process_submission_rubric(exercise_submission_instance, submission.rubric)
-
-            # Freezing rubric for submission history
-            frozen_rubric = CreateUpdateExerciseSubmissions.freeze_rubric(exercise_submission_instance)
-
-            history = SubmissionHistory(exercise_id=exercise_submission_instance.exercise_id, participant_id=exercise_submission_instance.participant_id, option=exercise_submission_instance.option, answer=exercise_submission_instance.answer, link=exercise_submission_instance.link, images=exercise_submission_instance.images, points=exercise_submission_instance.points, rubric = frozen_rubric, status=exercise_submission_instance.status, flagged=exercise_submission_instance.flagged, grader=exercise_submission_instance.grader, remarks=exercise_submission_instance.remarks, active=exercise_submission_instance.active, searchField=searchField)
-            history.save()
-
-            # Adding it to the list of submissions that will then be passed on for report generation
-            finalSubmissions.append(exercise_submission_instance)
+                # Adding additional attributes to searchField
+                searchField = CreateUpdateExerciseSubmissions.generate_searchField(exercise_submission_instance)
+                exercise_submission_instance.searchField = searchField
 
 
-            payload = {"exercise_submission": exercise_submission_instance,
-                    "method": method}
-            NotifyExerciseSubmission.broadcast(
-                payload=payload)
-        UpdateReport.recalculate(finalSubmissions) # updating the reports
+                # Saving the variable to the database
+                exercise_submission_instance.save()
+
+                # Processing rubric for submission
+                CreateUpdateExerciseSubmissions.process_submission_rubric(exercise_submission_instance, submission.rubric)
+
+                # Freezing rubric for submission history
+                frozen_rubric = CreateUpdateExerciseSubmissions.freeze_rubric(exercise_submission_instance)
+
+                history = SubmissionHistory(exercise_id=exercise_submission_instance.exercise_id, participant_id=exercise_submission_instance.participant_id, option=exercise_submission_instance.option, answer=exercise_submission_instance.answer, link=exercise_submission_instance.link, images=exercise_submission_instance.images, points=exercise_submission_instance.points, rubric = frozen_rubric, status=exercise_submission_instance.status, flagged=exercise_submission_instance.flagged, grader=exercise_submission_instance.grader, remarks=exercise_submission_instance.remarks, active=exercise_submission_instance.active, searchField=searchField)
+                history.save()
+
+                if grading:
+                    # Updating the submission status in the completed chapters field for the participant only when it is being graded,
+                    # Because when the student is submitting it, this step is taken care of cumulatively for all submissions down below outside of the loop for all submissions since all of those submissions will belong to one chapter
+                    # But when the grading is happening, the submissions in the loop may each belong to different chapters and we can be sure that each of those chapters is already in the participant's completed chapters list, 
+                    # so while it is being graded it is possible to have it work for each submission since it will definitely have its chapter in the completed chapters list
+                    CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, exercise_submission_instance.chapter.id, exercise_submission_instance.participant.id)
+
+                # Adding it to the list of submissions that will then be passed on for report generation
+                finalSubmissions.append(exercise_submission_instance)
+
+                payload = {"exercise_submission": exercise_submission_instance,
+                        "method": method}
+                NotifyExerciseSubmission.broadcast(
+                    payload=payload)
+                
+                # End of grading the submission
+
+        # Marking the chapter as submitted and updating scores
+        if not grading:
+            chapter_id = finalSubmissions[0].chapter.id
+            course_id = finalSubmissions[0].course_id
+            participant_id = finalSubmissions[0].participant.id
+            #Marking chapter completed
+            CreateUpdateExerciseSubmissions.markChapterCompleted(root, info, chapter_id, participant_id)
+            # Updating completion % and score % in the report
+            UpdateReport.mutate(root, info, course_id, participant_id)
+            ok = True
+        else:
+            UpdateReport.recalculate(root, info, finalSubmissions) # updating the reports
+
         return CreateUpdateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
 
 
@@ -2108,13 +2270,36 @@ class PatchReportsSearchFields(graphene.Mutation):
         ok = True if processed_count == total_count else False
         return PatchReportsSearchFields(ok=ok, reports_count=processed_count)    
 
+class PatchCompletedChapters(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update the fields in completed chapters"
+
+    class Arguments:
+        pass
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
+    def mutate(root, info):
+        ok = True
+        try:
+            completed_chapters = CompletedChapters.objects.all()
+            for chapter in completed_chapters:
+                CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter.chapter_id, chapter.participant_id)
+        except:
+            ok = False
+
+        return PatchCompletedChapters(ok=ok)
+
 class UpdateReport(graphene.Mutation):
     class Meta:
         description = "Mutation to update a Report"
 
     class Arguments:
-        id = graphene.ID(required=True)
-        input = ReportInput(required=True)
+        course_id = graphene.ID(required=True)
+        participant_id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     report = graphene.Field(ReportType)
@@ -2145,88 +2330,75 @@ class UpdateReport(graphene.Mutation):
                 unique_submissions.append(submission)
         return unique_submissions
 
-    def markCompletedCoursesAndChapters(submission):
-        chapter_exercises_count = Exercise.objects.all().filter(chapter_id=submission.chapter.id, active=True).count()
-        chapter_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, chapter_id=submission.chapter.id,active=True).count()
-        course_exercises_count = Exercise.objects.all().filter(course_id=submission.course.id, required=True, active=True).count()
-        course_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=submission.participant.id, course_id=submission.course.id,active=True).count()        
-        if chapter_submissions_count >= chapter_exercises_count:
-            # We're checking for greater than or equal to because we're only counting the required exercises and comparing it with the submission count
-            submission.participant.chapters.add(submission.chapter.id)
-        if course_submissions_count >= course_exercises_count:
-            #If the number of course exercises submitted is equal to or greater than the required exercises in the course, the coures is added in the completed course for the userl
-            submission.participant.courses.add(submission.course.id)            
-
-
     # This is the method used to update grading every time grading happens
-    def recalculate(all_submissions):
+    def recalculate(root, info, all_submissions):
         unique_submissions = UpdateReport.remove_duplicate_submissions(all_submissions)
         for submission in unique_submissions:
-            UpdateReport.markCompletedCoursesAndChapters(submission) # This is to mark the courses and chapters completed for the participant            
-            ok = False
-            report_instance = None
-            method = CREATE_METHOD
             participant_id = submission.participant_id
             course_id = submission.course_id
-            if participant_id is not None and course_id is not None:
-                ok = True
-                submissions = ExerciseSubmission.objects.all().filter(participant_id=participant_id, course_id=course_id,active=True)
-                total_percentage = 0
-                for submission in submissions:
-                    submission_percentage = submission.percentage if submission.percentage is not None else 0
-                    total_percentage = total_percentage + submission_percentage
-                percentage = total_percentage/len(submissions)
-                completed = 0
-                exercise_count = Exercise.objects.all().filter(course_id=course_id, active=True).count()
-                exercise_submissions_count = ExerciseSubmission.objects.all().filter(participant_id=participant_id, course_id=course_id, active=True).count()
-                if exercise_count is not None and exercise_submissions_count is not None:
-                    completed =exercise_submissions_count*100/exercise_count
-                try:
-                    report_instance = Report.objects.get(
-                        participant_id=participant_id, course_id=course_id, active=True)
-                    report_instance.percentage = percentage
-                    report_instance.completed = completed
-                    method = UPDATE_METHOD
-                except:            
-                    participant = User.objects.all().get(pk=participant_id)
-                    report_instance = Report(participant_id=participant_id, course_id=course_id, institution_id=participant.institution.id,
-                                        completed=completed, percentage=percentage)
-                # Generating searchField
-                report_instance = UpdateReport.generate_searchfield(report_instance)
-
-                report_instance.save()
-                payload = {"report": report_instance,
-                        "method": method}
-                NotifyReport.broadcast(
-                    payload=payload)
-                return UpdateReport(ok=ok, report=report_instance)
-
-            return UpdateReport(ok=ok, report=report_instance)
+            UpdateReport.mutate(root, info, course_id, participant_id)
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
-    def mutate(root, info, id, input=None):
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']) or has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))    
+    def mutate(root, info, course_id, participant_id):
+        # Method takes in the course id and the participant id and recalculates the score and completion % in the report, creates new if it doesn't exist
         ok = False
-        report_instance = Report.objects.get(pk=id, active=True)
-        if report_instance:
-            ok = True
-            report_instance.participant_id = input.participant_id if input.participant_id is not None else report_instance.participant_id
-            report_instance.institution_id = input.institution_id if input.institution_id is not None else report_instance.institution_id
-            report_instance.course_id = input.course_id if input.course_id is not None else report_instance.course_id
-            report_instance.completed = input.completed if input.completed is not None else report_instance.completed
-            report_instance.score = input.score if input.score is not None else report_instance.score
+        method = CREATE_METHOD
+        report_instance=None
 
-            searchField = ""
-            report_instance.searchField = searchField.lower()
+        if course_id is not None and participant_id is not None:
+            # Getting the report instance from the course and participant
+            participant=None
+            try:
+                participant = User.objects.all().get(pk=participant_id)
+            except:
+                pass            
+            try:
+                report_instance = Report.objects.get(
+                    participant_id=participant_id, course_id=course_id, active=True)
+                method = UPDATE_METHOD
+            except:            
+                report_instance = Report(participant_id=participant_id, course_id=course_id, institution_id=participant.institution.id,
+                                    completed=0, percentage=0)
+        
+        if report_instance:
+            # Only if report_instance exists, we proceed, otherwise we exit
+            ok = True
+            # Calculating score %
+            total_percentage = 0
+            participant_id = report_instance.participant.id
+            course_id=report_instance.course.id
+            submissions = ExerciseSubmission.objects.all().filter(participant_id=participant_id, course_id=course_id,active=True)            
+            for submission in submissions:
+                submission_percentage = submission.percentage if submission.percentage is not None else 0
+                total_percentage = total_percentage + submission_percentage
+            percentage = total_percentage/len(submissions)
+
+            # Calculating Completion %
+            completed = 0
+            course_chapters_count = Chapter.objects.all().filter(course_id=course_id, active=True).count()
+            completed_chapter_count = CompletedChapters.objects.filter(participant_id=participant_id).count()
+            completed = (completed_chapter_count/course_chapters_count)*100
+
+            report_instance.percentage = percentage
+            report_instance.completed = completed
+
+            # Generating searchField
+            report_instance = UpdateReport.generate_searchfield(report_instance)
 
             report_instance.save()
+
+            # Marking course as completed
+            CreateUpdateExerciseSubmissions.markCourseCompleted(course_id, participant)
+            
             payload = {"report": report_instance,
-                       "method": UPDATE_METHOD}
+                    "method": method}
             NotifyReport.broadcast(
                 payload=payload)
             return UpdateReport(ok=ok, report=report_instance)
-        return UpdateReport(ok=ok, report=None)
+
+        return UpdateReport(ok=ok, report=report_instance)
 
 
 class DeleteReport(graphene.Mutation):
@@ -2581,4 +2753,5 @@ class Mutation(graphene.ObjectType):
     # Bulk patching/sanitizing mutations
     patch_exercise_submissions_searchFields = PatchExerciseSubmissionsSearchFields.Field()
     patch_reports_searchFields = PatchReportsSearchFields.Field()
+    patch_completed_chapters = PatchCompletedChapters.Field()
 

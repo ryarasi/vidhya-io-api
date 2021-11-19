@@ -1,6 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from common.utils import random_number_with_N_digits
-from django.core.validators import MinLengthValidator
+from django.core.validators import MaxValueValidator, MinLengthValidator, MinValueValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.db.models.fields import IntegerField
@@ -65,6 +65,10 @@ class User(AbstractUser):
 class CompletedChapters(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
     chapter = models.ForeignKey('Chapter', on_delete=models.CASCADE)
+    status=models.CharField(max_length=2, default='SU')
+    scored_points = models.IntegerField(default=0)
+    total_points=models.IntegerField(default=0)
+    percentage=models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.chapter.title}' 
@@ -215,12 +219,21 @@ class Course(models.Model):
     start_date = models.CharField(max_length=100, blank=True, null=True)
     end_date = models.CharField(max_length=100, blank=True, null=True)
     credit_hours = models.IntegerField(blank=True, null=True)
+    pass_score_percentage = models.IntegerField(
+        default=100,
+        validators=[
+            MaxValueValidator(100),
+            MinValueValidator(1)
+        ]
+     )
+    pass_completion_percentage = models.IntegerField(default=75, validators=[MaxValueValidator(100), MinValueValidator(1)])
 
+    # Start of setting up status choices
     class StatusChoices(models.TextChoices):
         DRAFT = 'DR', _('DRAFT')
         PUBLISHED = "PU", _('PUBLISHED')
         ARCHIVED = "AR", _('ARCHIVED')        
-    # End of Type Choices
+    # End of status choices
 
     status = models.CharField(
         max_length=2, choices=StatusChoices.choices, default=StatusChoices.DRAFT)

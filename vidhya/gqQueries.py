@@ -2,7 +2,7 @@ from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import AnnouncementsSeen, Institution, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
 from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS
@@ -74,6 +74,7 @@ class ExerciseSubmissionGroup(graphene.ObjectType):
 
 class AssignmentType(graphene.ObjectType):
     id = graphene.ID()
+    index = graphene.String()
     title = graphene.String()
     course = graphene.String()
     section = graphene.String()
@@ -931,33 +932,27 @@ class Query(ObjectType):
             exerciseCount = Exercise.objects.all().filter(chapter_id=chapter.id,active=True).count()
             submittedCount = ExerciseSubmission.objects.all().filter(participant_id=current_user.id, chapter_id=chapter.id, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True).count()
             gradedCount = ExerciseSubmission.objects.all().filter(participant_id=current_user.id, chapter_id=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED,active=True).count()
+            section_index = str(chapter.section.index) if chapter.section.index >  9 else '0' + str(chapter.section.index)
+            chapter_index = str(chapter.index) if chapter.index > 9 else '0' + str(chapter.index)
+            index = section_index + chapter_index
+
+            # Setting default values in case the completed chapter doesn't exist
+            chapter_status = ExerciseSubmission.StatusChoices.PENDING
             totalPoints = chapter.points
             pointsScored = 0
             percentage = 0
-            exercises = Exercise.objects.all().filter(chapter_id=chapter.id, active=True)
-            # exercise_submissions = ExerciseSubmission.objects.all().filter(participant_id=current_user.id, chapter_id=chapter.id, status=ExerciseSubmission.StatusChoices.GRADED, active=True)
-            chapter_status = ExerciseSubmission.StatusChoices.PENDING
-            for exercise in exercises:
-                try:
-                    submission = ExerciseSubmission.objects.all().get(participant_id=current_user.id, exercise_id=exercise.id,active=True)
-                    if submission.points is not None:
-                        pointsScored += submission.points
-                    if submission.percentage is not None:
-                        percentage  += submission.percentage
-                    if submission.status == ExerciseSubmission.StatusChoices.RETURNED:
-                        chapter_status = ExerciseSubmission.StatusChoices.RETURNED                    
-                except:
-                    pass
             
-            percentageCount = gradedCount + submittedCount
-            percentage = percentage/percentageCount if percentageCount > 0 else 0
-            percentage = percentage if exerciseCount > 0 else 100 # Giving them 100% if there are no exercises in the chapter
-            if submittedCount == exerciseCount - gradedCount:
-                chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
-            if gradedCount == exerciseCount:
-                chapter_status = ExerciseSubmission.StatusChoices.GRADED
+            # Fetching the values from the completed chapter if it exists
+            try:
+               completed_chapter = CompletedChapters.objects.get(participant_id=current_user.id, chapter_id=chapter.id)
+               chapter_status = completed_chapter.status
+               totalPoints = completed_chapter.total_points
+               pointsScored = completed_chapter.scored_points
+               percentage = completed_chapter.percentage
+            except:
+               pass
 
-            card = AssignmentType(id=chapter.id, title=chapter.title, course=course, section=section, status=chapter_status, dueDate=dueDate, exerciseCount=exerciseCount, submittedCount=submittedCount, gradedCount=gradedCount, totalPoints = totalPoints, percentage=percentage,pointsScored=pointsScored)
+            card = AssignmentType(id=chapter.id, index=index, title=chapter.title, course=course, section=section, status=chapter_status, dueDate=dueDate, exerciseCount=exerciseCount, submittedCount=submittedCount, gradedCount=gradedCount, totalPoints = totalPoints, percentage=percentage,pointsScored=pointsScored)
             assignments.append(card)        
 
         if status is not None:
@@ -965,9 +960,13 @@ class Query(ObjectType):
 
         # Sorting them
         pending = [assignment for assignment in assignments if assignment.status == ExerciseSubmission.StatusChoices.PENDING]
+        pending.sort(key=lambda x:x.index)
         returned = [assignment for assignment in assignments if assignment.status == ExerciseSubmission.StatusChoices.RETURNED]
+        returned.sort(key=lambda x:x.index)
         submitted = [assignment for assignment in assignments if assignment.status == ExerciseSubmission.StatusChoices.SUBMITTED]
+        submitted.sort(key=lambda x:x.index, reverse=True)
         graded = [assignment for assignment in assignments if assignment.status == ExerciseSubmission.StatusChoices.GRADED]
+        graded.sort(key=lambda x:x.index, reverse=True)
 
         assignments = pending + returned + submitted + graded
 
