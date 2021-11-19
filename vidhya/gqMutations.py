@@ -1818,32 +1818,56 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         if error:
             raise GraphQLError(error)
 
-    def updateCompletedChapterStatus(root, info, chapter_id, participant_id):
-        # Calculating the status of this chapter
-        exercises = Exercise.objects.filter(chapter_id=chapter_id, active=True)
-        exerciseCount = Exercise.objects.all().filter(chapter_id=chapter_id,active=True).count()
-        submittedCount = ExerciseSubmission.objects.all().filter(participant_id=participant_id, chapter_id=chapter_id, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True).count()
-        gradedCount = ExerciseSubmission.objects.all().filter(participant_id=participant_id, chapter_id=chapter_id, status=ExerciseSubmission.StatusChoices.GRADED,active=True).count()        
-        chapter_status = ExerciseSubmission.StatusChoices.PENDING
-        if submittedCount == exerciseCount - gradedCount:
-            chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
-        if gradedCount == exerciseCount: 
-            chapter_status = ExerciseSubmission.StatusChoices.GRADED
-        for exercise in exercises:
-            try:
-                submission = ExerciseSubmission.objects.all().get(participant_id=participant_id, exercise_id=exercise.id, active=True)
-                if submission.status == ExerciseSubmission.StatusChoices.RETURNED:
-                    chapter_status = ExerciseSubmission.StatusChoices.RETURNED                    
-            except:
-                pass            
-        # End of chapter status calculation
-
+    def updateCompletedChapter(root, info, chapter_id, participant_id):
+        chapter = None
+        participant = None
+        completed_chapter = None
         try:
+            chapter = Chapter.objects.get(pk=chapter_id, active=True)
+            participant = User.objects.get(pk=participant_id, active=True)
             completed_chapter = CompletedChapters.objects.get(chapter_id=chapter_id, participant_id=participant_id)
-            completed_chapter.status = chapter_status
-            completed_chapter.save()
         except:
-            pass 
+            pass
+
+        if chapter and participant and completed_chapter:
+            exercises = Exercise.objects.filter(chapter_id=chapter_id, active=True)
+            exerciseCount = Exercise.objects.all().filter(chapter_id=chapter_id,active=True).count()
+            submittedCount = ExerciseSubmission.objects.all().filter(participant_id=participant_id, chapter_id=chapter_id, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True).count()
+            gradedCount = ExerciseSubmission.objects.all().filter(participant_id=participant_id, chapter_id=chapter_id, status=ExerciseSubmission.StatusChoices.GRADED,active=True).count()        
+            chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
+            if submittedCount == exerciseCount - gradedCount:
+                chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
+            if gradedCount == exerciseCount: 
+                chapter_status = ExerciseSubmission.StatusChoices.GRADED
+            totalPoints = chapter.points
+            pointsScored = 0
+            percentage = 0            
+            for exercise in exercises:
+                try:
+                    submission = ExerciseSubmission.objects.all().get(participant_id=participant.id, exercise_id=exercise.id,active=True)
+                    if submission.points is not None:
+                        pointsScored += submission.points
+                    if submission.percentage is not None:
+                        percentage  += submission.percentage
+                    if submission.status == ExerciseSubmission.StatusChoices.RETURNED:
+                        chapter_status = ExerciseSubmission.StatusChoices.RETURNED                    
+                except:
+                    pass
+            percentageCount = gradedCount + submittedCount
+            percentage = percentage/percentageCount if percentageCount > 0 else 0
+            percentage = percentage if exerciseCount > 0 else 100 # Giving them 100% if there are no exercises in the chapter
+            if submittedCount == exerciseCount - gradedCount:
+                chapter_status = ExerciseSubmission.StatusChoices.SUBMITTED
+            if gradedCount == exerciseCount:
+                chapter_status = ExerciseSubmission.StatusChoices.GRADED
+            # End of chapter status, score and total points and percentage calculation
+            
+            completed_chapter.status = chapter_status
+            completed_chapter.scored_points = pointsScored
+            completed_chapter.total_points = totalPoints
+            completed_chapter.percentage = percentage
+            completed_chapter.save()
+
 
     # Method returns ok if the chapter provided is completed by the participant
     def markChapterCompleted(root, info, chapter_id, participant_id):
@@ -1867,11 +1891,10 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     all_required_exercises_submitted = all(item in submitted_exercise_ids for item in required_exercise_ids)
 
                     if all_required_exercises_submitted is True:
-                        participant = User.objects.get(pk=participant_id, active=True)
-                        participant.chapters.add(chapter)
-
+                        completed_chapter = CompletedChapters(participant_id=participant_id, chapter_id=chapter.id, total_points=chapter.points, status=ExerciseSubmission.StatusChoices.PENDING)
+                        completed_chapter.save()
                         # Updating the status in the completed chapter list for the participant
-                        CreateUpdateExerciseSubmissions.updateCompletedChapterStatus(root, info, chapter_id, participant_id)
+                        CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter_id, participant_id)
 
         except:
             pass
@@ -2078,7 +2101,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     # Because when the student is submitting it, this step is taken care of cumulatively for all submissions down below outside of the loop for all submissions since all of those submissions will belong to one chapter
                     # But when the grading is happening, the submissions in the loop may each belong to different chapters and we can be sure that each of those chapters is already in the participant's completed chapters list, 
                     # so while it is being graded it is possible to have it work for each submission since it will definitely have its chapter in the completed chapters list
-                    CreateUpdateExerciseSubmissions.updateCompletedChapterStatus(root, info, exercise_submission_instance.chapter.id, exercise_submission_instance.participant.id)
+                    CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, exercise_submission_instance.chapter.id, exercise_submission_instance.participant.id)
 
                 # Adding it to the list of submissions that will then be passed on for report generation
                 finalSubmissions.append(exercise_submission_instance)
@@ -2249,6 +2272,29 @@ class PatchReportsSearchFields(graphene.Mutation):
 
         ok = True if processed_count == total_count else False
         return PatchReportsSearchFields(ok=ok, reports_count=processed_count)    
+
+class PatchCompletedChapters(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update the fields in completed chapters"
+
+    class Arguments:
+        pass
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
+    def mutate(root, info):
+        ok = True
+        try:
+            completed_chapters = CompletedChapters.objects.all()
+            for chapter in completed_chapters:
+                CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter.chapter_id, chapter.participant_id)
+        except:
+            ok = False
+
+        return PatchCompletedChapters(ok=ok)
 
 class UpdateReport(graphene.Mutation):
     class Meta:
@@ -2712,4 +2758,5 @@ class Mutation(graphene.ObjectType):
     # Bulk patching/sanitizing mutations
     patch_exercise_submissions_searchFields = PatchExerciseSubmissionsSearchFields.Field()
     patch_reports_searchFields = PatchReportsSearchFields.Field()
+    patch_completed_chapters = PatchCompletedChapters.Field()
 
