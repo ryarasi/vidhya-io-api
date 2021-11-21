@@ -2038,10 +2038,11 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             eligible_exercises = Exercise.objects.filter(question_type__in=[Exercise.QuestionTypeChoices.DESCRIPTION,Exercise.QuestionTypeChoices.OPTIONS],active=True)
             exercise_submissions = ExerciseSubmission.objects.filter(exercise__in=eligible_exercises, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True)
 
+        print('exercise submissions => ', exercise_submissions)
         # Looping through the array of submissions to process them individually
         for submission in exercise_submissions:
             ok = True
-            autograded = False
+            autograded = False 
 
             # Calculating whether the submission is empty or not (regardless of whether it is for a required exercise)
             empty_submission = CreateUpdateExerciseSubmissions.is_submission_empty(submission, submission.exercise_id)
