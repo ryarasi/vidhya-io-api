@@ -2108,7 +2108,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 # End of grading the submission
 
         # Marking the chapter as submitted and updating scores
-        if not grading:
+        if not grading and finalSubmissions:
             chapter_id = finalSubmissions[0].chapter.id
             course_id = finalSubmissions[0].course_id
             participant_id = finalSubmissions[0].participant.id
