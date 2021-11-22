@@ -1873,12 +1873,13 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         try:
             chapter = Chapter.objects.get(pk=chapter_id, active=True)
             if chapter:
+                ok = True
+                all_required_exercises_submitted = False
                 # First making sure that the chapter exists, if it does then we proceed to the next steps
                 required_exercise_ids = Exercise.objects.filter(chapter_id=chapter_id, required=True, active=True).values_list('id', flat=True)
                 if not required_exercise_ids:
-                    # If the chapter has no required exercises, return the method without any further action
-                    ok = True
-                    return
+                    # If the chapter has no required exercises, add the chapter to completed chapters
+                    all_required_exercises_submitted = True
                 else:
                     # If the chapter has any required exercises, then check if each of the exercises has a corresponding submission
                     # Calculating the ids of the exercises for which active submissions belonging to this participant exist 
@@ -1887,11 +1888,11 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     # Checking if each of the ids of the required exercise ids list exist in the submitted exercise ids list
                     all_required_exercises_submitted = all(item in submitted_exercise_ids for item in required_exercise_ids)
 
-                    if all_required_exercises_submitted is True:
-                        completed_chapter = CompletedChapters(participant_id=participant_id, chapter_id=chapter.id, total_points=chapter.points, status=ExerciseSubmission.StatusChoices.PENDING)
-                        completed_chapter.save()
-                        # Updating the status in the completed chapter list for the participant
-                        CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter_id, participant_id)
+                if all_required_exercises_submitted is True:
+                    completed_chapter = CompletedChapters(participant_id=participant_id, chapter_id=chapter.id, total_points=chapter.points, status=ExerciseSubmission.StatusChoices.PENDING)
+                    completed_chapter.save()
+                    # Updating the status in the completed chapter list for the participant
+                    CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter_id, participant_id)
 
         except:
             pass
