@@ -2288,7 +2288,7 @@ class PatchCompletedChapters(graphene.Mutation):
         i=0
         while count > 0:
             # We're looping through these to avoid overloaad on db
-            print('Iteration #' + i + 'Patching through ', count,' completed chapters')
+            print('Iteration #' + str(i) + ': Patching through ', count,' completed chapters')
             completed_chapters = CompletedChapters.objects.filter(status="SU")
             completed_chapters = completed_chapters[:limit]
             for chapter in completed_chapters:
