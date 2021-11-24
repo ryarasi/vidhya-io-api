@@ -1,4 +1,5 @@
 from django.contrib.postgres.fields import ArrayField
+from django.db.models.deletion import PROTECT
 from common.utils import random_number_with_N_digits
 from django.core.validators import MaxValueValidator, MinLengthValidator, MinValueValidator
 from django.utils import timezone
@@ -65,6 +66,7 @@ class User(AbstractUser):
 class CompletedChapters(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
     chapter = models.ForeignKey('Chapter', on_delete=models.CASCADE)
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)
     status=models.CharField(max_length=2, default='SU')
     scored_points = models.IntegerField(default=0)
     total_points=models.IntegerField(default=0)

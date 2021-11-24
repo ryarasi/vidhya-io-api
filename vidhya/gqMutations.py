@@ -1889,7 +1889,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                     all_required_exercises_submitted = True
 
                 if all_required_exercises_submitted:
-                    completed_chapter = CompletedChapters(participant_id=participant_id, chapter_id=chapter.id, total_points=chapter.points, status=ExerciseSubmission.StatusChoices.PENDING)
+                    completed_chapter = CompletedChapters(participant_id=participant_id, chapter_id=chapter.id, course_id=chapter.course.id, total_points=chapter.points, status=ExerciseSubmission.StatusChoices.PENDING)
                     completed_chapter.save()
                     # Updating the status in the completed chapter list for the participant
                     CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter_id, participant_id)
@@ -2354,7 +2354,8 @@ class UpdateReport(graphene.Mutation):
             try:
                 participant = User.objects.all().get(pk=participant_id)
             except:
-                pass            
+                raise GraphQLError('Participant not found')
+          
             try:
                 report_instance = Report.objects.get(
                     participant_id=participant_id, course_id=course_id, active=True)
@@ -2379,7 +2380,7 @@ class UpdateReport(graphene.Mutation):
             # Calculating Completion %
             completed = 0
             course_chapters_count = Chapter.objects.all().filter(course_id=course_id, active=True).count()
-            completed_chapter_count = CompletedChapters.objects.filter(participant_id=participant_id).count()
+            completed_chapter_count = CompletedChapters.objects.filter(participant_id=participant_id, course_id=course_id).count()
             completed = (completed_chapter_count/course_chapters_count)*100
 
             report_instance.percentage = percentage
