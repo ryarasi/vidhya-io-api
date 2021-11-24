@@ -1860,6 +1860,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             # End of chapter status, score and total points and percentage calculation
 
             completed_chapter.status = chapter_status
+            completed_chapter.course_id = chapter.course.id
             completed_chapter.scored_points = pointsScored
             completed_chapter.total_points = totalPoints
             completed_chapter.percentage = percentage
@@ -2278,15 +2279,17 @@ class PatchCompletedChapters(graphene.Mutation):
 
     ok = graphene.Boolean()
 
+    """
+    Before running this via Postman, make sure that you mark all the rows in completed chapters table with status as PE
+    """
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['UPDATE']))
     def mutate(root, info):
         ok = True
-        count = CompletedChapters.objects.filter(status="SU").count()
-        # We're looping through these to avoid overloaad on db
+        count = CompletedChapters.objects.filter(status=ExerciseSubmission.StatusChoices.PENDING).count()
         print('Patching through ', count,' completed chapters')
-        completed_chapters = CompletedChapters.objects.filter(status="SU")
+        completed_chapters = CompletedChapters.objects.filter(status=ExerciseSubmission.StatusChoices.PENDING)
         for chapter in completed_chapters:
             CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter.chapter_id, chapter.participant_id)
             
