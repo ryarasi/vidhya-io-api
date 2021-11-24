@@ -2284,18 +2284,12 @@ class PatchCompletedChapters(graphene.Mutation):
     def mutate(root, info):
         ok = True
         count = CompletedChapters.objects.filter(status="SU").count()
-        limit = 150 # Number of records it loops through to update
-        i=0
-        while count > 0:
-            # We're looping through these to avoid overloaad on db
-            print('Iteration #' + str(i) + ': Patching through ', count,' completed chapters')
-            completed_chapters = CompletedChapters.objects.filter(status="SU")
-            completed_chapters = completed_chapters[:limit]
-            for chapter in completed_chapters:
-                CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter.chapter_id, chapter.participant_id)
-            count = CompletedChapters.objects.filter(status="SU").count()
-            i += 1 # incrementing the iteration count
-                
+        # We're looping through these to avoid overloaad on db
+        print('Patching through ', count,' completed chapters')
+        completed_chapters = CompletedChapters.objects.filter(status="SU")
+        for chapter in completed_chapters:
+            CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter.chapter_id, chapter.participant_id)
+            
 
         return PatchCompletedChapters(ok=ok)
 
