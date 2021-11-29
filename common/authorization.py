@@ -1,6 +1,9 @@
 from graphql import GraphQLError
 from django.conf import settings
 
+# whever changes are made below to the User role names, Resources and actions
+# need to be reflected in the UI too.
+
 USER_ROLES_NAMES = {
     'SUPER_ADMIN': 'Super Admin',
     'INSTITUTION_ADMIN': 'Institution Admin',
@@ -9,6 +12,7 @@ USER_ROLES_NAMES = {
     'CLASS_ADMIN_LEARNER': 'Class Admin Learner',
     'GRADER': 'Grader'
 }
+
 
 RESOURCES = {
     'MODERATION': 'MODERATION',
@@ -25,6 +29,7 @@ RESOURCES = {
     'EXERCISE_KEY': 'EXERCISE_KEY',
     'EXERCISE_SUBMISSION': 'EXERCISE_SUBMISSION',
     'REPORT': 'REPORT',
+    'PROJECT': 'PROJECT',
     'OWN_PROFILE': 'OWN_PROFILE',
 }
 
