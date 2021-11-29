@@ -4,7 +4,7 @@ from common.utils import random_number_with_N_digits
 from django.core.validators import MaxValueValidator, MinLengthValidator, MinValueValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.db.models.fields import IntegerField
+from django.db.models.fields import CharField, IntegerField
 from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
@@ -88,6 +88,7 @@ class AnnouncementsSeen(models.Model):
 
     def __str__(self):
         return f'{self.announcement.title}'
+
 
 class UserRole(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
@@ -177,6 +178,25 @@ class GroupMember(models.Model):
 
     def __str__(self):
         return f'Group {self.group.name}, member {self.member.name}' 
+
+class Project(models.Model):
+    title = models.CharField(max_length=200)
+    author = models.ForeignKey(
+        User, related_name="projectAuthor", on_delete=models.PROTECT)
+    description = models.CharField(max_length=2000)
+    link = models.CharField(max_length=1000)
+    course = models.ForeignKey('Course', null=True, blank=True, on_delete=models.PROTECT)
+    contributors = models.ManyToManyField('User', through="ProjectContributor", through_fields=('project', 'contributor'), blank=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class ProjectContributor(models.Model):
+    project=models.ForeignKey(Project, on_delete=models.CASCADE)
+    contributor = models.ForeignKey(User, on_delete=models.CASCADE)
+    role = CharField(max_length=100, null=True, blank=True)
+    description = CharField(max_length=5000, null=True, blank=True)
 
 
 class Announcement(models.Model):
