@@ -757,6 +757,34 @@ class DeleteAnnouncement(graphene.Mutation):
             return DeleteAnnouncement(ok=ok, announcement=announcement_instance)
         return DeleteAnnouncement(ok=ok, announcement=None)
 
+class MarkAnnouncementsSeen(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to mark all announcements as seen"
+
+    class Arguments:
+        pass
+
+    announcements = graphene.List(AnnouncementType)
+    ok = graphene.Boolean()
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['LIST']))
+    def mutate(root, info,):
+        ok = False
+        try:
+            announcements = Announcement.objects.all()
+            current_user = info.context.user
+            for announcement in announcements:
+                current_user.announcements.add(announcement.id)
+            ok = True
+        except:
+            ok = False
+        
+        return MarkAnnouncementsSeen(ok=ok, announcements=announcements)
+
+
 
 class CreateCourse(graphene.Mutation):
 
@@ -2718,6 +2746,7 @@ class Mutation(graphene.ObjectType):
     create_announcement = CreateAnnouncement.Field()
     update_announcement = UpdateAnnouncement.Field()
     delete_announcement = DeleteAnnouncement.Field()
+    mark_announcements_seen = MarkAnnouncementsSeen.Field()
 
     create_course = CreateCourse.Field()
     update_course = UpdateCourse.Field()
