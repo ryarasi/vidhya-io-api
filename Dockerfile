@@ -8,19 +8,16 @@ ENV PYTHONUNBUFFERED 1
 
 # create root directory for our project in the container
 RUN mkdir /shuddhi
-
+# Copy the current directory contents into the container at /shuddhi
+ADD . /shuddhi/
 # Set the working directory to /shuddhi
 WORKDIR /shuddhi
 
-# Copy the current directory contents into the container at /shuddhi
-ADD . /shuddhi/
 
 # Install any needed packages specified in requirements.txt
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# This is to create the collectstatic folder for whitenoise
-CMD python manage.py collectstatic --noinput
 
-# Running the server
-CMD python manage.py runserver 0.0.0.0:$PORT
+# This is to create the collectstatic folder for whitenoise
+CMD python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:$PORT
