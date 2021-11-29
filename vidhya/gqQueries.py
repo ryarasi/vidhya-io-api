@@ -328,7 +328,8 @@ class Query(ObjectType):
         courses = Report.objects.filter(active=True, participant_id=user.id)
         if user is not None:
             user = redact_user(root, info, user)
-            new_user = PublicUserType(id=user.id, username=user.username, name=user.name, title=user.title, bio=user.bio, avatar=user.avatar,institution=user.institution, courses=courses)
+            title = user.title if user.title else user.role.name
+            new_user = PublicUserType(id=user.id, username=user.username, name=user.name, title=title, bio=user.bio, avatar=user.avatar,institution=user.institution, courses=courses)
             return new_user      
         else:
             return None
