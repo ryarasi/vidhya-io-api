@@ -2,9 +2,9 @@ from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS
 from graphql import GraphQLError
 
@@ -166,6 +166,11 @@ class Query(ObjectType):
     announcement = graphene.Field(AnnouncementType, id=graphene.ID())
     announcements = graphene.List(
         AnnouncementType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    # Project Queries
+    project = graphene.Field(ProjectType, id=graphene.ID())
+    projects = graphene.List(
+        ProjectType, author=graphene.Int(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     # Course Queries
     course = graphene.Field(CourseType, id=graphene.ID())
@@ -554,6 +559,37 @@ class Query(ObjectType):
     def resolve_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
         qs = AnnouncementType.get_relevant_announcements(current_user)
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField.lower())
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+        return qs
+
+
+    def resolve_project(root, info, id, **kwargs):
+        project_instance=None
+        try:
+            project_instance = Project.objects.get(pk=id, active=True)
+        except:
+            raise GraphQLError('')
+            pass
+        return project_instance
+
+    def resolve_projects(root, info, author=None, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Project.objects.filter(active=True)
+        current_user = info.context.user
+        if author is not None:
+            qs = Project.objects.filter(author_id=author, active=True)
+        if author is not current_user.id:
+            filter = (Q(public=True))
+            qs = qs.filter(filter)
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())

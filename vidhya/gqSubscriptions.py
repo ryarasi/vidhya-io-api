@@ -1,7 +1,7 @@
 import channels_graphql_ws
 import graphene
 from graphql_jwt.decorators import login_required
-from .gqTypes import CriterionResponseType, CriterionType, InstitutionType, UserType, UserRoleType, GroupType, AnnouncementType, CourseType, CourseSectionType, ChapterType, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, ChatType, ChatMessageType
+from .gqTypes import CriterionResponseType, CriterionType, InstitutionType, ProjectType, UserType, UserRoleType, GroupType, AnnouncementType, CourseType, CourseSectionType, ChapterType, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, ReportType, ChatType, ChatMessageType
 
 
 class NotifyInstitution(channels_graphql_ws.Subscription):
@@ -82,6 +82,21 @@ class NotifyAnnouncement(channels_graphql_ws.Subscription):
     @login_required
     def publish(payload, info):
         return NotifyAnnouncement(announcement=payload["announcement"], method=payload["method"])
+
+class NotifyProject(channels_graphql_ws.Subscription):
+    project = graphene.Field(ProjectType)
+    method = graphene.String()
+    # class Arguments:
+
+    @staticmethod
+    @login_required
+    def subscribe(root, info):
+        return None
+
+    @staticmethod
+    @login_required
+    def publish(payload, info):
+        return NotifyProject(proejct=payload["project"], method=payload["method"])
 
 
 class NotifyCourse(channels_graphql_ws.Subscription):

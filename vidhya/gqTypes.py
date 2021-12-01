@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
 from django.db import models
 from common.authorization import USER_ROLES_NAMES
 
@@ -55,6 +55,11 @@ class AnnouncementType(DjangoObjectType):
 
     class Meta:
         model = Announcement
+
+class ProjectType(DjangoObjectType):
+
+    class Meta:
+        model = Project    
 
 class ReportType(DjangoObjectType):
 
@@ -281,6 +286,15 @@ class AnnouncementInput(graphene.InputObjectType):
     recipients_global = graphene.Boolean()
     recipients_institution = graphene.Boolean()
     group_ids = graphene.List(graphene.Int, name="groups", required=True)
+
+class ProjectInput(graphene.InputObjectType):
+    id = graphene.ID()
+    title = graphene.String(required=True)
+    author_id=graphene.ID(name="author", required=True)
+    course_id=graphene.ID(name="course")
+    description = graphene.String(required=True)
+    link = graphene.String()
+    public = graphene.Boolean(required=True)
 
 
 class CourseInput(graphene.InputObjectType):

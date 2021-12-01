@@ -186,6 +186,7 @@ class Project(models.Model):
     description = models.CharField(max_length=2000)
     link = models.CharField(max_length=1000)
     course = models.ForeignKey('Course', null=True, blank=True, on_delete=models.PROTECT)
+    public = models.BooleanField(default=True)
     contributors = models.ManyToManyField('User', through="ProjectContributor", through_fields=('project', 'contributor'), blank=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
     active = models.BooleanField(default=True)
