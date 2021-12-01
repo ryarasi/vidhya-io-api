@@ -5,10 +5,10 @@ from typing import final
 from django.db.models.query_utils import Q
 import graphene
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, Criterion, CriterionResponse, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, Criterion, CriterionResponse, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
-from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 from django.core.mail import send_mail
 from django.conf import settings
@@ -784,7 +784,137 @@ class MarkAnnouncementsSeen(graphene.Mutation):
         
         return MarkAnnouncementsSeen(ok=ok, announcements=announcements)
 
+class CreateProject(graphene.Mutation):
 
+    class Meta:
+        description = "Mutation to create a new Project"
+
+    class Arguments:
+        input = ProjectInput(required=True)
+
+    ok = graphene.Boolean()
+    project = graphene.Field(ProjectType)
+
+    def validate_project(input):
+        error = ""
+        if input.title is None:
+            error += "Title is a required field<br />"
+        if input.author_id is None:
+            error += "Author is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if input.public is None:
+            error += "Public is a required field<br />"
+
+        if input.link:
+            try:
+                validator = URLValidator()
+                validator(input.link)
+            except ValidationError:                
+                error += "Link should be a valid URL<br />"            
+        if error:
+            raise GraphQLError(error)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['PROJECT'], ACTIONS['CREATE']))
+    def mutate(root, info, input=None):
+        current_user = info.context.user
+        ok = True
+        CreateProject.validate_project(input)
+        searchField = input.title
+        searchField += input.description if input.description is not None else ""
+        searchField += current_user.name if current_user.name is not None else ""
+        searchField = searchField.lower()
+
+        project_instance = Project(title=input.title, author_id=input.author_id, link =input.link, public=input.public, description=input.description, course_id=input.course_id,
+                                              searchField=searchField)
+        project_instance.save()
+
+        payload = {"project": project_instance,
+                   "method": CREATE_METHOD}
+        NotifyProject.broadcast(
+            payload=payload)
+
+        return CreateProject(ok=ok, project=project_instance)
+
+
+class UpdateProject(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Project"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = ProjectInput(required=True)
+
+    ok = graphene.Boolean()
+    project = graphene.Field(ProjectType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['PROJECT'], ACTIONS['UPDATE']))
+    def mutate(root, info, id, input=None):
+        ok = False
+        current_user = info.context.user
+        project = Project.objects.get(pk=id, active=True)
+        CreateProject.validate_project(input)
+        project_instance = project
+        if project_instance:
+            ok = True
+            project_instance.title = input.title if input.title is not None else project.title
+            project_instance.author_id = input.author_id if input.author_id is not None else project.author_id
+            project_instance.description = input.description if input.description is not None else project.description
+            project_instance.link = input.link if input.link is not None else project.link
+            project_instance.course_id = input.course_id if input.course_id is not None else project.course_id
+            project_instance.public = input.public if input.public is not None else project.public
+
+            searchField = input.title
+            searchField += input.description if input.description is not None else ""
+            searchField += current_user.name if current_user.name is not None else ""
+            searchField = searchField.lower()
+            project_instance.searchField = searchField
+
+            project_instance.save()
+
+
+            payload = {"project": project_instance,
+                       "method": UPDATE_METHOD}
+
+            NotifyProject.broadcast(
+                payload=payload)
+
+            return UpdateProject(ok=ok, project=project_instance)
+        return UpdateProject(ok=ok, project=None)
+
+
+class DeleteProject(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark an Project as inactive"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    project = graphene.Field(ProjectType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['PROJECT'], ACTIONS['DELETE']))
+    def mutate(root, info, id, input=None):
+        ok = False
+        project = Project.objects.get(pk=id, active=True)
+        project_instance = project
+        if project_instance:
+            ok = True
+            project_instance.active = False
+
+            project_instance.save()
+            payload = {"project": project_instance,
+                       "method": DELETE_METHOD}
+            NotifyProject.broadcast(
+                payload=payload)
+            return DeleteProject(ok=ok, project=project_instance)
+        return DeleteProject(ok=ok, project=None)
 
 class CreateCourse(graphene.Mutation):
 
@@ -2747,6 +2877,10 @@ class Mutation(graphene.ObjectType):
     update_announcement = UpdateAnnouncement.Field()
     delete_announcement = DeleteAnnouncement.Field()
     mark_announcements_seen = MarkAnnouncementsSeen.Field()
+
+    create_project = CreateProject.Field()
+    update_project = UpdateProject.Field()
+    delete_project = DeleteProject.Field()
 
     create_course = CreateCourse.Field()
     update_course = UpdateCourse.Field()
