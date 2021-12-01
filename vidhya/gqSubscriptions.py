@@ -281,6 +281,7 @@ class Subscription(graphene.ObjectType):
     notify_user_role = NotifyUserRole.Field()
     notify_group = NotifyGroup.Field()
     notify_announcement = NotifyAnnouncement.Field()
+    notify_project = NotifyProject.Field()
     notify_course = NotifyCourse.Field()
     notify_course_section = NotifyCourseSection.Field()
     notify_chapter = NotifyChapter.Field()
