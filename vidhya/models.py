@@ -192,6 +192,7 @@ class Project(models.Model):
     course = models.ForeignKey('Course', null=True, blank=True, on_delete=models.PROTECT)
     public = models.BooleanField(default=True)
     contributors = models.ManyToManyField('User', through="ProjectContributor", through_fields=('project', 'contributor'), blank=True)
+    public= models.BooleanField(default=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
