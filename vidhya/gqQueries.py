@@ -587,9 +587,9 @@ class Query(ObjectType):
         current_user = info.context.user
         if author is not None:
             qs = Project.objects.filter(author_id=author, active=True)
-        if author is not current_user.id:
-            filter = (Q(public=True))
-            qs = qs.filter(filter)
+        # if author is not current_user.id:
+        #     filter = (Q(public=True))
+            # qs = qs.filter(filter)
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())

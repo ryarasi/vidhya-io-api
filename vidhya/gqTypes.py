@@ -115,7 +115,7 @@ class CourseSectionType(DjangoObjectType):
 class ChapterType(DjangoObjectType):
     completed = graphene.Boolean()
     completion_status = graphene.String()
-    locked = graphene.Boolean()
+    locked = graphene.String()
 
     def resolve_completed(self, info):
         user = info.context.user
@@ -134,7 +134,7 @@ class ChapterType(DjangoObjectType):
         return status      
 
     def resolve_locked(self, info):
-        locked = False
+        locked = None
         user = info.context.user
 
         # Letting the user see it if they are a grader
@@ -144,22 +144,35 @@ class ChapterType(DjangoObjectType):
         # Checking if the user is the author of the course or a grader
         if self.course.instructor.id == user.id or grader:
             # If yes, we mark it as unlocked
-            locked = False
             return locked
 
         course_locked = CourseType.resolve_locked(self.course, info) # Checking if this belongs to a course that is locked
         if course_locked:
             # If the course is locked, we immediately return locked is true
-            locked = True
-            return True
+            locked = 'This course is locked for you'
+            return locked
+
+        # If the course is unlocked we 
         completed_chapters = CompletedChapters.objects.all().filter(participant_id=user.id)
         required_chapters = MandatoryChapters.objects.all().filter(chapter_id=self.id)
         required_chapter_ids = required_chapters.values_list('requirement_id',flat=True)
         completed_chapter_ids = completed_chapters.values_list('chapter_id',flat=True)
-
-        if required_chapter_ids:
-            if not set(required_chapter_ids).issubset(set(completed_chapter_ids)):
-                locked = True
+        pending_chapter_ids = []
+        for id in required_chapter_ids:
+            if id not in completed_chapter_ids:
+                pending_chapter_ids.append(id)
+        if pending_chapter_ids:
+            locked= 'To participate in this course, you must have completed '
+            pending_chapters_list = ''
+            for id in pending_chapter_ids:
+                try:
+                    chapter= Chapter.objects.get(pk=id, active=True)
+                    if pending_chapters_list != '':
+                        pending_chapters_list += ', '
+                    pending_chapters_list += '"' + str(chapter.section.index) +'.'+str(chapter.index)+'. '+chapter.title +'"'
+                except:
+                    pass
+            locked += pending_chapters_list
         return locked        
 
     class Meta:
