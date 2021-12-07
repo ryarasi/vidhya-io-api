@@ -420,7 +420,6 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     percentage = graphene.Int()
     status = graphene.String()
     remarks = graphene.String()
-    criteriaSatisfied = graphene.List(graphene.String)
     flagged = graphene.Boolean()
     grader = graphene.ID()
     createdAt = graphene.String()
