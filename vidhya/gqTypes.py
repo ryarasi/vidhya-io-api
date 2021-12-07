@@ -29,6 +29,15 @@ class UserRoleType(DjangoObjectType):
 
 
 class GroupType(DjangoObjectType):
+    adminCount=graphene.Int()
+    memberCount=graphene.Int()
+
+    def resolve_adminCount(self, info):
+        return self.admins.count()
+
+    def resolve_memberCount(self, info):
+        return self.members.count()
+
     class Meta:
         model = Group
 
