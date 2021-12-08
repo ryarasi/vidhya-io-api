@@ -480,8 +480,7 @@ class Report(models.Model):
 class Issue(models.Model):
     link = models.CharField(max_length=5000)
     description = models.CharField(max_length=2000)
-    resourceId = models.IntegerField(blank=True, null=True) # For resources that use int pk 
-    resourceCode = models.CharField(max_length=100, blank=True, null=True) # For resources that use string pk
+    resource_id = models.CharField(max_length=100, blank=True, null=True)
 
     class ResourceTypeChoices(models.TextChoices):
         USER = 'US', _('USER')
@@ -494,11 +493,27 @@ class Issue(models.Model):
 
     resource_type = models.CharField(
         max_length=2, choices=ResourceTypeChoices.choices, default=ResourceTypeChoices.USER)
-    author = models.ForeignKey(
+    reporter = models.ForeignKey(
         User, related_name="issueReporter", on_delete=models.DO_NOTHING, blank=True, null=True)
     guest_name = models.CharField(max_length=100, blank=True, null=True)
     guest_email= LowercaseEmailField(max_length=255, blank=True, null=True)
     screenshot = models.CharField(max_length=250, blank=True, null=True)
+
+    class IssueStatusChoices(models.TextChoices):
+        PENDING = 'PE', _('PENDING')
+        RESOLVED = "RE", _('RESOLVED')
+        DUPLICATE = "DU", _('GRADED')
+        NO_ACTION = "NO", _('NO_ACTION')
+    # End of Type Choices
+
+    status = models.CharField(
+        max_length=2, choices=IssueStatusChoices.choices, default= IssueStatusChoices.PENDING)
+    remarks = models.CharField(max_length=1000, blank=True, null=True)
+    active = models.BooleanField(default=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
 
 class Chat(models.Model):
     group = models.OneToOneField(

@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
 from django.db import models
 from common.authorization import USER_ROLES_NAMES
 
@@ -69,6 +69,11 @@ class ProjectType(DjangoObjectType):
 
     class Meta:
         model = Project    
+
+class IssueType(DjangoObjectType):
+
+    class Meta:
+        model = Issue
 
 class ReportType(DjangoObjectType):
 
@@ -433,6 +438,18 @@ class ReportInput(graphene.InputObjectType):
     completed = graphene.Int(required=True)
     score = graphene.Int(required=True)
 
+class IssueInput(graphene.InputObjectType):
+    id = graphene.ID()
+    link = graphene.String(required=True)
+    description= graphene.String(required=True)
+    resource_id = graphene.String(required=True)
+    resource_type = graphene.String(required=True)
+    author_id = graphene.ID(name="author")
+    guest_name=graphene.String()
+    guest_email=graphene.String()
+    screenshot=graphene.String()
+    status=graphene.String()
+    remarks=graphene.String()
 
 class ChatMessageInput(graphene.InputObjectType):
     id = graphene.ID()
