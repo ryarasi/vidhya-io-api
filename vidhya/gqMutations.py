@@ -1077,6 +1077,41 @@ class UpdateIssue(graphene.Mutation):
             return UpdateIssue(ok=ok, issue=issue_instance)
         return UpdateIssue(ok=ok, issue=None)
 
+class UpdateIssueStatus(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update the status of an Issue"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        status = graphene.String(required=True)
+        remarks = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+    issue = graphene.Field(IssueType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['UPDATE']))
+    def mutate(root, info, id, status=None, remarks=None):
+        ok = False
+        issue = None
+        try:
+            issue = Issue.objects.get(pk=id, active=True)
+        except:
+            raise GraphQLError('Issue not found!')
+        issue_instance = issue
+
+        issue.status=status
+        issue.resolver_id = info.context.user.id
+        issue.remarks = remarks
+        issue.save()
+        payload = {"issue": issue_instance,
+                    "method": UPDATE_METHOD}
+
+        NotifyIssue.broadcast(
+            payload=payload)
+
+        return UpdateIssue(ok=ok, issue=issue_instance)
 
 class DeleteIssue(graphene.Mutation):
     class Meta:
@@ -3082,6 +3117,7 @@ class Mutation(graphene.ObjectType):
 
     create_issue = CreateIssue.Field()
     update_issue = UpdateIssue.Field()
+    update_issue_status = UpdateIssueStatus.Field()
     delete_issue = DeleteIssue.Field()    
 
     create_course = CreateCourse.Field()

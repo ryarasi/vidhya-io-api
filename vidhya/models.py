@@ -509,6 +509,7 @@ class Issue(models.Model):
 
     status = models.CharField(
         max_length=2, choices=IssueStatusChoices.choices, default= IssueStatusChoices.PENDING)
+    resolver = models.ForeignKey(User, related_name="issueResolver", on_delete=models.DO_NOTHING, blank=True, null=True)
     remarks = models.CharField(max_length=1000, blank=True, null=True)
     active = models.BooleanField(default=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
