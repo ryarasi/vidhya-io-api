@@ -4,7 +4,7 @@ from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
 from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS
 from graphql import GraphQLError
 
@@ -177,7 +177,7 @@ class Query(ObjectType):
     # Project Queries
     project = graphene.Field(ProjectType, id=graphene.ID())
     projects = graphene.List(
-        ProjectType, author=graphene.Int(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        ProjectType, author_id=graphene.ID(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     # Course Queries
     course = graphene.Field(CourseType, id=graphene.ID())
@@ -219,6 +219,12 @@ class Query(ObjectType):
     report = graphene.Field(ReportType, id=graphene.ID())
     reports = graphene.Field(Reports, participant_id=graphene.ID(), course_id=graphene.ID(), institution_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
+
+    # Issue Queries
+    issue = graphene.Field(IssueType, id=graphene.ID())
+    issues = graphene.List(
+        IssueType, resource_id=graphene.ID(), reporter_id=graphene.ID(), issue_id=graphene.ID(), status=graphene.String(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    issue_groups = graphene.List(IssueGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     # Chat Queries
     chat = graphene.Field(ChatType, id=graphene.ID())
