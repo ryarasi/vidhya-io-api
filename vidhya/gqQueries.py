@@ -964,7 +964,14 @@ class Query(ObjectType):
         if issue_id is not None:
             qs = Issue.objects.all().filter(active=True, pk=issue_id)
         else:
-            qs = Issue.objects.all().filter(active=True).order_by('-id')
+            admin_user = is_admin_user(info)
+            current_user = info.context.user
+            if admin_user:
+                # if the user is super user then they gbet to see all issues
+                qs = Issue.objects.filter(active=True).order_by('-id')
+            else:
+                # If the user is not a super user, we filter issues pertaining to their institution and users in their institution
+                qs = Issue.objects.filter(institution_id=current_user.institution.id).order_by('-id')
 
             if resource_id is not None:
                 filter = (
@@ -1004,7 +1011,15 @@ class Query(ObjectType):
         groups = [] 
 
         if group_by is not None:
-            all_issues = Issue.objects.filter(status=status, active=True).values_list('issue', flat=True).distinct().order_by()
+            admin_user = is_admin_user(info)
+            current_user = info.context.user
+            if admin_user:
+                # if the user is super user then they gbet to see all issues
+                all_issues = Issue.objects.filter(status=status, active=True).values_list('issue', flat=True).distinct().order_by()
+            else:
+                # If the user is not a super user, we filter issues pertaining to their institution and users in their institution
+                all_issues = Issue.objects.filter(status=status, active=True, institution_id=current_user.institution.id).values_list('issue', flat=True).distinct().order_by()
+         
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_issues = all_issues.filter(filter)

@@ -937,16 +937,51 @@ class CreateIssue(graphene.Mutation):
         if input.resource_type is None:
             error += "Resource type is a required field<br />"
         if input.resource_id is None:
-            error += "Resource id is a required field<br />"
+            error += "Resource ID is a required field<br />"
 
         if input.link:
             try:
                 validator = URLValidator()
                 validator(input.link)
             except ValidationError:                
-                error += "Link should be a valid URL<br />"            
+                error += "Link should be a valid URL<br />"
+
+        resource=None
+        resource_not_found_error = "Unable to find the resource specified here. Please check and try again<br />"
+        if input.resource_type == Issue.ResourceTypeChoices.CHAPTER:
+            try:
+                resource=Chapter.objects.get(pk=input.resource_id,active=True)
+            except:
+                error += resource_not_found_error
+        elif input.resource_type == Issue.ResourceTypeChoices.COURSE:
+            try:
+                resource=Course.objects.get(pk=input.resource_id,active=True)
+            except:
+                error += resource_not_found_error
+        elif input.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
+            try:
+                resource=Institution.objects.get(pk=input.resource_id,active=True)
+            except:
+                error += resource_not_found_error
+        elif input.resource_type == Issue.ResourceTypeChoices.PROJECT:
+            try:
+                resource=Project.objects.get(pk=input.resource_id,active=True)
+            except:
+                error += resource_not_found_error
+        elif input.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
+            try:
+                resource=Project.objects.get(pk=input.resource_id,active=True)
+            except:
+                error += resource_not_found_error 
+        elif input.resource_type == Issue.ResourceTypeChoices.USER:
+            try:
+                resource=User.objects.get(username=input.resource_id,active=True)
+            except:
+                error += resource_not_found_error                                                            
         if error:
             raise GraphQLError(error)
+        else:
+            return resource
 
     def generate_searchField(input):
         author=None
@@ -969,10 +1004,20 @@ class CreateIssue(graphene.Mutation):
     def mutate(root, info, input=None):
         ok = True
 
-        CreateIssue.validate_issue(input)
+        resource = CreateIssue.validate_issue(input)
         searchField=CreateIssue.generate_searchField(input)
 
-        issue_instance = Issue(link=input.link, description=input.description, resource_id=input.resource_id, resource_type=input.resource_type, reporter_id=input.reporter_id, guest_name=input.guest_name, guest_email=input.guest_email,screenshot=input.screenshot, status=input.status, remarks=input.remarks, 
+        institution_id = None
+        if input.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
+            institution_id = resource.id
+        elif input.resource_type == Issue.ResourceTypeChoices.USER:
+            institution_id = resource.institution.id
+        elif input.resource_type == Issue.ResourceTypeChoices.PROJECT:
+            institution_id = resource.author.institution.id
+        elif input.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
+            institution_id = resource.participant.institution.id
+
+        issue_instance = Issue(link=input.link, description=input.description, resource_id=input.resource_id, institution_id=institution_id, resource_type=input.resource_type, reporter_id=input.reporter_id, guest_name=input.guest_name, guest_email=input.guest_email,screenshot=input.screenshot, status=input.status, remarks=input.remarks, 
                                               searchField=searchField)
         issue_instance.save()
 

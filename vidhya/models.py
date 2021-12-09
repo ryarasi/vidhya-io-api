@@ -480,6 +480,7 @@ class Report(models.Model):
 class Issue(models.Model):
     link = models.CharField(max_length=5000)
     description = models.CharField(max_length=2000)
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
     resource_id = models.CharField(max_length=100, blank=True, null=True)
 
     class ResourceTypeChoices(models.TextChoices):
