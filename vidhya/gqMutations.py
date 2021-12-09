@@ -3080,6 +3080,10 @@ class Mutation(graphene.ObjectType):
     update_project = UpdateProject.Field()
     delete_project = DeleteProject.Field()
 
+    create_issue = CreateIssue.Field()
+    update_issue = UpdateIssue.Field()
+    delete_issue = DeleteIssue.Field()    
+
     create_course = CreateCourse.Field()
     update_course = UpdateCourse.Field()
     delete_course = DeleteCourse.Field()

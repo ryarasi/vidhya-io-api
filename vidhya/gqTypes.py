@@ -444,7 +444,7 @@ class IssueInput(graphene.InputObjectType):
     description= graphene.String(required=True)
     resource_id = graphene.String(required=True)
     resource_type = graphene.String(required=True)
-    author_id = graphene.ID(name="author")
+    reporter_id = graphene.ID(name="reporter")
     guest_name=graphene.String()
     guest_email=graphene.String()
     screenshot=graphene.String()

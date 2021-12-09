@@ -241,7 +241,7 @@ class Query(ObjectType):
     unread_count = graphene.Field(UnreadCount) # Fetches the count of unread announcements, assignments etc.
 
     def resolve_public_institution(root, info, code, **kwargs):
-        institution = Institution.objects.get(code=code, public=True, active=True)
+        institution = Institution.objects.get(code=code, active=True)
         if institution is not None:
             public_institution = generate_public_institution(institution)
             return public_institution
