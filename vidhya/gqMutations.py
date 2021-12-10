@@ -2393,6 +2393,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']) or has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['UPDATE']))
     def mutate(root, info, exercise_submissions=None, grading=False, bulkauto=False):
+        print('Raw input for createUpdate submissions => ', exercise_submissions)
         ok = False
         current_user = info.context.user
         CreateUpdateExerciseSubmissions.check_errors(exercise_submissions, grading) # validating the input
@@ -2407,10 +2408,12 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         for submission in exercise_submissions:
             ok = True
             autograded = False 
+            print('Submission in the list ', submission, 'current user ', current_user.name)
 
             # Calculating whether the submission is empty or not (regardless of whether it is for a required exercise)
             empty_submission = CreateUpdateExerciseSubmissions.is_submission_empty(submission, submission.exercise_id)
 
+            print('Empty submission or not => ', empty_submission)
             if not empty_submission:
 
                 # Processing the indivdual submission
