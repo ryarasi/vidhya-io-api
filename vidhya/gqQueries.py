@@ -223,7 +223,7 @@ class Query(ObjectType):
     # Issue Queries
     issue = graphene.Field(IssueType, id=graphene.ID())
     issues = graphene.List(
-        IssueType, resource_id=graphene.ID(), resource_type=graphene.String(), reporter_id=graphene.ID(), issue_id=graphene.ID(), status=graphene.String(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        IssueType, resource_id=graphene.ID(), link=graphene.String(), resource_type=graphene.String(), reporter_id=graphene.ID(), issue_id=graphene.ID(), status=graphene.String(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     issue_groups = graphene.List(IssueGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     # Chat Queries
@@ -960,8 +960,7 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['LIST']))
-    def resolve_issues(root, info, resource_id=None, resource_type=None, reporter_id=None, issue_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
-        print('resolve issues ', reporter_id)
+    def resolve_issues(root, info, resource_id=None, resource_type=None, link=None, reporter_id=None, issue_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
         if issue_id is not None:
             qs = Issue.objects.all().filter(active=True, pk=issue_id)
         else:
@@ -999,6 +998,11 @@ class Query(ObjectType):
                 )
                 qs = qs.filter(filter)
 
+            if link is not None:
+                filter = (
+                    Q(link=link)
+                )
+                qs = qs.filter(filter)
             if searchField is not None:
                 filter = (
                     Q(searchField__icontains=searchField.lower())

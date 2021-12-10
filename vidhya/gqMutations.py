@@ -938,6 +938,8 @@ class CreateIssue(graphene.Mutation):
             error += "Resource type is a required field<br />"
         if input.resource_id is None:
             error += "Resource ID is a required field<br />"
+        if IssueType.get_issue_resource(input) is None:
+            error += "Unable to find the resource specified here. Please check and try again<br />"
 
         if input.link:
             try:
@@ -947,37 +949,7 @@ class CreateIssue(graphene.Mutation):
                 error += "Link should be a valid URL<br />"
 
         resource=None
-        resource_not_found_error = "Unable to find the resource specified here. Please check and try again<br />"
-        if input.resource_type == Issue.ResourceTypeChoices.CHAPTER:
-            try:
-                resource=Chapter.objects.get(pk=input.resource_id,active=True)
-            except:
-                error += resource_not_found_error
-        elif input.resource_type == Issue.ResourceTypeChoices.COURSE:
-            try:
-                resource=Course.objects.get(pk=input.resource_id,active=True)
-            except:
-                error += resource_not_found_error
-        elif input.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
-            try:
-                resource=Institution.objects.get(pk=input.resource_id,active=True)
-            except:
-                error += resource_not_found_error
-        elif input.resource_type == Issue.ResourceTypeChoices.PROJECT:
-            try:
-                resource=Project.objects.get(pk=input.resource_id,active=True)
-            except:
-                error += resource_not_found_error
-        elif input.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
-            try:
-                resource=Project.objects.get(pk=input.resource_id,active=True)
-            except:
-                error += resource_not_found_error 
-        elif input.resource_type == Issue.ResourceTypeChoices.USER:
-            try:
-                resource=User.objects.get(username=input.resource_id,active=True)
-            except:
-                error += resource_not_found_error                                                            
+                                                     
         if error:
             raise GraphQLError(error)
         else:

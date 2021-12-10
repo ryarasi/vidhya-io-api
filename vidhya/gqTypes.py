@@ -71,6 +71,81 @@ class ProjectType(DjangoObjectType):
         model = Project    
 
 class IssueType(DjangoObjectType):
+    title = graphene.String()
+    subtitle = graphene.String()
+
+    def get_issue_resource(input):
+        resource=None
+        if input.resource_type == Issue.ResourceTypeChoices.CHAPTER:
+            try:
+                resource=Chapter.objects.get(pk=input.resource_id,active=True)
+            except:
+                pass
+        elif input.resource_type == Issue.ResourceTypeChoices.COURSE:
+            try:
+                resource=Course.objects.get(pk=input.resource_id,active=True)
+            except:
+                pass
+        elif input.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
+            try:
+                resource=Institution.objects.get(code=input.resource_id,active=True)
+            except:
+                pass
+        elif input.resource_type == Issue.ResourceTypeChoices.PROJECT:
+            try:
+                resource=Project.objects.get(pk=input.resource_id,active=True)
+            except:
+                pass
+        elif input.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
+            try:
+                resource=Project.objects.get(pk=input.resource_id,active=True)
+            except:
+                pass
+        
+        elif input.resource_type == Issue.ResourceTypeChoices.USER:
+            try:
+                resource=User.objects.get(username=input.resource_id,active=True)
+            except:
+                pass
+        return resource     
+
+    def resolve_title(self, info):
+        title = None
+        resource = IssueType.get_issue_resource(self)
+        print('from resolve_title ', resource)
+        if resource is not None:
+            if self.resource_type == Issue.ResourceTypeChoices.CHAPTER:
+                title = resource.title
+            elif self.resource_type == Issue.ResourceTypeChoices.COURSE:
+                title = resource.title
+            elif self.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
+                title = resource.name
+            elif self.resource_type == Issue.ResourceTypeChoices.PROJECT:
+                title = resource.title
+            elif self.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
+                title = resource.participant.name + "'s exercise submission"
+            elif self.resource_type == Issue.ResourceTypeChoices.USER:
+                title = resource.name     
+        return title
+
+    def resolve_subtitle(self, info):
+        subtitle = None
+        resource = IssueType.get_issue_resource(self)
+        print('from resolve_subtitle ', resource)
+        if resource is not None:
+            if self.resource_type == Issue.ResourceTypeChoices.CHAPTER:
+                subtitle = "Chapter in " + resource.course.title
+            elif self.resource_type == Issue.ResourceTypeChoices.COURSE:
+                subtitle = "Course taught by " + resource.author.name
+            elif self.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
+                subtitle = "Institution located in " + resource.location
+            elif self.resource_type == Issue.ResourceTypeChoices.PROJECT:
+                subtitle = "Project by " + resource.author.name
+            elif self.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
+                subtitle = "For "+ resource.chapter.title+' in ' + resource.course.title
+            elif self.resource_type == Issue.ResourceTypeChoices.USER:
+                subtitle = resource.role.name + ', ' + resource.institution.name
+        return subtitle
 
     class Meta:
         model = Issue
