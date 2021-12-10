@@ -961,6 +961,7 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['LIST']))
     def resolve_issues(root, info, resource_id=None, resource_type=None, reporter_id=None, issue_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
+        print('resolve issues ', reporter_id)
         if issue_id is not None:
             qs = Issue.objects.all().filter(active=True, pk=issue_id)
         else:
@@ -988,7 +989,7 @@ class Query(ObjectType):
 
             if reporter_id is not None:
                 filter = (
-                    Q(participant_id=reporter_id)
+                    Q(reporter_id=reporter_id)
                 )
                 qs = qs.filter(filter)
 
