@@ -112,7 +112,6 @@ class IssueType(DjangoObjectType):
     def resolve_title(self, info):
         title = None
         resource = IssueType.get_issue_resource(self)
-        print('from resolve_title ', resource)
         if resource is not None:
             if self.resource_type == Issue.ResourceTypeChoices.CHAPTER:
                 title = resource.title
@@ -131,7 +130,7 @@ class IssueType(DjangoObjectType):
     def resolve_subtitle(self, info):
         subtitle = None
         resource = IssueType.get_issue_resource(self)
-        print('from resolve_subtitle ', resource)
+
         if resource is not None:
             if self.resource_type == Issue.ResourceTypeChoices.CHAPTER:
                 subtitle = "Chapter in " + resource.course.title

@@ -938,7 +938,9 @@ class CreateIssue(graphene.Mutation):
             error += "Resource type is a required field<br />"
         if input.resource_id is None:
             error += "Resource ID is a required field<br />"
-        if IssueType.get_issue_resource(input) is None:
+        
+        resource = IssueType.get_issue_resource(input)
+        if resource is None:
             error += "Unable to find the resource specified here. Please check and try again<br />"
 
         if input.link:
@@ -947,8 +949,6 @@ class CreateIssue(graphene.Mutation):
                 validator(input.link)
             except ValidationError:                
                 error += "Link should be a valid URL<br />"
-
-        resource=None
                                                      
         if error:
             raise GraphQLError(error)
@@ -2403,7 +2403,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             eligible_exercises = Exercise.objects.filter(question_type__in=[Exercise.QuestionTypeChoices.DESCRIPTION,Exercise.QuestionTypeChoices.OPTIONS],active=True)
             exercise_submissions = ExerciseSubmission.objects.filter(exercise__in=eligible_exercises, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True)
 
-        print('exercise submissions => ', exercise_submissions)
         # Looping through the array of submissions to process them individually
         for submission in exercise_submissions:
             ok = True
@@ -2651,7 +2650,6 @@ class PatchCompletedChapters(graphene.Mutation):
     def mutate(root, info):
         ok = True
         count = CompletedChapters.objects.filter(status=ExerciseSubmission.StatusChoices.PENDING).count()
-        print('Patching through ', count,' completed chapters')
         completed_chapters = CompletedChapters.objects.filter(status=ExerciseSubmission.StatusChoices.PENDING)
         for chapter in completed_chapters:
             CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter.chapter_id, chapter.participant_id)
