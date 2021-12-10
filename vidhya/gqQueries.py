@@ -14,7 +14,7 @@ def generate_public_institution(institution):
     completed = 0
     percentage = 0
 
-    learners = User.objects.all().filter(role=USER_ROLES_NAMES['LEARNER'], institution_id=institution.id, active=True)
+    learners = User.objects.all().filter(role=USER_ROLES_NAMES['LEARNER'], membership_status=User.StatusChoices.APPROVED, institution_id=institution.id, active=True)
 
     if len(learners):
         learner_ids = learners.values_list('id',flat=True)
