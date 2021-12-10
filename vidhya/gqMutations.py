@@ -5,10 +5,10 @@ from typing import final
 from django.db.models.query_utils import Q
 import graphene
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, Criterion, CriterionResponse, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, Criterion, CriterionResponse, Issue, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
-from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
+from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from common.authorization import has_access, RESOURCES, ACTIONS
 from django.core.mail import send_mail
 from django.conf import settings
@@ -915,6 +915,204 @@ class DeleteProject(graphene.Mutation):
                 payload=payload)
             return DeleteProject(ok=ok, project=project_instance)
         return DeleteProject(ok=ok, project=None)
+
+
+class CreateIssue(graphene.Mutation):
+
+    class Meta:
+        description = "Mutation to create a new Issue"
+
+    class Arguments:
+        input = IssueInput(required=True)
+
+    ok = graphene.Boolean()
+    issue = graphene.Field(IssueType)
+
+    def validate_issue(input):
+        error = ""
+        if input.link is None:
+            error += "Link is a required field<br />"
+        if input.description is None:
+            error += "Description is a required field<br />"
+        if input.resource_type is None:
+            error += "Resource type is a required field<br />"
+        if input.resource_id is None:
+            error += "Resource ID is a required field<br />"
+        
+        resource = IssueType.get_issue_resource(input)
+        if resource is None:
+            error += "Unable to find the resource specified here. Please check and try again<br />"
+
+        if input.link:
+            try:
+                validator = URLValidator()
+                validator(input.link)
+            except ValidationError:                
+                error += "Link should be a valid URL<br />"
+                                                     
+        if error:
+            raise GraphQLError(error)
+        else:
+            return resource
+
+    def generate_searchField(input):
+        author=None
+        try:
+            if input.reporter_id:
+                author=User.objects.get(pk=input.reporter_id, active=True)
+        except:
+            pass        
+        searchField = input.link
+        searchField += input.description if input.description is not None else ""
+        searchField += input.resource_type if input.resource_type is not None else ""
+        searchField += input.remarks if input.remarks is not None else ""
+        searchField += input.guest_name if input.guest_name is not None else ""
+        searchField += input.status if input.status is not None else ""
+        searchField += author.name if author is not None else ""
+        searchField = searchField.lower()
+        return searchField
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        ok = True
+
+        resource = CreateIssue.validate_issue(input)
+        searchField=CreateIssue.generate_searchField(input)
+
+        institution_id = None
+        if input.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
+            institution_id = resource.id
+        elif input.resource_type == Issue.ResourceTypeChoices.USER:
+            institution_id = resource.institution.id
+        elif input.resource_type == Issue.ResourceTypeChoices.PROJECT:
+            institution_id = resource.author.institution.id
+        elif input.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
+            institution_id = resource.participant.institution.id
+
+        issue_instance = Issue(link=input.link, description=input.description, resource_id=input.resource_id, institution_id=institution_id, resource_type=input.resource_type, reporter_id=input.reporter_id, guest_name=input.guest_name, guest_email=input.guest_email,screenshot=input.screenshot, status=input.status, remarks=input.remarks, 
+                                              searchField=searchField)
+        issue_instance.save()
+
+        payload = {"issue": issue_instance,
+                   "method": CREATE_METHOD}
+        NotifyIssue.broadcast(
+            payload=payload)
+
+        return CreateIssue(ok=ok, issue=issue_instance)
+
+
+class UpdateIssue(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Issue"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = IssueInput(required=True)
+
+    ok = graphene.Boolean()
+    issue = graphene.Field(IssueType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['UPDATE']))
+    def mutate(root, info, id, input=None):
+        ok = False
+        
+        issue = Issue.objects.get(pk=id, active=True)
+        CreateIssue.validate_issue(input)
+        issue_instance = issue
+        if issue_instance:
+            ok = True
+            issue_instance.link = input.link if input.link is not None else issue.link
+            issue_instance.description = input.description if input.description is not None else issue.description
+            issue_instance.resource_id = input.resource_id if input.resource_id is not None else issue.resource_id
+            issue_instance.resource_type = input.resource_type if input.resource_type is not None else issue.resource_type
+            issue_instance.reporter_id = input.reporter_id if input.reporter_id is not None else issue.reporter_id
+            issue_instance.guest_name = input.guest_name if input.guest_name is not None else issue.guest_name
+            issue_instance.guest_email = input.guest_email if input.guest_email is not None else issue.guest_email
+            issue_instance.screenshot = input.screenshot if input.screenshot is not None else issue.screenshot
+            issue_instance.status = input.status if input.status is not None else issue.status
+            issue_instance.remarks = input.remarks if input.remarks is not None else issue.remarks
+
+            searchField = CreateIssue.generate_searchField(input)
+            issue_instance.searchField = searchField
+
+            issue_instance.save()
+
+
+            payload = {"issue": issue_instance,
+                       "method": UPDATE_METHOD}
+
+            NotifyIssue.broadcast(
+                payload=payload)
+
+            return UpdateIssue(ok=ok, issue=issue_instance)
+        return UpdateIssue(ok=ok, issue=None)
+
+class UpdateIssueStatus(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update the status of an Issue"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        status = graphene.String(required=True)
+        remarks = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+    issue = graphene.Field(IssueType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['UPDATE']))
+    def mutate(root, info, id, status=None, remarks=None):
+        ok = False
+        issue = None
+        try:
+            issue = Issue.objects.get(pk=id, active=True)
+        except:
+            raise GraphQLError('Issue not found!')
+        issue_instance = issue
+
+        issue.status=status
+        issue.resolver_id = info.context.user.id
+        issue.remarks = remarks
+        issue.save()
+        payload = {"issue": issue_instance,
+                    "method": UPDATE_METHOD}
+
+        NotifyIssue.broadcast(
+            payload=payload)
+
+        return UpdateIssue(ok=ok, issue=issue_instance)
+
+class DeleteIssue(graphene.Mutation):
+    class Meta:
+        description = "Mutation to mark an Issue as inactive"
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+    issue = graphene.Field(IssueType)
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['DELETE']))
+    def mutate(root, info, id, input=None):
+        ok = False
+        issue = Issue.objects.get(pk=id, active=True)
+        issue_instance = issue
+        if issue_instance:
+            ok = True
+            issue_instance.active = False
+
+            issue_instance.save()
+            payload = {"issue": issue_instance,
+                       "method": DELETE_METHOD}
+            NotifyIssue.broadcast(
+                payload=payload)
+            return DeleteIssue(ok=ok, issue=issue_instance)
+        return DeleteIssue(ok=ok, issue=None)
 
 class CreateCourse(graphene.Mutation):
 
@@ -2205,7 +2403,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             eligible_exercises = Exercise.objects.filter(question_type__in=[Exercise.QuestionTypeChoices.DESCRIPTION,Exercise.QuestionTypeChoices.OPTIONS],active=True)
             exercise_submissions = ExerciseSubmission.objects.filter(exercise__in=eligible_exercises, status=ExerciseSubmission.StatusChoices.SUBMITTED,active=True)
 
-        print('exercise submissions => ', exercise_submissions)
         # Looping through the array of submissions to process them individually
         for submission in exercise_submissions:
             ok = True
@@ -2453,7 +2650,6 @@ class PatchCompletedChapters(graphene.Mutation):
     def mutate(root, info):
         ok = True
         count = CompletedChapters.objects.filter(status=ExerciseSubmission.StatusChoices.PENDING).count()
-        print('Patching through ', count,' completed chapters')
         completed_chapters = CompletedChapters.objects.filter(status=ExerciseSubmission.StatusChoices.PENDING)
         for chapter in completed_chapters:
             CreateUpdateExerciseSubmissions.updateCompletedChapter(root, info, chapter.chapter_id, chapter.participant_id)
@@ -2888,6 +3084,11 @@ class Mutation(graphene.ObjectType):
     create_project = CreateProject.Field()
     update_project = UpdateProject.Field()
     delete_project = DeleteProject.Field()
+
+    create_issue = CreateIssue.Field()
+    update_issue = UpdateIssue.Field()
+    update_issue_status = UpdateIssueStatus.Field()
+    delete_issue = DeleteIssue.Field()    
 
     create_course = CreateCourse.Field()
     update_course = UpdateCourse.Field()

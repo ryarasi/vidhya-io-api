@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
 from django.db import models
 from common.authorization import USER_ROLES_NAMES
 
@@ -29,6 +29,15 @@ class UserRoleType(DjangoObjectType):
 
 
 class GroupType(DjangoObjectType):
+    adminCount=graphene.Int()
+    memberCount=graphene.Int()
+
+    def resolve_adminCount(self, info):
+        return self.admins.count()
+
+    def resolve_memberCount(self, info):
+        return self.members.count()
+
     class Meta:
         model = Group
 
@@ -60,6 +69,85 @@ class ProjectType(DjangoObjectType):
 
     class Meta:
         model = Project    
+
+class IssueType(DjangoObjectType):
+    title = graphene.String()
+    subtitle = graphene.String()
+
+    def get_issue_resource(input):
+        resource=None
+        if input.resource_type == Issue.ResourceTypeChoices.CHAPTER:
+            try:
+                resource=Chapter.objects.get(pk=input.resource_id,active=True)
+            except:
+                pass
+        elif input.resource_type == Issue.ResourceTypeChoices.COURSE:
+            try:
+                resource=Course.objects.get(pk=input.resource_id,active=True)
+            except:
+                pass
+        elif input.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
+            try:
+                resource=Institution.objects.get(code=input.resource_id,active=True)
+            except:
+                pass
+        elif input.resource_type == Issue.ResourceTypeChoices.PROJECT:
+            try:
+                resource=Project.objects.get(pk=input.resource_id,active=True)
+            except:
+                pass
+        elif input.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
+            try:
+                resource=Project.objects.get(pk=input.resource_id,active=True)
+            except:
+                pass
+        
+        elif input.resource_type == Issue.ResourceTypeChoices.USER:
+            try:
+                resource=User.objects.get(username=input.resource_id,active=True)
+            except:
+                pass
+        return resource     
+
+    def resolve_title(self, info):
+        title = None
+        resource = IssueType.get_issue_resource(self)
+        if resource is not None:
+            if self.resource_type == Issue.ResourceTypeChoices.CHAPTER:
+                title = resource.title
+            elif self.resource_type == Issue.ResourceTypeChoices.COURSE:
+                title = resource.title
+            elif self.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
+                title = resource.name
+            elif self.resource_type == Issue.ResourceTypeChoices.PROJECT:
+                title = resource.title
+            elif self.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
+                title = resource.participant.name + "'s exercise submission"
+            elif self.resource_type == Issue.ResourceTypeChoices.USER:
+                title = resource.name     
+        return title
+
+    def resolve_subtitle(self, info):
+        subtitle = None
+        resource = IssueType.get_issue_resource(self)
+
+        if resource is not None:
+            if self.resource_type == Issue.ResourceTypeChoices.CHAPTER:
+                subtitle = "Chapter in " + resource.course.title
+            elif self.resource_type == Issue.ResourceTypeChoices.COURSE:
+                subtitle = "Course taught by " + resource.author.name
+            elif self.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
+                subtitle = "Institution located in " + resource.location
+            elif self.resource_type == Issue.ResourceTypeChoices.PROJECT:
+                subtitle = "Project by " + resource.author.name
+            elif self.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
+                subtitle = "For "+ resource.chapter.title+' in ' + resource.course.title
+            elif self.resource_type == Issue.ResourceTypeChoices.USER:
+                subtitle = resource.role.name + ', ' + resource.institution.name
+        return subtitle
+
+    class Meta:
+        model = Issue
 
 class ReportType(DjangoObjectType):
 
@@ -411,7 +499,6 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     percentage = graphene.Int()
     status = graphene.String()
     remarks = graphene.String()
-    criteriaSatisfied = graphene.List(graphene.String)
     flagged = graphene.Boolean()
     grader = graphene.ID()
     createdAt = graphene.String()
@@ -425,6 +512,18 @@ class ReportInput(graphene.InputObjectType):
     completed = graphene.Int(required=True)
     score = graphene.Int(required=True)
 
+class IssueInput(graphene.InputObjectType):
+    id = graphene.ID()
+    link = graphene.String(required=True)
+    description= graphene.String(required=True)
+    resource_id = graphene.String(required=True)
+    resource_type = graphene.String(required=True)
+    reporter_id = graphene.ID(name="reporter")
+    guest_name=graphene.String()
+    guest_email=graphene.String()
+    screenshot=graphene.String()
+    status=graphene.String()
+    remarks=graphene.String()
 
 class ChatMessageInput(graphene.InputObjectType):
     id = graphene.ID()

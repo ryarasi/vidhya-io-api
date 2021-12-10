@@ -461,7 +461,6 @@ class SubmissionHistory(models.Model):
     flagged = models.BooleanField(default=False)
     grader = models.ForeignKey(User, related_name="grader_past", blank=True, null=True, on_delete=models.DO_NOTHING)
     remarks = models.CharField(max_length=1000, blank=True, null=True)
-    criteriaSatisfied = ArrayField(models.CharField(max_length=500, blank=True, null=True), blank=True, null=True)
     active = models.BooleanField(default=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -474,6 +473,45 @@ class Report(models.Model):
     # This will be calculated on grading by dividing the number of graded exercise submissions by required exercises * 100
     completed = models.IntegerField(default=0)
     percentage = models.IntegerField(default=0)
+    active = models.BooleanField(default=True)
+    searchField = models.CharField(max_length=5000, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class Issue(models.Model):
+    link = models.CharField(max_length=5000)
+    description = models.CharField(max_length=2000)
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
+    resource_id = models.CharField(max_length=100, blank=True, null=True)
+
+    class ResourceTypeChoices(models.TextChoices):
+        USER = 'US', _('USER')
+        PROJECT = "PR", _('PROJECT')
+        INSTITUTION = "IN", _('INSTITUTION')
+        SUBMISSION = "SU", _('SUBMISSION')
+        COURSE = "CO", _('COURSE')
+        CHAPTER = 'CH', _('CHAPTER')
+    # End of Type Choices
+
+    resource_type = models.CharField(
+        max_length=2, choices=ResourceTypeChoices.choices, default=ResourceTypeChoices.USER)
+    reporter = models.ForeignKey(
+        User, related_name="issueReporter", on_delete=models.DO_NOTHING, blank=True, null=True)
+    guest_name = models.CharField(max_length=100, blank=True, null=True)
+    guest_email= LowercaseEmailField(max_length=255, blank=True, null=True)
+    screenshot = models.CharField(max_length=250, blank=True, null=True)
+
+    class IssueStatusChoices(models.TextChoices):
+        PENDING = 'PE', _('PENDING')
+        RESOLVED = "RE", _('RESOLVED')
+        DUPLICATE = "DU", _('GRADED')
+        NO_ACTION = "NO", _('NO_ACTION')
+    # End of Type Choices
+
+    status = models.CharField(
+        max_length=2, choices=IssueStatusChoices.choices, default= IssueStatusChoices.PENDING)
+    resolver = models.ForeignKey(User, related_name="issueResolver", on_delete=models.DO_NOTHING, blank=True, null=True)
+    remarks = models.CharField(max_length=1000, blank=True, null=True)
     active = models.BooleanField(default=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -2,9 +2,9 @@ from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from common.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS
 from graphql import GraphQLError
 
@@ -14,7 +14,7 @@ def generate_public_institution(institution):
     completed = 0
     percentage = 0
 
-    learners = User.objects.all().filter(role=USER_ROLES_NAMES['LEARNER'], institution_id=institution.id, active=True)
+    learners = User.objects.all().filter(role=USER_ROLES_NAMES['LEARNER'], membership_status=User.StatusChoices.APPROVED, institution_id=institution.id, active=True)
 
     if len(learners):
         learner_ids = learners.values_list('id',flat=True)
@@ -66,6 +66,13 @@ class ExerciseAndSubmissionType(graphene.ObjectType):
     submissions = graphene.List(ExerciseSubmissionType)
 
 class ExerciseSubmissionGroup(graphene.ObjectType):
+    id = graphene.ID()
+    type = graphene.String()
+    title = graphene.String()
+    subtitle = graphene.String()
+    count = graphene.Int()
+
+class IssueGroup(graphene.ObjectType):
     id = graphene.ID()
     type = graphene.String()
     title = graphene.String()
@@ -170,7 +177,7 @@ class Query(ObjectType):
     # Project Queries
     project = graphene.Field(ProjectType, id=graphene.ID())
     projects = graphene.List(
-        ProjectType, author=graphene.Int(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        ProjectType, author_id=graphene.ID(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     # Course Queries
     course = graphene.Field(CourseType, id=graphene.ID())
@@ -213,6 +220,12 @@ class Query(ObjectType):
     reports = graphene.Field(Reports, participant_id=graphene.ID(), course_id=graphene.ID(), institution_id=graphene.ID(), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
+    # Issue Queries
+    issue = graphene.Field(IssueType, id=graphene.ID())
+    issues = graphene.List(
+        IssueType, resource_id=graphene.ID(), link=graphene.String(), resource_type=graphene.String(), reporter_id=graphene.ID(), issue_id=graphene.ID(), status=graphene.String(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    issue_groups = graphene.List(IssueGroup, group_by=graphene.String(required=True), status=graphene.String(required=True), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
     # Chat Queries
     chat = graphene.Field(ChatType, id=graphene.ID())
     chats = graphene.Field(
@@ -228,7 +241,7 @@ class Query(ObjectType):
     unread_count = graphene.Field(UnreadCount) # Fetches the count of unread announcements, assignments etc.
 
     def resolve_public_institution(root, info, code, **kwargs):
-        institution = Institution.objects.get(code=code, public=True, active=True)
+        institution = Institution.objects.get(code=code, active=True)
         if institution is not None:
             public_institution = generate_public_institution(institution)
             return public_institution
@@ -842,14 +855,6 @@ class Query(ObjectType):
         return qs
 
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['LIST']))
-    def resolve_submission_history(root, info, exercise_id=None, participant_id=None):
-        qs = []
-        if exercise_id and participant_id:
-            qs = SubmissionHistory.objects.filter(exercise_id=exercise_id, participant_id=participant_id, active=True).order_by('-id')
-        return qs
-
-    @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
     def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField=None, flagged=None, limit=None, offset=None, **kwargs):
         groups = [] 
@@ -942,6 +947,117 @@ class Query(ObjectType):
             groups = groups[:limit]
 
         return groups   
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['GET']))
+    def resolve_issue(root, info, id, **kwargs):
+        issue_instance = Issue.objects.get(
+            pk=id, active=True)
+        if issue_instance is not None:
+            return issue_instance
+        else:
+            return None   
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['LIST']))
+    def resolve_issues(root, info, resource_id=None, resource_type=None, link=None, reporter_id=None, issue_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
+        if issue_id is not None:
+            qs = Issue.objects.all().filter(active=True, pk=issue_id)
+        else:
+            admin_user = is_admin_user(info)
+            current_user = info.context.user
+            if admin_user:
+                # if the user is super user then they gbet to see all issues
+                qs = Issue.objects.filter(active=True).order_by('-id')
+            else:
+                # If the user is not a super user, we filter issues pertaining to their institution and users in their institution
+                qs = Issue.objects.filter(institution_id=current_user.institution.id).order_by('-id')
+
+            if resource_id is not None:
+                filter = (
+                    Q(resource_id=resource_id)
+                )
+                qs = qs.filter(filter)
+
+            if resource_type is not None:
+                filter = (
+                    Q(resource_type=resource_type)
+                )
+                qs = qs.filter(filter)
+
+
+            if reporter_id is not None:
+                filter = (
+                    Q(reporter_id=reporter_id)
+                )
+                qs = qs.filter(filter)
+
+            if status is not None:
+                filter = (
+                    Q(status=status)
+                )
+                qs = qs.filter(filter)
+
+            if link is not None:
+                filter = (
+                    Q(link=link)
+                )
+                qs = qs.filter(filter)
+            if searchField is not None:
+                filter = (
+                    Q(searchField__icontains=searchField.lower())
+                )
+                qs = qs.filter(filter)
+
+            if offset is not None:
+                qs = qs[offset:]
+
+            if limit is not None:
+                qs = qs[:limit]
+
+        return qs
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['LIST']))    
+    def resolve_issue_groups(root, info, group_by=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
+        groups = [] 
+
+        if group_by is not None:
+            admin_user = is_admin_user(info)
+            current_user = info.context.user
+            if admin_user:
+                # if the user is super user then they gbet to see all issues
+                all_issues = Issue.objects.filter(status=status, active=True).values_list('issue', flat=True).distinct().order_by()
+            else:
+                # If the user is not a super user, we filter issues pertaining to their institution and users in their institution
+                all_issues = Issue.objects.filter(status=status, active=True, institution_id=current_user.institution.id).values_list('issue', flat=True).distinct().order_by()
+         
+            if searchField is not None:
+                filter=Q(searchField__icontains=searchField.lower())
+                unique_issues = all_issues.filter(filter)
+            for issue_id in unique_issues:
+                issue = Exercise.objects.get(pk=issue_id)
+                count = all_issues.filter(Q(resource_id=issue.resource_id)).count()
+                card = IssueGroup(id=issue.id, type=group_by, title=issue.link, subtitle=issue.description, count=count)
+                groups.append(card)
+        else:
+            raise GraphQLError('Please select criterion for grouping of issues')
+
+        if offset is not None:
+            groups = groups[offset:]
+
+        if limit is not None:
+            groups = groups[:limit]
+
+        return groups
+
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['LIST']))
+    def resolve_submission_history(root, info, exercise_id=None, participant_id=None):
+        qs = []
+        if exercise_id and participant_id:
+            qs = SubmissionHistory.objects.filter(exercise_id=exercise_id, participant_id=participant_id, active=True).order_by('-id')
+        return qs
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['CREATE']))    
