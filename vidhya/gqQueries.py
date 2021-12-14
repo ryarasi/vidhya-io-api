@@ -595,12 +595,12 @@ class Query(ObjectType):
             pass
         return project_instance
 
-    def resolve_projects(root, info, author=None, searchField=None, limit=None, offset=None, **kwargs):
+    def resolve_projects(root, info, author_id=None, searchField=None, limit=None, offset=None, **kwargs):
         qs = Project.objects.filter(active=True)
         current_user = info.context.user
-        if author is not None:
-            qs = Project.objects.filter(author_id=author, active=True)
-        if author is not current_user.id:
+        if author_id is not None:
+            qs = Project.objects.filter(author_id=author_id, active=True)
+        if author_id is not current_user.id:
             filter = (Q(public=True))
             qs = qs.filter(filter)
         if searchField is not None:
