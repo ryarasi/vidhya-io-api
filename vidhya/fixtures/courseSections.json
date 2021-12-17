@@ -1,0 +1,410 @@
+[
+  {
+    "model": "vidhya.coursesection",
+    "pk": 1,
+    "fields": {
+      "title": "Internet & Email",
+      "index": 2,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:09:52.402Z",
+      "updated_at": "2021-09-08T08:55:13.408Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 2,
+    "fields": {
+      "title": "Course Overview",
+      "index": 1,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:14:04.658Z",
+      "updated_at": "2021-09-08T08:55:13.420Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 3,
+    "fields": {
+      "title": "Web Basics",
+      "index": 3,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:15:29.429Z",
+      "updated_at": "2021-09-08T08:55:13.426Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 4,
+    "fields": {
+      "title": "HTML Intro",
+      "index": 4,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:16:17.895Z",
+      "updated_at": "2021-09-08T08:55:13.434Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 5,
+    "fields": {
+      "title": "Device Setup",
+      "index": 5,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:17:23.055Z",
+      "updated_at": "2021-09-24T05:26:48.036Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 6,
+    "fields": {
+      "title": " HTML Basics",
+      "index": 6,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:18:45.184Z",
+      "updated_at": "2021-09-08T08:55:13.446Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 7,
+    "fields": {
+      "title": "Tables & Images",
+      "index": 8,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:29:50.130Z",
+      "updated_at": "2021-09-08T08:55:13.458Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 8,
+    "fields": {
+      "title": "Common HTML Tags",
+      "index": 7,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:31:15.932Z",
+      "updated_at": "2021-09-08T08:55:13.452Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 9,
+    "fields": {
+      "title": "Attributes & File Paths",
+      "index": 9,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:34:16.914Z",
+      "updated_at": "2021-09-08T08:55:13.465Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 10,
+    "fields": {
+      "title": "Codepen.io",
+      "index": 10,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:34:29.371Z",
+      "updated_at": "2021-09-08T08:55:13.470Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 11,
+    "fields": {
+      "title": "Publishing Website",
+      "index": 11,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:34:43.806Z",
+      "updated_at": "2021-09-08T08:55:13.476Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 12,
+    "fields": {
+      "title": "Introduction to CSS",
+      "index": 12,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:34:57.779Z",
+      "updated_at": "2021-09-08T08:55:13.483Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 13,
+    "fields": {
+      "title": "CSS Project 1",
+      "index": 13,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:35:11.390Z",
+      "updated_at": "2021-09-08T08:55:13.490Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 14,
+    "fields": {
+      "title": "Internal Stylesheet & CSS Selectors",
+      "index": 14,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:35:28.546Z",
+      "updated_at": "2021-09-08T08:55:13.497Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 15,
+    "fields": {
+      "title": "External Stylesheet & CSS Colors",
+      "index": 15,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:35:43.728Z",
+      "updated_at": "2021-09-08T08:55:13.507Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 16,
+    "fields": {
+      "title": "CSS Project 2 & Best Practices",
+      "index": 16,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:36:01.272Z",
+      "updated_at": "2021-09-08T08:55:13.513Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 17,
+    "fields": {
+      "title": "Demo Projects",
+      "index": 17,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:36:21.161Z",
+      "updated_at": "2021-10-12T15:31:52.374Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 18,
+    "fields": {
+      "title": "Demo Project 2",
+      "index": 18,
+      "course": 2,
+      "active": false,
+      "created_at": "2021-08-30T13:36:30.923Z",
+      "updated_at": "2021-10-12T15:32:48.826Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 19,
+    "fields": {
+      "title": "Demo Project 3",
+      "index": 19,
+      "course": 2,
+      "active": false,
+      "created_at": "2021-08-30T13:36:40.239Z",
+      "updated_at": "2021-10-12T15:33:02.325Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 20,
+    "fields": {
+      "title": "Demo Project 4",
+      "index": 20,
+      "course": 2,
+      "active": false,
+      "created_at": "2021-08-30T13:36:54.528Z",
+      "updated_at": "2021-10-12T15:33:33.681Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 21,
+    "fields": {
+      "title": "Demo Project 5",
+      "index": 21,
+      "course": 2,
+      "active": false,
+      "created_at": "2021-08-30T13:37:01.401Z",
+      "updated_at": "2021-10-12T15:36:15.088Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 22,
+    "fields": {
+      "title": "Project & Conclusion",
+      "index": 22,
+      "course": 2,
+      "active": true,
+      "created_at": "2021-08-30T13:37:14.897Z",
+      "updated_at": "2021-10-12T15:37:06.194Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 23,
+    "fields": {
+      "title": "Introduction",
+      "index": 1,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-08-31T13:05:40.603Z",
+      "updated_at": "2021-10-13T12:19:15.400Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 24,
+    "fields": {
+      "title": "Variables & Data Types",
+      "index": 3,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-08-31T13:06:17.341Z",
+      "updated_at": "2021-10-13T12:19:15.499Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 25,
+    "fields": {
+      "title": "JS Operators Part 1",
+      "index": 4,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-08-31T13:07:53.807Z",
+      "updated_at": "2021-10-13T12:19:15.544Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 26,
+    "fields": {
+      "title": "JS Operators Part 2",
+      "index": 5,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-08-31T13:08:03.922Z",
+      "updated_at": "2021-10-13T12:19:15.621Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 27,
+    "fields": {
+      "title": "Conditional Statements",
+      "index": 6,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-08-31T13:29:19.026Z",
+      "updated_at": "2021-10-13T12:19:15.665Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 28,
+    "fields": {
+      "title": "Arrays & JSON",
+      "index": 7,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-08-31T13:29:45.806Z",
+      "updated_at": "2021-10-13T12:19:15.702Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 29,
+    "fields": {
+      "title": "Integrating JS in HTML",
+      "index": 9,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-08-31T13:30:09.534Z",
+      "updated_at": "2021-10-13T12:19:15.791Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 30,
+    "fields": {
+      "title": "HTML DOM & Event Listeners",
+      "index": 10,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-08-31T13:30:24.573Z",
+      "updated_at": "2021-10-13T12:19:15.824Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 31,
+    "fields": {
+      "title": "Demo Projects",
+      "index": 11,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-08-31T13:30:43.391Z",
+      "updated_at": "2021-10-13T12:19:15.858Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 32,
+    "fields": {
+      "title": "Getting started with JS",
+      "index": 2,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-09-02T10:22:32.927Z",
+      "updated_at": "2021-10-13T12:19:15.448Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 33,
+    "fields": {
+      "title": "Project & Conclusion",
+      "index": 12,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-10-12T15:11:53.955Z",
+      "updated_at": "2021-10-16T12:43:50.852Z"
+    }
+  },
+  {
+    "model": "vidhya.coursesection",
+    "pk": 34,
+    "fields": {
+      "title": "Functions & Loops",
+      "index": 8,
+      "course": 1,
+      "active": true,
+      "created_at": "2021-10-13T12:18:08.567Z",
+      "updated_at": "2021-10-13T12:19:15.743Z"
+    }
+  }
+]
