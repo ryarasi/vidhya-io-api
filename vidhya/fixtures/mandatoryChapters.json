@@ -1,0 +1,477 @@
+[
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 3,
+    "fields": { "chapter": 18, "requirement": 14 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 4,
+    "fields": { "chapter": 24, "requirement": 23 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 5,
+    "fields": { "chapter": 49, "requirement": 24 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 6,
+    "fields": { "chapter": 70, "requirement": 24 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 7,
+    "fields": { "chapter": 48, "requirement": 24 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 8,
+    "fields": { "chapter": 2, "requirement": 1 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 9,
+    "fields": { "chapter": 2, "requirement": 3 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 10,
+    "fields": { "chapter": 6, "requirement": 4 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 11,
+    "fields": { "chapter": 5, "requirement": 6 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 12,
+    "fields": { "chapter": 9, "requirement": 8 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 13,
+    "fields": { "chapter": 8, "requirement": 7 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 14,
+    "fields": { "chapter": 7, "requirement": 2 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 15,
+    "fields": { "chapter": 3, "requirement": 1 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 16,
+    "fields": { "chapter": 1, "requirement": 5 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 18,
+    "fields": { "chapter": 10, "requirement": 9 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 21,
+    "fields": { "chapter": 16, "requirement": 12 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 23,
+    "fields": { "chapter": 15, "requirement": 13 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 24,
+    "fields": { "chapter": 17, "requirement": 15 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 25,
+    "fields": { "chapter": 22, "requirement": 17 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 26,
+    "fields": { "chapter": 20, "requirement": 18 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 27,
+    "fields": { "chapter": 19, "requirement": 20 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 28,
+    "fields": { "chapter": 21, "requirement": 19 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 29,
+    "fields": { "chapter": 23, "requirement": 21 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 30,
+    "fields": { "chapter": 50, "requirement": 49 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 31,
+    "fields": { "chapter": 51, "requirement": 53 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 32,
+    "fields": { "chapter": 52, "requirement": 22 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 33,
+    "fields": { "chapter": 56, "requirement": 52 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 34,
+    "fields": { "chapter": 53, "requirement": 49 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 35,
+    "fields": { "chapter": 54, "requirement": 53 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 36,
+    "fields": { "chapter": 55, "requirement": 54 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 37,
+    "fields": { "chapter": 57, "requirement": 55 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 38,
+    "fields": { "chapter": 58, "requirement": 54 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 44,
+    "fields": { "chapter": 13, "requirement": 16 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 45,
+    "fields": { "chapter": 60, "requirement": 58 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 49,
+    "fields": { "chapter": 11, "requirement": 10 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 52,
+    "fields": { "chapter": 12, "requirement": 10 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 53,
+    "fields": { "chapter": 14, "requirement": 16 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 54,
+    "fields": { "chapter": 14, "requirement": 12 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 56,
+    "fields": { "chapter": 34, "requirement": 33 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 57,
+    "fields": { "chapter": 32, "requirement": 31 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 58,
+    "fields": { "chapter": 33, "requirement": 32 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 59,
+    "fields": { "chapter": 26, "requirement": 25 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 60,
+    "fields": { "chapter": 27, "requirement": 26 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 61,
+    "fields": { "chapter": 69, "requirement": 27 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 62,
+    "fields": { "chapter": 28, "requirement": 69 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 63,
+    "fields": { "chapter": 29, "requirement": 28 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 64,
+    "fields": { "chapter": 30, "requirement": 29 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 67,
+    "fields": { "chapter": 36, "requirement": 35 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 68,
+    "fields": { "chapter": 37, "requirement": 36 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 69,
+    "fields": { "chapter": 38, "requirement": 37 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 70,
+    "fields": { "chapter": 41, "requirement": 40 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 74,
+    "fields": { "chapter": 71, "requirement": 46 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 75,
+    "fields": { "chapter": 72, "requirement": 71 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 76,
+    "fields": { "chapter": 73, "requirement": 72 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 79,
+    "fields": { "chapter": 74, "requirement": 74 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 86,
+    "fields": { "chapter": 39, "requirement": 75 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 87,
+    "fields": { "chapter": 40, "requirement": 39 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 88,
+    "fields": { "chapter": 75, "requirement": 38 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 91,
+    "fields": { "chapter": 44, "requirement": 45 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 92,
+    "fields": { "chapter": 43, "requirement": 42 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 93,
+    "fields": { "chapter": 45, "requirement": 43 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 94,
+    "fields": { "chapter": 42, "requirement": 41 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 98,
+    "fields": { "chapter": 61, "requirement": 60 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 100,
+    "fields": { "chapter": 67, "requirement": 65 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 101,
+    "fields": { "chapter": 68, "requirement": 67 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 102,
+    "fields": { "chapter": 62, "requirement": 61 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 105,
+    "fields": { "chapter": 63, "requirement": 62 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 107,
+    "fields": { "chapter": 64, "requirement": 63 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 108,
+    "fields": { "chapter": 65, "requirement": 64 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 109,
+    "fields": { "chapter": 76, "requirement": 74 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 113,
+    "fields": { "chapter": 31, "requirement": 77 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 118,
+    "fields": { "chapter": 82, "requirement": 81 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 124,
+    "fields": { "chapter": 84, "requirement": 42 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 125,
+    "fields": { "chapter": 84, "requirement": 83 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 126,
+    "fields": { "chapter": 85, "requirement": 84 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 127,
+    "fields": { "chapter": 85, "requirement": 44 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 128,
+    "fields": { "chapter": 83, "requirement": 40 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 129,
+    "fields": { "chapter": 83, "requirement": 82 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 130,
+    "fields": { "chapter": 80, "requirement": 34 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 131,
+    "fields": { "chapter": 80, "requirement": 79 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 132,
+    "fields": { "chapter": 81, "requirement": 80 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 133,
+    "fields": { "chapter": 81, "requirement": 37 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 134,
+    "fields": { "chapter": 78, "requirement": 77 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 135,
+    "fields": { "chapter": 78, "requirement": 31 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 136,
+    "fields": { "chapter": 79, "requirement": 32 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 137,
+    "fields": { "chapter": 79, "requirement": 78 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 138,
+    "fields": { "chapter": 77, "requirement": 69 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 139,
+    "fields": { "chapter": 77, "requirement": 30 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 141,
+    "fields": { "chapter": 86, "requirement": 46 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 143,
+    "fields": { "chapter": 46, "requirement": 44 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 148,
+    "fields": { "chapter": 87, "requirement": 86 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 151,
+    "fields": { "chapter": 91, "requirement": 90 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 153,
+    "fields": { "chapter": 88, "requirement": 87 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 154,
+    "fields": { "chapter": 90, "requirement": 88 }
+  },
+  {
+    "model": "vidhya.mandatorychapters",
+    "pk": 155,
+    "fields": { "chapter": 35, "requirement": 34 }
+  }
+]

@@ -1,20 +1,142 @@
 [
-    {
-        "model": "vidhya.institution",
-        "pk": 1,
-        "fields": {
-            "name": "Shuddhi Vidhya",
-            "location": "Chennai",
-            "city": "Chennai",
-            "website": "https://shuddhitrust.org",
-            "phone": null,
-            "logo": "https://i.imgur.com/dPO1MlY.png",
-            "bio": "Committed to doing what is necessary",
-            "invitecode": "9301911365",
-            "searchField": null,
-            "active": true,
-            "created_at": "2021-07-25T11:32:16.488Z",
-            "updated_at": "2021-07-25T11:32:16.488Z"
-        }
+  {
+    "model": "vidhya.institution",
+    "pk": 1,
+    "fields": {
+      "name": "Shuddhi Vidhya",
+      "code": "shuddhividhya",
+      "public": false,
+      "location": "Chennai",
+      "city": "Chennai",
+      "website": "https://shuddhitrust.org",
+      "phone": null,
+      "logo": "https://i.imgur.com/dPO1MlY.png",
+      "bio": "Committed to doing what is necessary",
+      "invitecode": "9301911365",
+      "searchField": null,
+      "active": true,
+      "created_at": "2021-07-25T11:32:16.488Z",
+      "updated_at": "2021-07-25T11:32:16.488Z"
     }
+  },
+  {
+    "model": "vidhya.institution",
+    "pk": 2,
+    "fields": {
+      "name": "Isha Vidhya (SGP)",
+      "code": "ishasgp",
+      "public": true,
+      "location": "Santhegoundanpalayam",
+      "city": "Coimbatore",
+      "website": "https://ishavidhya.org",
+      "phone": null,
+      "logo": "https://res.cloudinary.com/svidhya/image/upload/v1633883659/pqj6ziq8i2i37wnqr9c2.jpg",
+      "bio": null,
+      "invitecode": "9616900689",
+      "searchField": "isha vidhyasgpcoimbatorehttps://ishavidhya.org",
+      "active": true,
+      "created_at": "2021-09-01T06:09:14.964Z",
+      "updated_at": "2021-09-02T11:09:47.876Z"
+    }
+  },
+  {
+    "model": "vidhya.institution",
+    "pk": 3,
+    "fields": {
+      "name": "Isha Vidhya (KRR)",
+      "code": "ishakrr",
+      "public": true,
+      "location": "Karur",
+      "city": "Karur",
+      "website": "https://ishavidhya.org",
+      "phone": null,
+      "logo": "https://res.cloudinary.com/svidhya/image/upload/v1633883659/pqj6ziq8i2i37wnqr9c2.jpg",
+      "bio": null,
+      "invitecode": "7251380855",
+      "searchField": "isha vidhya (krr)karurkarurhttps://ishavidhya.org",
+      "active": true,
+      "created_at": "2021-09-02T11:10:53.362Z",
+      "updated_at": "2021-09-02T11:10:53.362Z"
+    }
+  },
+  {
+    "model": "vidhya.institution",
+    "pk": 4,
+    "fields": {
+      "name": "Isha Vidhya (TUT)",
+      "code": "ishatut",
+      "public": true,
+      "location": "Thuthukudi",
+      "city": "Thuthukudi",
+      "website": "https://ishavidhya.org",
+      "phone": null,
+      "logo": "https://res.cloudinary.com/svidhya/image/upload/v1633883659/pqj6ziq8i2i37wnqr9c2.jpg",
+      "bio": null,
+      "invitecode": "8391321257",
+      "searchField": "isha vidhya (tut)thuthukudithuthukudihttps://ishavidhya.org",
+      "active": true,
+      "created_at": "2021-09-02T11:11:24.597Z",
+      "updated_at": "2021-09-02T11:11:24.597Z"
+    }
+  },
+  {
+    "model": "vidhya.institution",
+    "pk": 5,
+    "fields": {
+      "name": "Isha Vidhya (CUD)",
+      "code": "ishacud",
+      "public": true,
+      "location": "Cuddalore",
+      "city": "Cuddalore",
+      "website": "https://ishavidhya.org",
+      "phone": null,
+      "logo": "https://res.cloudinary.com/svidhya/image/upload/v1633883659/pqj6ziq8i2i37wnqr9c2.jpg",
+      "bio": null,
+      "invitecode": "8869131923",
+      "searchField": "isha vidhya (cud)cuddalorecuddalorehttps://ishavidhya.org",
+      "active": true,
+      "created_at": "2021-09-02T11:11:50.263Z",
+      "updated_at": "2021-09-02T11:11:50.263Z"
+    }
+  },
+  {
+    "model": "vidhya.institution",
+    "pk": 6,
+    "fields": {
+      "name": "Isha Vidhya (VAN)",
+      "code": "ishavan",
+      "public": true,
+      "location": "Vanavasi",
+      "city": "Vanavasi",
+      "website": "https://ishavidhya.org",
+      "phone": null,
+      "logo": "https://res.cloudinary.com/svidhya/image/upload/v1633883659/pqj6ziq8i2i37wnqr9c2.jpg",
+      "bio": null,
+      "invitecode": "7633670997",
+      "searchField": "isha vidhya (van)vanavasivanavasihttps://ishavidhya.org",
+      "active": true,
+      "created_at": "2021-09-02T11:12:11.952Z",
+      "updated_at": "2021-09-02T11:12:11.952Z"
+    }
+  },
+  {
+    "model": "vidhya.institution",
+    "pk": 7,
+    "fields": {
+      "name": "Isha Vidhya (DHA)",
+      "code": "ishadha",
+      "public": true,
+      "location": "Dharmapuri",
+      "city": "Dharmapuri",
+      "website": "https://ishavidhya.org",
+      "phone": null,
+      "logo": "https://res.cloudinary.com/svidhya/image/upload/v1633883659/pqj6ziq8i2i37wnqr9c2.jpg",
+      "bio": null,
+      "invitecode": "6620743543",
+      "searchField": "ishadhadharmapuridharmapurihttps://ishavidhya.org",
+      "active": true,
+      "created_at": "2021-09-03T16:04:38.099Z",
+      "updated_at": "2021-10-10T16:34:20.773Z"
+    }
+  }
 ]

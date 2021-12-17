@@ -1,0 +1,728 @@
+[
+  {
+    "model": "vidhya.criterion",
+    "pk": 1,
+    "fields": {
+      "exercise": 137,
+      "description": "There are no errors in the code",
+      "points": 3,
+      "searchField": "there are no errors in the code3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 2,
+    "fields": {
+      "exercise": 137,
+      "description": "There are at least 3 cases",
+      "points": 3,
+      "searchField": "there are at least 3 cases3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 3,
+    "fields": {
+      "exercise": 137,
+      "description": "It has a default block",
+      "points": 1,
+      "searchField": "it has a default block1",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 4,
+    "fields": {
+      "exercise": 137,
+      "description": "Example is different from ones shown in the video",
+      "points": 3,
+      "searchField": "example is different from ones shown in the video3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 5,
+    "fields": {
+      "exercise": 171,
+      "description": "Starting number is 1",
+      "points": 1,
+      "searchField": "starting number is 11",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 6,
+    "fields": {
+      "exercise": 171,
+      "description": "Ending number is 10000, and all the numbers between 1 and 10000 are all printed one line in each",
+      "points": 1,
+      "searchField": "ending number is 10000, and all the numbers between 1 and 10000 are all printed one line in each1",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 7,
+    "fields": {
+      "exercise": 171,
+      "description": "There are no errors in the code and the numbers are printed as per the instructions ",
+      "points": 2,
+      "searchField": "there are no errors in the code and the numbers are printed as per the instructions 2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 8,
+    "fields": {
+      "exercise": 172,
+      "description": "Contact page exists and has the input fields for name, email, subject and message and has a submit button",
+      "points": 5,
+      "searchField": "contact page exists and has the input fields for name, email, subject and message and has a submit button5",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 9,
+    "fields": {
+      "exercise": 172,
+      "description": "Returns in a error message in an alert dialog box when the user submits without a fully-filled form",
+      "points": 5,
+      "searchField": "returns in a error message in an alert dialog box when the user submits without a fully-filled form5",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 10,
+    "fields": {
+      "exercise": 172,
+      "description": "Returns in an error message in an alert box when the email is invalid",
+      "points": 5,
+      "searchField": "returns in an error message in an alert box when the email is invalid5",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 11,
+    "fields": {
+      "exercise": 172,
+      "description": "Shows a success message when submit button is clicked after fully filling the form",
+      "points": 5,
+      "searchField": "shows a success message when submit button is clicked after fully filling the form5",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 12,
+    "fields": {
+      "exercise": 174,
+      "description": "Overall presentation",
+      "points": 10,
+      "searchField": "overall presentation10",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 13,
+    "fields": {
+      "exercise": 174,
+      "description": "Complexity of features",
+      "points": 10,
+      "searchField": "complexity of features10",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 14,
+    "fields": {
+      "exercise": 174,
+      "description": "Creativity",
+      "points": 10,
+      "searchField": "creativity10",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 15,
+    "fields": {
+      "exercise": 174,
+      "description": "Learning to learn",
+      "points": 10,
+      "searchField": "learning to learn10",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 16,
+    "fields": {
+      "exercise": 174,
+      "description": "Originality",
+      "points": 10,
+      "searchField": "originality10",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 17,
+    "fields": {
+      "exercise": 174,
+      "description": "Code quality",
+      "points": 10,
+      "searchField": "code quality10",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 18,
+    "fields": {
+      "exercise": 173,
+      "description": "Home page exists",
+      "points": 2,
+      "searchField": "home page exists2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 19,
+    "fields": {
+      "exercise": 173,
+      "description": "About page exists",
+      "points": 2,
+      "searchField": "about page exists2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 20,
+    "fields": {
+      "exercise": 173,
+      "description": "Gallery page exists",
+      "points": 2,
+      "searchField": "gallery page exists2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 21,
+    "fields": {
+      "exercise": 173,
+      "description": "Contact page exists",
+      "points": 2,
+      "searchField": "contact page exists2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 22,
+    "fields": {
+      "exercise": 173,
+      "description": "Horizontal nav bar appears on home page",
+      "points": 3,
+      "searchField": "horizontal nav bar appears on home page3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 23,
+    "fields": {
+      "exercise": 173,
+      "description": "Horizontal nav bar appears on about page",
+      "points": 3,
+      "searchField": "horizontal nav bar appears on about page3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 24,
+    "fields": {
+      "exercise": 173,
+      "description": "Horizontal nav bar appears on gallery page",
+      "points": 3,
+      "searchField": "horizontal nav bar appears on gallery page3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 25,
+    "fields": {
+      "exercise": 173,
+      "description": "Horizontal nav bar appears on contact page",
+      "points": 3,
+      "searchField": "horizontal nav bar appears on contact page3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 26,
+    "fields": {
+      "exercise": 176,
+      "description": "A YouTube video is embedded in the About page",
+      "points": 5,
+      "searchField": "a youtube video is embedded in the about page5",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 27,
+    "fields": {
+      "exercise": 176,
+      "description": "There is a fixed footer on each page",
+      "points": 5,
+      "searchField": "there is a fixed footer on each page5",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 28,
+    "fields": {
+      "exercise": 177,
+      "description": "One text input field",
+      "points": 2,
+      "searchField": "one text input field2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 29,
+    "fields": {
+      "exercise": 177,
+      "description": "One dropdown field",
+      "points": 2,
+      "searchField": "one dropdown field2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 30,
+    "fields": {
+      "exercise": 177,
+      "description": "One textarea field",
+      "points": 2,
+      "searchField": "one textarea field2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 31,
+    "fields": {
+      "exercise": 177,
+      "description": "A styled submit button",
+      "points": 2,
+      "searchField": "a styled submit button2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 32,
+    "fields": {
+      "exercise": 177,
+      "description": "No errors",
+      "points": 2,
+      "searchField": "no errors2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 33,
+    "fields": {
+      "exercise": 178,
+      "description": "Gallery page has a background",
+      "points": 5,
+      "searchField": "gallery page has a background5",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 34,
+    "fields": {
+      "exercise": 178,
+      "description": "Gallery page has at least 3 images",
+      "points": 5,
+      "searchField": "gallery page has at least 3 images5",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 35,
+    "fields": {
+      "exercise": 179,
+      "description": "Text is of proper size",
+      "points": 3,
+      "searchField": "text is of proper size3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 36,
+    "fields": {
+      "exercise": 179,
+      "description": "No items are off screen",
+      "points": 3,
+      "searchField": "no items are off screen3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 37,
+    "fields": {
+      "exercise": 179,
+      "description": "Screen free space is properly used",
+      "points": 4,
+      "searchField": "screen free space is properly used4",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 38,
+    "fields": {
+      "exercise": 182,
+      "description": "No HTML was used",
+      "points": 6,
+      "searchField": "no html was used6",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 39,
+    "fields": {
+      "exercise": 182,
+      "description": "A button exists with the label 'Button'",
+      "points": 2,
+      "searchField": "a button exists with the label 'button'2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 40,
+    "fields": {
+      "exercise": 182,
+      "description": "An alert box shows every time the mouse is moved over the button",
+      "points": 2,
+      "searchField": "an alert box shows every time the mouse is moved over the button2",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 41,
+    "fields": {
+      "exercise": 182,
+      "description": "The alert box is shown no more than 3 times",
+      "points": 3,
+      "searchField": "the alert box is shown no more than 3 times3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 42,
+    "fields": {
+      "exercise": 182,
+      "description": "There are no errors in the code",
+      "points": 3,
+      "searchField": "there are no errors in the code3",
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 43,
+    "fields": {
+      "exercise": 193,
+      "description": "Two input fields for the two numbers exist",
+      "points": 6,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 44,
+    "fields": {
+      "exercise": 193,
+      "description": "Product of the two numbers is shown to the user",
+      "points": 6,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 45,
+    "fields": {
+      "exercise": 193,
+      "description": "The input fields accept only numbers",
+      "points": 4,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 46,
+    "fields": {
+      "exercise": 193,
+      "description": "The input fields do not allow blank values ",
+      "points": 4,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 47,
+    "fields": {
+      "exercise": 194,
+      "description": "Collecting the inputs and showing the product happen in 3 separate screens",
+      "points": 6,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 48,
+    "fields": {
+      "exercise": 194,
+      "description": "Input fields accept only numbers",
+      "points": 4,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 49,
+    "fields": {
+      "exercise": 194,
+      "description": "Input fields do not accept blank values and show error message if blank value is submitted",
+      "points": 4,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 50,
+    "fields": {
+      "exercise": 194,
+      "description": "Meaningful heading is present",
+      "points": 1,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 51,
+    "fields": {
+      "exercise": 194,
+      "description": "Each screen has a meaningful description showing letting the user know what to do in that screen",
+      "points": 1,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 52,
+    "fields": {
+      "exercise": 195,
+      "description": "Inputs are collected in separate screen and the table is shown in a separate screen",
+      "points": 6,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 53,
+    "fields": {
+      "exercise": 195,
+      "description": "Input fields allow only numbers",
+      "points": 2,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 54,
+    "fields": {
+      "exercise": 195,
+      "description": "Input values don't allow blank values",
+      "points": 2,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 55,
+    "fields": {
+      "exercise": 195,
+      "description": "Custom styling exists",
+      "points": 5,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 56,
+    "fields": {
+      "exercise": 195,
+      "description": "Reset button exists and takes user back to the starting screen",
+      "points": 4,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 57,
+    "fields": {
+      "exercise": 194,
+      "description": "Custom styling exists",
+      "points": 4,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 58,
+    "fields": {
+      "exercise": 195,
+      "description": "Heading exists",
+      "points": 1,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 59,
+    "fields": {
+      "exercise": 196,
+      "description": "Disco lights effect is generated as shown in the video ",
+      "points": 10,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 60,
+    "fields": {
+      "exercise": 197,
+      "description": "After 60 seconds, seconds is reset to 0 and minute is incremented by 1",
+      "points": 5,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 61,
+    "fields": {
+      "exercise": 197,
+      "description": "CSS exists in a separate file and custom styling exists for background and buttons",
+      "points": 10,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 62,
+    "fields": {
+      "exercise": 197,
+      "description": "All values appear with double digits (eg. 9 shows as '09')",
+      "points": 3,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 63,
+    "fields": {
+      "exercise": 197,
+      "description": "Start button initiates stopwatch and disappears after being clicked. Makes stop button appear",
+      "points": 3,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 64,
+    "fields": {
+      "exercise": 197,
+      "description": "Stop button pauses stopwatch and disappears after pressing and makes Start button and Reset button appear",
+      "points": 3,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 65,
+    "fields": {
+      "exercise": 197,
+      "description": "Reset button resets count to 0 and makes all buttons disappear except Start button",
+      "points": 3,
+      "searchField": null,
+      "active": true
+    }
+  },
+  {
+    "model": "vidhya.criterion",
+    "pk": 66,
+    "fields": {
+      "exercise": 197,
+      "description": "JS code exists in separate file and is included using the src in the script tag instead of directly in the HTML file",
+      "points": 3,
+      "searchField": null,
+      "active": true
+    }
+  }
+]

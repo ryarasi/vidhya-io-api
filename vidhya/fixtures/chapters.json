@@ -1,0 +1,1604 @@
+[
+  {
+    "model": "vidhya.chapter",
+    "pk": 1,
+    "fields": {
+      "title": "How does the Internet work?",
+      "instructions": "Watch the video about how the internet functions - https://youtu.be/x3c1ih2NJEg\n\nOnce done, answer the following question(s) and click on submit.",
+      "index": 1,
+      "course": 2,
+      "section": 1,
+      "due_date": null,
+      "points": 2,
+      "status": "PU",
+      "searchField": "how does the internet work?watch the video about how the internet functions - https://youtu.be/x3c1ih2njeg\n\nonce done, answer the following question(s) and click on submit.",
+      "active": true,
+      "created_at": "2021-08-30T13:39:19.963Z",
+      "updated_at": "2021-10-15T05:34:38.454Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 2,
+    "fields": {
+      "title": "Internet & Email Quiz",
+      "instructions": "This quiz is based on the 2 videos posted in the previous chapters.\n\nWatch those videos carefully before submitting this quiz for maximum points.",
+      "index": 3,
+      "course": 2,
+      "section": 1,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "internet & email quizthis quiz is based on the 2 videos posted in the previous chapters.\n\nwatch those videos carefully before submitting this quiz for maximum points.",
+      "active": true,
+      "created_at": "2021-08-30T13:43:20.110Z",
+      "updated_at": "2021-10-15T05:34:39.569Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 3,
+    "fields": {
+      "title": "What is Email?",
+      "instructions": "Watch this video on what email is - https://youtu.be/pRki4UKwmEk\n\nOnce done, answer the following question(s) and click on submit.",
+      "index": 2,
+      "course": 2,
+      "section": 1,
+      "due_date": null,
+      "points": 1,
+      "status": "PU",
+      "searchField": "what is email?watch this video on what email is - https://youtu.be/prki4ukwmek\n\nonce done, answer the following question(s) and click on submit.",
+      "active": true,
+      "created_at": "2021-08-30T15:09:27.698Z",
+      "updated_at": "2021-10-15T05:34:39.142Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 4,
+    "fields": {
+      "title": "Course Overview",
+      "instructions": "Watch this video in whichever language is comfortable for you:-\n\nEnglish - https://www.youtube.com/watch?v=cEIAcTBUEDU\n\nTamil - https://www.youtube.com/watch?v=r2YtNZEvu8E\n\nOnce done, answer the following question(s) and click on submit.",
+      "index": 1,
+      "course": 2,
+      "section": 2,
+      "due_date": null,
+      "points": 2,
+      "status": "PU",
+      "searchField": "course overviewwatch this video in whichever language is comfortable for you:-\n\nenglish - https://www.youtube.com/watch?v=ceiactbuedu\n\ntamil - https://www.youtube.com/watch?v=r2ytnzevu8e\n\nonce done, answer the following question(s) and click on submit.",
+      "active": true,
+      "created_at": "2021-08-31T04:59:49.615Z",
+      "updated_at": "2021-10-15T05:34:38.485Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 5,
+    "fields": {
+      "title": "Google Quiz",
+      "instructions": "This quiz is designed to test your ability to use Google search.\n\nAnswer the questions and click on Submit.",
+      "index": 3,
+      "course": 2,
+      "section": 2,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "google quizthis quiz is designed to test your ability to use google search.\n\nanswer the questions and click on submit.",
+      "active": true,
+      "created_at": "2021-08-31T05:02:09.535Z",
+      "updated_at": "2021-10-15T05:34:39.540Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 6,
+    "fields": {
+      "title": "How to Google?",
+      "instructions": "Watch this video to learn the basics of how to Google.\n\nEnglish - https://youtu.be/CEC9yFN-IRA\n\nTamil - https://youtu.be/p-c6ZJ7M9UA\n\nOnce done, answer the following question(s) and click on submit.",
+      "index": 2,
+      "course": 2,
+      "section": 2,
+      "due_date": null,
+      "points": 4,
+      "status": "PU",
+      "searchField": "how to google?watch this video to learn the basics of how to google.\n\nenglish - https://youtu.be/cec9yfn-ira\n\ntamil - https://youtu.be/p-c6zj7m9ua\n\nonce done, answer the following question(s) and click on submit.",
+      "active": true,
+      "created_at": "2021-08-31T05:13:10.594Z",
+      "updated_at": "2021-10-15T05:34:38.959Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 7,
+    "fields": {
+      "title": "What is a website made of?",
+      "instructions": "Watch this video below (in English or Tamil) to understand what websites are made of:-\n\nEnglish - https://youtu.be/byka9Qc1WUU\n\nTamil - https://youtu.be/cngcHPOTyAE\n\n\nOnce done, answer the following question(s) and click on submit.",
+      "index": 1,
+      "course": 2,
+      "section": 3,
+      "due_date": null,
+      "points": 2,
+      "status": "PU",
+      "searchField": "what is a website made of?watch this video below (in english or tamil) to understand what websites are made of:-\n\nenglish - https://youtu.be/byka9qc1wuu\n\ntamil - https://youtu.be/cngchpotyae\n\n\nonce done, answer the following question(s) and click on submit.",
+      "active": true,
+      "created_at": "2021-08-31T05:18:21.472Z",
+      "updated_at": "2021-10-15T05:34:38.423Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 8,
+    "fields": {
+      "title": "Web Basics Quiz",
+      "instructions": "Answer the following questions designed to test your understanding of the web basics. Please go back and revisit the 'What is a website made of?' video if necessary.",
+      "index": 2,
+      "course": 2,
+      "section": 3,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "web basics quizanswer the following questions designed to test your understanding of the web basics. please go back and revisit the 'what is a website made of?' video if necessary.",
+      "active": true,
+      "created_at": "2021-08-31T05:23:24.120Z",
+      "updated_at": "2021-10-15T05:34:39.324Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 9,
+    "fields": {
+      "title": "What is HTML?",
+      "instructions": "In this video we will see a demo of how to create, save and edit a HTML file. Please watch carefully and answer the question below.\n\nEnglish - https://youtu.be/lMgpFgpWDAQ\n\nTamil - https://youtu.be/UgjY6xfuxxo\n\nOnce done, answer the following question(s) and click on submit.",
+      "index": 1,
+      "course": 2,
+      "section": 4,
+      "due_date": null,
+      "points": 2,
+      "status": "PU",
+      "searchField": "what is html?in this video we will see a demo of how to create, save and edit a html file. please watch carefully and answer the question below.\n\nenglish - https://youtu.be/lmgpfgpwdaq\n\ntamil - https://youtu.be/ugjy6xfuxxo\n\nonce done, answer the following question(s) and click on submit.",
+      "active": true,
+      "created_at": "2021-08-31T05:29:01.974Z",
+      "updated_at": "2021-10-15T05:34:38.515Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 10,
+    "fields": {
+      "title": "Basic HTML Concepts",
+      "instructions": "Please watch the video about the basics of HTML and answer the question below.\n\nEnglish - https://youtu.be/PQLHviH-BxM\n\nTamil - https://youtu.be/1vBiQwIFRhg\n\nNote - The video asks you to get \"Code Editor\" app, but please note that you have to actually get \"Acode\" app on play store instead. This is the better app.\n\nOnce you are done, attach the following screenshots:-\n1) Show that both the \"Coding Keyboard\" app and \"Acode\" app are installed on your phone\n2) You should add the code \"&lt;html>&lt;/html>\" in the Acode app\n\n",
+      "index": 2,
+      "course": 2,
+      "section": 4,
+      "due_date": null,
+      "points": 2,
+      "status": "PU",
+      "searchField": "basic html conceptsplease watch the video about the basics of html and answer the question below.\n\nenglish - https://youtu.be/pqlhvih-bxm\n\ntamil - https://youtu.be/1vbiqwifrhg\n\nnote - the video asks you to get \"code editor\" app, but please note that you have to actually get \"acode\" app on play store instead. this is the better app.\n\nonce you are done, attach the following screenshots:-\n1) show that both the \"coding keyboard\" app and \"acode\" app are installed on your phone\n2) you should add the code \"&lt;html>&lt;/html>\" in the acode app\n\n",
+      "active": true,
+      "created_at": "2021-08-31T06:23:30.333Z",
+      "updated_at": "2021-10-15T05:34:39.173Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 11,
+    "fields": {
+      "title": "Setup your device for coding",
+      "instructions": "Depending on whether you're using a computer or a smartphone, complete *any ONE* of the following tasks. **You don't need to do both!**\n\n**If you are using your computer:-**\n\nYou can use Notepad, Notepad++, Visual Studio Code or any other text editor for this course. Open the text editor and Take a screenshot after typing \"&lt;html>&lt;/html>\" in it.\n\n**If you are using your phone:-**\n\n\nWatch this video and follow the instructions in the video to set up your smartphone for coding:-\n\nEnglish - https://youtu.be/LpxpPaQgSXE?t=18\n\nTamil - https://youtu.be/b2OkBFwcfxo?t=22\n\n\n**<p style=\"color:red;\">Note - The video asks you to get \"Code Editor\" app, but please note that you have to actually get \"Acode\" app on play store instead. This is the better app.</p>**\n\nOnce you are done, attach the following screenshots:-\n1) Show that both the \"Coding Keyboard\" app and \"Acode\" app are installed on your phone\n2) You should add the code \"&lt;html>&lt;/html>\" in the Acode app",
+      "index": 1,
+      "course": 2,
+      "section": 5,
+      "due_date": null,
+      "points": 0,
+      "status": "PU",
+      "searchField": "setup your device for codingdepending on whether you're using a computer or a smartphone, complete *any one* of the following tasks. **you don't need to do both!**\n\n**if you are using your computer:-**\n\nyou can use notepad, notepad++, visual studio code or any other text editor for this course. open the text editor and take a screenshot after typing \"&lt;html>&lt;/html>\" in it.\n\n**if you are using your phone:-**\n\n\nwatch this video and follow the instructions in the video to set up your smartphone for coding:-\n\nenglish - https://youtu.be/lpxppaqgsxe?t=18\n\ntamil - https://youtu.be/b2okbfwcfxo?t=22\n\n\n**<p style=\"color:red;\">note - the video asks you to get \"code editor\" app, but please note that you have to actually get \"acode\" app on play store instead. this is the better app.</p>**\n\nonce you are done, attach the following screenshots:-\n1) show that both the \"coding keyboard\" app and \"acode\" app are installed on your phone\n2) you should add the code \"&lt;html>&lt;/html>\" in the acode app",
+      "active": true,
+      "created_at": "2021-08-31T07:06:04.826Z",
+      "updated_at": "2021-10-15T05:34:38.827Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 12,
+    "fields": {
+      "title": "First HTML File",
+      "instructions": "Do the following:-\n1) Enter the HTML code shown in the first image titled \"Code Sample\" into the Acode app or your desktop text editor and then save it as \"Sample.html\".\n2) After saving the file, take a screenshot of the code.\n3) Preview the HTML code by opening it in the browser and take a screenshot of the preview.\n\nMake sure to enter your name, class and school name ( eg. SGP, DHA, ERD etc) there in the code.\n\nAttach both the screenshots and then mark this as done.\n\nIf you're on a computer, use Google to learn how to take screenshot of your computer screen without taking photos of it.\n\n![Code sample](https://res.cloudinary.com/svidhya/image/upload/v1632656170/Code_Sample_werdrc.png)\n\n![Code preview](https://res.cloudinary.com/svidhya/image/upload/v1632656170/Code_Preview_pay8ub.png)",
+      "index": 1,
+      "course": 2,
+      "section": 6,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "first html filedo the following:-\n1) enter the html code shown in the first image titled \"code sample\" into the acode app or your desktop text editor and then save it as \"sample.html\".\n2) after saving the file, take a screenshot of the code.\n3) preview the html code by opening it in the browser and take a screenshot of the preview.\n\nmake sure to enter your name, class and school name ( eg. sgp, dha, erd etc) there in the code.\n\nattach both the screenshots and then mark this as done.\n\nif you're on a computer, use google to learn how to take screenshot of your computer screen without taking photos of it.\n\n![code sample](https://res.cloudinary.com/svidhya/image/upload/v1632656170/code_sample_werdrc.png)\n\n![code preview](https://res.cloudinary.com/svidhya/image/upload/v1632656170/code_preview_pay8ub.png)",
+      "active": true,
+      "created_at": "2021-08-31T07:08:20.532Z",
+      "updated_at": "2021-10-15T05:34:38.796Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 13,
+    "fields": {
+      "title": "Complete 21% of HTML challenges",
+      "instructions": "Complete at least 21% of HTML challenges on FreeCodeCamp and attach screenshot of proof.",
+      "index": 3,
+      "course": 2,
+      "section": 6,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 21% of html challengescomplete at least 21% of html challenges on freecodecamp and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-08-31T07:36:03.809Z",
+      "updated_at": "2021-10-15T05:34:39.600Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 14,
+    "fields": {
+      "title": "Common HTML Tags",
+      "instructions": "Watch the video:-\n\nEnglish - https://youtu.be/t5iOpoDdIYI\n\nTamil - https://youtu.be/9UF0E39iS-g\n\nTasks:-\n\nI) . Create a new HTML file and save it as \"Common-tags.html\"\n\nII) . The file should contain the basic structure of the HTML file (i.e. with html tag, head tag, title tag, body tag etc. )\n\nIII). Inside the body tag, create the following tags with some text inside:-\n\n1) h1\n\n2) h2\n\n3) h3\n\n4) h4\n\n5) h5\n\n6) h6\n\n7) p\n\n8) div\n\n9) i\n\n10) b\n\n11) u\n\n12 ul\n\n13) ol\n\n14) hr\n\n15) span\n\nIV) Attach screenshot of both the HTML code and the preview on your phone.\n\n\nUse this site as reference if you need to see how a tag is used - https://www.w3schools.com/tags/default.asp\n",
+      "index": 1,
+      "course": 2,
+      "section": 8,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "common html tagswatch the video:-\n\nenglish - https://youtu.be/t5iopoddiyi\n\ntamil - https://youtu.be/9uf0e39is-g\n\ntasks:-\n\ni) . create a new html file and save it as \"common-tags.html\"\n\nii) . the file should contain the basic structure of the html file (i.e. with html tag, head tag, title tag, body tag etc. )\n\niii). inside the body tag, create the following tags with some text inside:-\n\n1) h1\n\n2) h2\n\n3) h3\n\n4) h4\n\n5) h5\n\n6) h6\n\n7) p\n\n8) div\n\n9) i\n\n10) b\n\n11) u\n\n12 ul\n\n13) ol\n\n14) hr\n\n15) span\n\niv) attach screenshot of both the html code and the preview on your phone.\n\n\nuse this site as reference if you need to see how a tag is used - https://www.w3schools.com/tags/default.asp\n",
+      "active": true,
+      "created_at": "2021-08-31T07:49:24.771Z",
+      "updated_at": "2021-10-15T05:34:38.765Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 15,
+    "fields": {
+      "title": "Complete 29% of HTML challenges",
+      "instructions": "Complete at least 29% of HTML challenges on FreeCodeCamp (https://freecodecamp.org) and attach screenshot of proof.",
+      "index": 2,
+      "course": 2,
+      "section": 8,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 29% of html challengescomplete at least 29% of html challenges on freecodecamp (https://freecodecamp.org) and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-08-31T07:50:21.657Z",
+      "updated_at": "2021-10-15T05:34:38.989Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 16,
+    "fields": {
+      "title": "Create account on FreeCodeCamp",
+      "instructions": "Watch the video below and go to https://freecodecamp.org and create an account.\n\nEnglish - https://www.youtube.com/watch?v=iQMl0zCtq3M\n\nTamil - https://www.youtube.com/watch?v=5gdS6K27P1M\n\nOnce you are done watching the video, create an account and login to FreeCodeCamp and then complete the first challenge.\n\nAfter completing the challenge, attach a screenshot of your challenge completion like shown below.\n",
+      "index": 2,
+      "course": 2,
+      "section": 6,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "create account on freecodecampwatch the video below and go to https://freecodecamp.org and create an account.\n\nenglish - https://www.youtube.com/watch?v=iqml0zctq3m\n\ntamil - https://www.youtube.com/watch?v=5gds6k27p1m\n\nonce you are done watching the video, create an account and login to freecodecamp and then complete the first challenge.\n\nafter completing the challenge, attach a screenshot of your challenge completion like shown below.\n",
+      "active": true,
+      "created_at": "2021-08-31T10:52:51.198Z",
+      "updated_at": "2021-10-15T05:34:38.927Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 17,
+    "fields": {
+      "title": "Complete 39% of HTML challenges",
+      "instructions": "Complete at least 39% of HTML challenges on FreeCodeCamp (https://freecodecamp.org) and attach screenshot of proof.",
+      "index": 2,
+      "course": 2,
+      "section": 7,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 39% of html challengescomplete at least 39% of html challenges on freecodecamp (https://freecodecamp.org) and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-08-31T10:55:23.106Z",
+      "updated_at": "2021-10-15T05:34:39.020Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 18,
+    "fields": {
+      "title": "Tables & Images",
+      "instructions": "Please watch the video to learn how to write code for Tables and Images in HTML:-\n\nEnglish - https://youtu.be/6vU6IYw06Co\n\nTamil - https://youtu.be/t4O5EHvAN_A\n\nYour tasks:-\n\n1) Create a new HTML file with the necessary tags (i.e. html, head, title and body tags)\n2) Inside the body tag create a HTML table with at least 3 columns and 3 rows. Use the code shown in the video for reference. Or use w3schools for reference.\n3) Add an image tag to the page below the table tag. In the src attribute of the image tag, use this value - \"https://i.imgur.com/uMsbsbd.png\"\n4) Take screenshots of both the code and the output and attach in the exercise below.",
+      "index": 1,
+      "course": 2,
+      "section": 7,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "tables & imagesplease watch the video to learn how to write code for tables and images in html:-\n\nenglish - https://youtu.be/6vu6iyw06co\n\ntamil - https://youtu.be/t4o5ehvan_a\n\nyour tasks:-\n\n1) create a new html file with the necessary tags (i.e. html, head, title and body tags)\n2) inside the body tag create a html table with at least 3 columns and 3 rows. use the code shown in the video for reference. or use w3schools for reference.\n3) add an image tag to the page below the table tag. in the src attribute of the image tag, use this value - \"https://i.imgur.com/umsbsbd.png\"\n4) take screenshots of both the code and the output and attach in the exercise below.",
+      "active": true,
+      "created_at": "2021-08-31T11:07:33.312Z",
+      "updated_at": "2021-10-15T05:34:38.702Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 19,
+    "fields": {
+      "title": "Relative File Paths",
+      "instructions": "Watch the following video to understand how relative file paths work:-\n\nEnglish - https://youtu.be/2egupFQ_x0U\n\nTamil - https://youtu.be/7KCcGTAdeqY\n\nOnce done, answer the following question(s) and click on submit.",
+      "index": 2,
+      "course": 2,
+      "section": 9,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "relative file pathswatch the following video to understand how relative file paths work:-\n\nenglish - https://youtu.be/2egupfq_x0u\n\ntamil - https://youtu.be/7kccgtadeqy\n\nonce done, answer the following question(s) and click on submit.",
+      "active": true,
+      "created_at": "2021-08-31T11:09:18.935Z",
+      "updated_at": "2021-10-15T05:34:39.354Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 20,
+    "fields": {
+      "title": "HTML Attributes & File Paths",
+      "instructions": "Watch the following video to learn about HTML attributes & File Paths:-\n\nEnglish - https://youtu.be/DCUNUA3A8KM\n\nTamil - https://youtu.be/nNn9I3N8_b0\n\nOnce done, answer the following question(s) and click on submit.",
+      "index": 1,
+      "course": 2,
+      "section": 9,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "html attributes & file pathswatch the following video to learn about html attributes & file paths:-\n\nenglish - https://youtu.be/dcunua3a8km\n\ntamil - https://youtu.be/nnn9i3n8_b0\n\nonce done, answer the following question(s) and click on submit.",
+      "active": true,
+      "created_at": "2021-08-31T11:10:52.900Z",
+      "updated_at": "2021-10-15T05:34:38.578Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 21,
+    "fields": {
+      "title": "Attributes & File Paths Quiz",
+      "instructions": "Please complete and submit the quiz attached below.",
+      "index": 3,
+      "course": 2,
+      "section": 9,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "attributes & file paths quizplease complete and submit the quiz attached below.",
+      "active": true,
+      "created_at": "2021-08-31T11:12:37.489Z",
+      "updated_at": "2021-10-15T05:34:39.477Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 22,
+    "fields": {
+      "title": "Complete 50% of FreeCodeCamp HTML challenges",
+      "instructions": "Complete at least 50% of HTML challenges on FreeCodeCamp (https://freecodecamp.org) and attach screenshot of proof.",
+      "index": 1,
+      "course": 2,
+      "section": 10,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 50% of freecodecamp html challengescomplete at least 50% of html challenges on freecodecamp (https://freecodecamp.org) and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-08-31T11:13:25.749Z",
+      "updated_at": "2021-10-15T05:34:38.546Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 23,
+    "fields": {
+      "title": "Create account in Codepen.io",
+      "instructions": "Please watch this video to understand what Codepen.io is and how to use it:-\n\nEnglish - https://youtu.be/YzkpQlTpAT0\n\nTamil - https://youtu.be/I1EtQ5fK0Wg\n\nThe video shows how to create an account on https://codepen.io on your phone. The process is similar for on the computer.\n\nCreate your account and add link to your Codepen profile in the private comment and then submit.\n\nHint: After login, go to the profile page on codepen and copy the URL from the browser and paste here. Please watch the video again if you're not sure what the profile page is.",
+      "index": 2,
+      "course": 2,
+      "section": 10,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "create account in codepen.ioplease watch this video to understand what codepen.io is and how to use it:-\n\nenglish - https://youtu.be/yzkpqltpat0\n\ntamil - https://youtu.be/i1etq5fk0wg\n\nthe video shows how to create an account on https://codepen.io on your phone. the process is similar for on the computer.\n\ncreate your account and add link to your codepen profile in the private comment and then submit.\n\nhint: after login, go to the profile page on codepen and copy the url from the browser and paste here. please watch the video again if you're not sure what the profile page is.",
+      "active": true,
+      "created_at": "2021-08-31T11:14:41.278Z",
+      "updated_at": "2021-10-15T05:34:39.081Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 24,
+    "fields": {
+      "title": "HTML Project 1",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/N1kfNTmbCtQ\n\nTamil - https://youtu.be/gP_7HAriei8\n\nCreate a new pen on https://codepen.io and add the HTML code necessary to achieve what is described in the project prompt shown in the video.\n\n\nSave the pen and enter the link in the below exercise and then click submit.",
+      "index": 3,
+      "course": 2,
+      "section": 10,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "html project 1watch this video to understand what to do:-\n\nenglish - https://youtu.be/n1kfntmbctq\n\ntamil - https://youtu.be/gp_7hariei8\n\ncreate a new pen on https://codepen.io and add the html code necessary to achieve what is described in the project prompt shown in the video.\n\n\nsave the pen and enter the link in the below exercise and then click submit.",
+      "active": true,
+      "created_at": "2021-08-31T11:16:04.573Z",
+      "updated_at": "2021-10-15T05:34:39.447Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 25,
+    "fields": {
+      "title": "JS Overview",
+      "instructions": "Watch this video to get a sense of what is included in this course and why you should participate in this course. \n\nEnglish - https://youtu.be/4EDA491aePA\n\nTamil - https://youtu.be/OMPWtv8eohc\n\nOnce you finish watching this video answer the question below and click submit.",
+      "index": 1,
+      "course": 1,
+      "section": 23,
+      "due_date": null,
+      "points": 2,
+      "status": "PU",
+      "searchField": "js overviewwatch this video to get a sense of what is included in this course and why you should participate in this course. \n\nenglish - https://youtu.be/4eda491aepa\n\ntamil - https://youtu.be/ompwtv8eohc\n\nonce you finish watching this video answer the question below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T13:35:15.771Z",
+      "updated_at": "2021-11-14T16:04:16.673Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 26,
+    "fields": {
+      "title": "What is JavaScript?",
+      "instructions": "Watch this video to learn what JS is.\n\nEnglish - https://youtu.be/bbP1G2dmQVk\n\nTamil - https://youtu.be/NzZXdTP1J4g\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 2,
+      "course": 1,
+      "section": 23,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "what is javascript?watch this video to learn what js is.\n\nenglish - https://youtu.be/bbp1g2dmqvk\n\ntamil - https://youtu.be/nzzxdtp1j4g\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T13:39:46.122Z",
+      "updated_at": "2021-11-14T16:04:16.867Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 27,
+    "fields": {
+      "title": "Basics of using JavaScript",
+      "instructions": "Watch this video to learn about the basics of using JS\n\nEnglish - https://youtu.be/ahOQ8uDEOSA\n\nTamil - https://youtu.be/R8e4KzzfHZo\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 1,
+      "course": 1,
+      "section": 32,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "basics of using javascriptwatch this video to learn about the basics of using js\n\nenglish - https://youtu.be/ahoq8udeosa\n\ntamil - https://youtu.be/r8e4kzzfhzo\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:14:09.905Z",
+      "updated_at": "2021-11-14T16:04:16.571Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 28,
+    "fields": {
+      "title": "Variables in JS",
+      "instructions": "Watch the video below to learn about variables in JS\n\nEnglish - https://youtu.be/CB7k5E2Dam0\n\nTamil - https://youtu.be/JOLB9NQ6Lfg\n\nOnce you've finished watching the video, answer the question(s) below and click submit.\n\nA note on using Codepen - Whenever you enter JS on codepen, make sure that you're entering it in the JS window. Do not enter JavaScript in HTML or CSS window. ",
+      "index": 1,
+      "course": 1,
+      "section": 24,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "variables in jswatch the video below to learn about variables in js\n\nenglish - https://youtu.be/cb7k5e2dam0\n\ntamil - https://youtu.be/jolb9nq6lfg\n\nonce you've finished watching the video, answer the question(s) below and click submit.\n\na note on using codepen - whenever you enter js on codepen, make sure that you're entering it in the js window. do not enter javascript in html or css window. ",
+      "active": true,
+      "created_at": "2021-08-31T14:27:48.465Z",
+      "updated_at": "2021-11-14T16:04:16.364Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 29,
+    "fields": {
+      "title": "JS Data Types",
+      "instructions": "Watch this video to learn about the Data Types in JS\n\nEnglish - https://youtu.be/vfh8A3CJRrk\n\nTamil - https://youtu.be/VBbVf8rFY1s\n\nOnce you've finished watching the video, go to Codepn.io and create a new pen and in the JS window, write JS statements to do the following:-\n\n1. Create a variable to store a number\n2. Create a variable to store a string\n3. create a variable to store an array\n4. create a variable to store an object with at least 3 key value pairs\n5. create a function to display all of these variables in separate lines and then call that function at the end.\n\n\nWatch the video more than once if necessary. Once you complete these 5 tasks listed above, save the pen and paste the link down below and click on submit.",
+      "index": 2,
+      "course": 1,
+      "section": 24,
+      "due_date": null,
+      "points": 12,
+      "status": "PU",
+      "searchField": "js data typeswatch this video to learn about the data types in js\n\nenglish - https://youtu.be/vfh8a3cjrrk\n\ntamil - https://youtu.be/vbbvf8rfy1s\n\nonce you've finished watching the video, go to codepn.io and create a new pen and in the js window, write js statements to do the following:-\n\n1. create a variable to store a number\n2. create a variable to store a string\n3. create a variable to store an array\n4. create a variable to store an object with at least 3 key value pairs\n5. create a function to display all of these variables in separate lines and then call that function at the end.\n\n\nwatch the video more than once if necessary. once you complete these 5 tasks listed above, save the pen and paste the link down below and click on submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:32:45.331Z",
+      "updated_at": "2021-11-14T16:04:17.200Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 30,
+    "fields": {
+      "title": "Comments & Formatting",
+      "instructions": "\n\nEnglish - https://youtu.be/tcvuawaNmPs\n\nTamil - https://youtu.be/Gr0NhPdUXyA\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 3,
+      "course": 1,
+      "section": 24,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "comments & formatting\n\nenglish - https://youtu.be/tcvuawanmps\n\ntamil - https://youtu.be/gr0nhpduxya\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:34:13.383Z",
+      "updated_at": "2021-11-14T16:04:17.359Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 31,
+    "fields": {
+      "title": "Arithmetic Operators",
+      "instructions": "English - https://youtu.be/WT0VJXyMlz0\n\nTamil - https://youtu.be/eAFJhHg86wY\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 1,
+      "course": 1,
+      "section": 25,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "arithmetic operatorsenglish - https://youtu.be/wt0vjxymlz0\n\ntamil - https://youtu.be/eafjhhg86wy\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:35:47.372Z",
+      "updated_at": "2021-11-14T16:04:16.505Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 32,
+    "fields": {
+      "title": "Comparison Operator",
+      "instructions": "English - https://youtu.be/hXlchd3ZNig\n\nTamil - https://youtu.be/1ELmAkzPd2w\n\nOnce you've finished watching the video, answer the question(s) below and click submit.\n\nPlease feel free to use either the console of your browser (if you're on the desktop) or the codepen JS window to evaluate the expressions in the questions below.",
+      "index": 2,
+      "course": 1,
+      "section": 25,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "comparison operatorenglish - https://youtu.be/hxlchd3znig\n\ntamil - https://youtu.be/1elmakzpd2w\n\nonce you've finished watching the video, answer the question(s) below and click submit.\n\nplease feel free to use either the console of your browser (if you're on the desktop) or the codepen js window to evaluate the expressions in the questions below.",
+      "active": true,
+      "created_at": "2021-08-31T14:36:40.818Z",
+      "updated_at": "2021-11-14T16:04:16.901Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 33,
+    "fields": {
+      "title": "Logical Operators",
+      "instructions": "English - https://youtu.be/WvpDPs77Q40\n\nTamil - https://youtu.be/0IU4rhSr2_0\n\nOnce you've finished watching the video, answer the question(s) below and click submit.\n\nPlease feel free to use either the console of your browser (if you're on the desktop) or the codepen JS window to evaluate the expressions in the questions below.",
+      "index": 1,
+      "course": 1,
+      "section": 26,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "logical operatorsenglish - https://youtu.be/wvpdps77q40\n\ntamil - https://youtu.be/0iu4rhsr2_0\n\nonce you've finished watching the video, answer the question(s) below and click submit.\n\nplease feel free to use either the console of your browser (if you're on the desktop) or the codepen js window to evaluate the expressions in the questions below.",
+      "active": true,
+      "created_at": "2021-08-31T14:37:36.904Z",
+      "updated_at": "2021-11-14T16:04:16.745Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 34,
+    "fields": {
+      "title": "Assignment Operator",
+      "instructions": "English - https://youtu.be/oX0s4jLIBQw\n\nTamil - https://youtu.be/MEAPze-5fCY\n\nOnce you've finished watching the video, answer the question(s) below and click submit.\n\nPlease feel free to use either the console of your browser (if you're on the desktop) or the codepen JS window to evaluate the expressions in the questions below.",
+      "index": 2,
+      "course": 1,
+      "section": 26,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "assignment operatorenglish - https://youtu.be/ox0s4jlibqw\n\ntamil - https://youtu.be/meapze-5fcy\n\nonce you've finished watching the video, answer the question(s) below and click submit.\n\nplease feel free to use either the console of your browser (if you're on the desktop) or the codepen js window to evaluate the expressions in the questions below.",
+      "active": true,
+      "created_at": "2021-08-31T14:39:02.854Z",
+      "updated_at": "2021-11-14T16:04:16.942Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 35,
+    "fields": {
+      "title": "If, Else & Else If",
+      "instructions": "English - https://youtu.be/EkRtKv3q6q4\n\nTamil - https://youtu.be/HqgYNYaKFs0\n\nOnce you've finished watching the video, answer the question(s) below and click submit.\n\n**Note** - This chapter contains exerecises that will not make sense unless you read the question properly. So read the question *VERY* carefully!",
+      "index": 1,
+      "course": 1,
+      "section": 27,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "if, else & else ifenglish - https://youtu.be/ekrtkv3q6q4\n\ntamil - https://youtu.be/hqgynyakfs0\n\nonce you've finished watching the video, answer the question(s) below and click submit.\n\n**note** - this chapter contains exerecises that will not make sense unless you read the question properly. so read the question *very* carefully!",
+      "active": true,
+      "created_at": "2021-08-31T14:42:58.982Z",
+      "updated_at": "2021-11-25T14:43:35.917Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 36,
+    "fields": {
+      "title": "Ternary Operators",
+      "instructions": "English - https://youtu.be/ogylUZwDaD8\n\nTamil - https://youtu.be/i6OR6Rurghs\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 2,
+      "course": 1,
+      "section": 27,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "ternary operatorsenglish - https://youtu.be/ogyluzwdad8\n\ntamil - https://youtu.be/i6or6rurghs\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:44:58.686Z",
+      "updated_at": "2021-11-14T16:04:17.028Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 37,
+    "fields": {
+      "title": "Switch Statement",
+      "instructions": "English - https://youtu.be/vvFVLt6y4oU\n\nTamil - https://youtu.be/X0wZdsvFnhk\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 3,
+      "course": 1,
+      "section": 27,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "switch statementenglish - https://youtu.be/vvfvlt6y4ou\n\ntamil - https://youtu.be/x0wzdsvfnhk\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:46:12.438Z",
+      "updated_at": "2021-11-14T16:04:17.397Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 38,
+    "fields": {
+      "title": "Array methods ",
+      "instructions": "English - https://youtu.be/QFPiJHojWtE\n\nTamil - https://youtu.be/A6SvhsBBuOw\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 1,
+      "course": 1,
+      "section": 28,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "array methods english - https://youtu.be/qfpijhojwte\n\ntamil - https://youtu.be/a6svhsbbuow\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:49:59.196Z",
+      "updated_at": "2021-11-14T16:04:16.437Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 39,
+    "fields": {
+      "title": "Functions ",
+      "instructions": "English - https://youtu.be/QOVTZthLV48\n\nTamil - https://youtu.be/wwwvO5VW06U\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 1,
+      "course": 1,
+      "section": 34,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "functions english - https://youtu.be/qovtzthlv48\n\ntamil - https://youtu.be/wwwvo5vw06u\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:50:49.195Z",
+      "updated_at": "2021-11-14T16:04:16.605Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 40,
+    "fields": {
+      "title": "Loops ",
+      "instructions": "English - https://youtu.be/5YDIXwUH6Ww\n\nTamil - https://youtu.be/gQivgI_BRlY\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 2,
+      "course": 1,
+      "section": 34,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "loops english - https://youtu.be/5ydixwuh6ww\n\ntamil - https://youtu.be/gqivgi_brly\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:51:42.794Z",
+      "updated_at": "2021-11-14T16:04:17.235Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 41,
+    "fields": {
+      "title": "How to integrate JS in HTML",
+      "instructions": "English - https://youtu.be/tbH9DZOWrCs\n\nTamil - https://youtu.be/uAQmrcDorvQ\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 1,
+      "course": 1,
+      "section": 29,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "how to integrate js in htmlenglish - https://youtu.be/tbh9dzowrcs\n\ntamil - https://youtu.be/uaqmrcdorvq\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:52:41.198Z",
+      "updated_at": "2021-11-14T16:04:16.402Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 42,
+    "fields": {
+      "title": "How to integrate JS in HTML Part 2",
+      "instructions": "English - https://youtu.be/edPLPsXR3qk\n\nTamil - https://youtu.be/z9dp0CNH10E\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 2,
+      "course": 1,
+      "section": 29,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "how to integrate js in html part 2english - https://youtu.be/edplpsxr3qk\n\ntamil - https://youtu.be/z9dp0cnh10e\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:53:56.529Z",
+      "updated_at": "2021-11-14T16:04:17.159Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 43,
+    "fields": {
+      "title": "What is HTML DOM?",
+      "instructions": "English - https://youtu.be/OW3Yozxd3Qw\n\nTamil - https://youtu.be/4dm9Ztmc7bM\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 1,
+      "course": 1,
+      "section": 30,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "what is html dom?english - https://youtu.be/ow3yozxd3qw\n\ntamil - https://youtu.be/4dm9ztmc7bm\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:55:13.186Z",
+      "updated_at": "2021-11-14T16:04:16.638Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 44,
+    "fields": {
+      "title": "Event Listeners",
+      "instructions": "English - https://youtu.be/edXSO2ZjY6U\n\nTamil - https://youtu.be/BxYRoz6le-c\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 3,
+      "course": 1,
+      "section": 30,
+      "due_date": null,
+      "points": 20,
+      "status": "PU",
+      "searchField": "event listenersenglish - https://youtu.be/edxso2zjy6u\n\ntamil - https://youtu.be/bxyroz6le-c\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:56:22.334Z",
+      "updated_at": "2021-11-14T16:04:17.269Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 45,
+    "fields": {
+      "title": "What is HTML DOM? Part 2",
+      "instructions": "English - https://youtu.be/hMM2K09o6xY\n\nTamil - https://youtu.be/MA8zxc6U8ZQ\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 2,
+      "course": 1,
+      "section": 30,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "what is html dom? part 2english - https://youtu.be/hmm2k09o6xy\n\ntamil - https://youtu.be/ma8zxc6u8zq\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:58:20.887Z",
+      "updated_at": "2021-11-14T16:04:16.982Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 46,
+    "fields": {
+      "title": "JS Demo Project 1 - Make a form more interactive",
+      "instructions": "English - https://youtu.be/AI7zIhwyATw\n\nTamil - https://youtu.be/uc0oEzSeXHc\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 1,
+      "course": 1,
+      "section": 31,
+      "due_date": null,
+      "points": 20,
+      "status": "PU",
+      "searchField": "js demo project 1 - make a form more interactiveenglish - https://youtu.be/ai7zihwyatw\n\ntamil - https://youtu.be/uc0oezsexhc\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-08-31T14:59:52.454Z",
+      "updated_at": "2021-11-14T16:04:16.538Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 48,
+    "fields": {
+      "title": "Publish your profile page on Google Sites (For users on smartphone)",
+      "instructions": "Watch this video carefully:-\n\nEnglish - https://youtu.be/pOJG0OHiE1U\n\nTamil - https://youtu.be/1uNFZgojzys\n\n\nAs shown in the video go to Google Sites and publish the code you have written on your codepen from the HTML Project 1. Get the link to your page as shown in the video and add it as a private comment and then mark it as done.",
+      "index": 1,
+      "course": 2,
+      "section": 11,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "publish your profile page on google sites (for users on smartphone)watch this video carefully:-\n\nenglish - https://youtu.be/pojg0ohie1u\n\ntamil - https://youtu.be/1unfzgojzys\n\n\nas shown in the video go to google sites and publish the code you have written on your codepen from the html project 1. get the link to your page as shown in the video and add it as a private comment and then mark it as done.",
+      "active": true,
+      "created_at": "2021-09-01T08:22:37.437Z",
+      "updated_at": "2021-10-15T05:34:38.639Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 49,
+    "fields": {
+      "title": "HTML Project 1 - Part 2",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/-W5fssri9fk\n\nTamil - https://youtu.be/f9RKZ_5p_A0\n\n1. Watch the video above carefully\n2. Go to the same codepen you used in the HTML Project 1 and add the HTML code necessary to achieve what is described in the video.\n3. If you want to use a photo in your phone in the img tag, you should first upload it to the internet and then get a web URL for the image to use in the src attribute of the image tag. You can use this service to upload images - https://imgbb.com. And after uploading the image, click on the Embed Code dropdown and select \"HTML full-linked\" and then from the box below that copy the link shown in the src attribute. Make sure that the URL you've copied ends with .jpg, that's how you can know that it is an image URL.\n\nAfter adding your code to the pen, save your changes and add the link to your codepen as a private comment and then mark it as done.",
+      "index": 3,
+      "course": 2,
+      "section": 11,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "html project 1 - part 2watch this video to understand what to do:-\n\nenglish - https://youtu.be/-w5fssri9fk\n\ntamil - https://youtu.be/f9rkz_5p_a0\n\n1. watch the video above carefully\n2. go to the same codepen you used in the html project 1 and add the html code necessary to achieve what is described in the video.\n3. if you want to use a photo in your phone in the img tag, you should first upload it to the internet and then get a web url for the image to use in the src attribute of the image tag. you can use this service to upload images - https://imgbb.com. and after uploading the image, click on the embed code dropdown and select \"html full-linked\" and then from the box below that copy the link shown in the src attribute. make sure that the url you've copied ends with .jpg, that's how you can know that it is an image url.\n\nafter adding your code to the pen, save your changes and add the link to your codepen as a private comment and then mark it as done.",
+      "active": true,
+      "created_at": "2021-09-01T08:24:33.402Z",
+      "updated_at": "2021-10-15T05:34:39.692Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 50,
+    "fields": {
+      "title": "What is CSS?",
+      "instructions": "Please watch this video:-\n\nEnglish - https://youtu.be/zrZ5A1Plxcw\n\nTamil - https://youtu.be/jftdCDgG-cA\n\nOnce done, answer the following question(s) and click on submit.\n",
+      "index": 1,
+      "course": 2,
+      "section": 12,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "what is css?please watch this video:-\n\nenglish - https://youtu.be/zrz5a1plxcw\n\ntamil - https://youtu.be/jftdcdgg-ca\n\nonce done, answer the following question(s) and click on submit.\n",
+      "active": true,
+      "created_at": "2021-09-01T08:25:37.093Z",
+      "updated_at": "2021-10-15T05:34:38.861Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 51,
+    "fields": {
+      "title": "CSS Common Properties",
+      "instructions": "Please watch this video:-\n\nEnglish - https://youtu.be/kE5hlpXD250\n\nTamil - https://youtu.be/xrlQ4GQ84mg\n\nYour tasks in this assignment:-\n1. Create a new Codepen and create a new HTML document with all the basic tags (html, head, title body etc.)\n2. Add the following tags with some text inside - h1, h2, p, span, div, h4, h5, and a few other tags if necessary.\n3. Use the following CSS properties in your codepen correctly, as shown in the video.\n\n1) color\n2) background-color\n3) font-weight\n4) font-size\n5) text-decoration\n6) margin\n7) padding\n8) width\n9) height\n10) max-height\n11) max-width\n12) border\n\nOnce you add all the necessary code in the codepen and preview your code, save it and submit the link to the codepen as a private comment.",
+      "index": 2,
+      "course": 2,
+      "section": 12,
+      "due_date": null,
+      "points": 15,
+      "status": "PU",
+      "searchField": "css common propertiesplease watch this video:-\n\nenglish - https://youtu.be/ke5hlpxd250\n\ntamil - https://youtu.be/xrlq4gq84mg\n\nyour tasks in this assignment:-\n1. create a new codepen and create a new html document with all the basic tags (html, head, title body etc.)\n2. add the following tags with some text inside - h1, h2, p, span, div, h4, h5, and a few other tags if necessary.\n3. use the following css properties in your codepen correctly, as shown in the video.\n\n1) color\n2) background-color\n3) font-weight\n4) font-size\n5) text-decoration\n6) margin\n7) padding\n8) width\n9) height\n10) max-height\n11) max-width\n12) border\n\nonce you add all the necessary code in the codepen and preview your code, save it and submit the link to the codepen as a private comment.",
+      "active": true,
+      "created_at": "2021-09-01T08:27:06.328Z",
+      "updated_at": "2021-10-15T05:34:39.111Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 52,
+    "fields": {
+      "title": "Complete 16% of CSS challenges on FreeCodeCamp",
+      "instructions": "Complete at least 16% of CSS challenges on FreeCodeCamp (https://freecodecamp.org) and attach screenshot of proof.\n\nNote: This is different from HTML challenges that you have been doing so far. To go to the CSS challenges, visit this link - https://www.freecodecamp.org/learn/responsive-web-design/basic-css/\n\nOnce you are on that page, click on \"Go to the first lesson\" button.",
+      "index": 1,
+      "course": 2,
+      "section": 13,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 16% of css challenges on freecodecampcomplete at least 16% of css challenges on freecodecamp (https://freecodecamp.org) and attach screenshot of proof.\n\nnote: this is different from html challenges that you have been doing so far. to go to the css challenges, visit this link - https://www.freecodecamp.org/learn/responsive-web-design/basic-css/\n\nonce you are on that page, click on \"go to the first lesson\" button.",
+      "active": true,
+      "created_at": "2021-09-01T08:28:38.185Z",
+      "updated_at": "2021-10-15T05:34:38.392Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 53,
+    "fields": {
+      "title": "CSS Project 1",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/GhiY3zpXMrE\n\nTamil - https://youtu.be/sXGJ6Z8tzHs\n\nGo to the same codepen where you worked on the code for your HTML Project where you created your profile page and add the CSS code necessary to achieve what is described in the project prompt shown in the video. Use at least 5 different CSS properties to your profile page. You can use any CSS properties to improve the looks of your profile page.\n\nAdd the link to your codepen and then mark it as done.",
+      "index": 2,
+      "course": 2,
+      "section": 13,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "css project 1watch this video to understand what to do:-\n\nenglish - https://youtu.be/ghiy3zpxmre\n\ntamil - https://youtu.be/sxgj6z8tzhs\n\ngo to the same codepen where you worked on the code for your html project where you created your profile page and add the css code necessary to achieve what is described in the project prompt shown in the video. use at least 5 different css properties to your profile page. you can use any css properties to improve the looks of your profile page.\n\nadd the link to your codepen and then mark it as done.",
+      "active": true,
+      "created_at": "2021-09-01T08:29:46.779Z",
+      "updated_at": "2021-10-15T05:34:39.264Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 54,
+    "fields": {
+      "title": "Internal Stylesheet",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/L83q4pAbOYw\n\nTamil - https://youtu.be/OEdQ3xOurw0\n\nGo to the same codepen where you worked on the code for your CSS Project 1 where you created your profile page and convert all your inline CSS into Internal CSS according to how it is shown in the video.\n\nAdd the link to your codepen and then mark it as done.",
+      "index": 1,
+      "course": 2,
+      "section": 14,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "internal stylesheetwatch this video to understand what to do:-\n\nenglish - https://youtu.be/l83q4paboyw\n\ntamil - https://youtu.be/oedq3xourw0\n\ngo to the same codepen where you worked on the code for your css project 1 where you created your profile page and convert all your inline css into internal css according to how it is shown in the video.\n\nadd the link to your codepen and then mark it as done.",
+      "active": true,
+      "created_at": "2021-09-01T08:32:40.495Z",
+      "updated_at": "2021-10-15T05:34:38.608Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 55,
+    "fields": {
+      "title": "CSS Selectors - Target using class & ID",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/TSP_xNLcrR8\n\nTamil - https://youtu.be/qCovblFq4kI\n\nGo to the same codepen where you worked on the code for your Internal Stylesheet assignment and convert your CSS code so that now instead of targeting elements using only the element name, you are using class and id to do so. Use at least once class and one ID in your CSS code.\n\nMake sure there is no inline CSS.\n\nAdd the link to your codepen and then mark it as done.",
+      "index": 2,
+      "course": 2,
+      "section": 14,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "css selectors - target using class & idwatch this video to understand what to do:-\n\nenglish - https://youtu.be/tsp_xnlcrr8\n\ntamil - https://youtu.be/qcovblfq4ki\n\ngo to the same codepen where you worked on the code for your internal stylesheet assignment and convert your css code so that now instead of targeting elements using only the element name, you are using class and id to do so. use at least once class and one id in your css code.\n\nmake sure there is no inline css.\n\nadd the link to your codepen and then mark it as done.",
+      "active": true,
+      "created_at": "2021-09-01T08:33:42.900Z",
+      "updated_at": "2021-10-15T05:34:39.234Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 56,
+    "fields": {
+      "title": "Complete 20% of CSS challenges on FreeCodeCamp",
+      "instructions": "Complete at least 20% of CSS challenges on FreeCodeCamp (https://freecodecamp.org) and attach screenshot of proof.\n\nNote: This is different from HTML challenges that you have been doing so far. To go to the CSS challenges, visit this link - https://www.freecodecamp.org/learn/responsive-web-design/basic-css/\n\nOnce you are on that page, click on \"Go to the first lesson\" button.",
+      "index": 3,
+      "course": 2,
+      "section": 14,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 20% of css challenges on freecodecampcomplete at least 20% of css challenges on freecodecamp (https://freecodecamp.org) and attach screenshot of proof.\n\nnote: this is different from html challenges that you have been doing so far. to go to the css challenges, visit this link - https://www.freecodecamp.org/learn/responsive-web-design/basic-css/\n\nonce you are on that page, click on \"go to the first lesson\" button.",
+      "active": true,
+      "created_at": "2021-09-01T08:34:21.573Z",
+      "updated_at": "2021-10-15T05:34:39.631Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 57,
+    "fields": {
+      "title": "External Stylesheets",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/d58voZkO8wU\n\nTamil - https://youtu.be/6rYB8izT9io\n\nGo to the same codepen where you worked on the previous week's assignment and copy all the CSS code inside the 'style' tag and move it to the CSS section of Codepen. And once copied, remove the 'style' tag section. Now you'll have all the CSS code inside the CSS section of your codepen. Make sure everything is still working and then save it and copy the link to your pen.\n\nAdd the link to your codepen as a private comment here and then mark it as done.",
+      "index": 1,
+      "course": 2,
+      "section": 15,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "external stylesheetswatch this video to understand what to do:-\n\nenglish - https://youtu.be/d58vozko8wu\n\ntamil - https://youtu.be/6ryb8izt9io\n\ngo to the same codepen where you worked on the previous week's assignment and copy all the css code inside the 'style' tag and move it to the css section of codepen. and once copied, remove the 'style' tag section. now you'll have all the css code inside the css section of your codepen. make sure everything is still working and then save it and copy the link to your pen.\n\nadd the link to your codepen as a private comment here and then mark it as done.",
+      "active": true,
+      "created_at": "2021-09-01T08:48:54.829Z",
+      "updated_at": "2021-10-15T05:34:38.734Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 58,
+    "fields": {
+      "title": "Colours in CSS",
+      "instructions": "Watch this video to learn about the different ways of using colors in CSS:-\n\nEnglish - https://youtu.be/zwUlT8iMe20\n\nTamil - https://youtu.be/KRfCFQQEBco\n\nAfter watching the video fully, use the approach shown in the video to find the 6-digit HEX code and RGB notation for the color \"limegreen\". After finding the codes, enter a private comment below in the following format:-\n\nColor name = limegreen\nHEX Code =\nRGB Notation =\n\nEnter the private comment with the codes in the format above and mark this as done.",
+      "index": 2,
+      "course": 2,
+      "section": 15,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "colours in csswatch this video to learn about the different ways of using colors in css:-\n\nenglish - https://youtu.be/zwult8ime20\n\ntamil - https://youtu.be/krfcfqqebco\n\nafter watching the video fully, use the approach shown in the video to find the 6-digit hex code and rgb notation for the color \"limegreen\". after finding the codes, enter a private comment below in the following format:-\n\ncolor name = limegreen\nhex code =\nrgb notation =\n\nenter the private comment with the codes in the format above and mark this as done.",
+      "active": true,
+      "created_at": "2021-09-01T08:49:27.196Z",
+      "updated_at": "2021-10-15T05:34:39.385Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 59,
+    "fields": {
+      "title": "How to learn new CSS properties",
+      "instructions": "Watch this video:-\n\nEnglish - https://youtu.be/kvrWxKMd1CI\n\nTamil - https://youtu.be/aVbBffnpQO4\n\nWatch this video to learn how to learn new CSS properties and techniques using Google and W3 schools. This will be useful for future projects.",
+      "index": 1,
+      "course": 2,
+      "section": 16,
+      "due_date": null,
+      "points": 0,
+      "status": "PU",
+      "searchField": "how to learn new css propertieswatch this video:-\n\nenglish - https://youtu.be/kvrwxkmd1ci\n\ntamil - https://youtu.be/avbbffnpqo4\n\nwatch this video to learn how to learn new css properties and techniques using google and w3 schools. this will be useful for future projects.",
+      "active": true,
+      "created_at": "2021-09-01T09:10:17.198Z",
+      "updated_at": "2021-10-15T05:34:38.670Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 60,
+    "fields": {
+      "title": "CSS Project 2",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/glPFQ4nXcLg\n\nTamil - https://youtu.be/kooPgSZKI-4\n\nGo to the same codepen where you worked on the code for the previous week's assignment make the necessary changes to achieve what is described in the project prompt shown in the video.\n\nList of changes to achieve:-\n1. Change the color of the heading and the bold letters in the list items (use any color other than black)\n2. All the items should be center aligned\n3. Change the background color of the webpage (use any color other than white)\n4. Add border to the image.\n\nComplete all these changes in your codepen and save it and add the link to your codepen as a private comment and then mark it as done.",
+      "index": 2,
+      "course": 2,
+      "section": 16,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "css project 2watch this video to understand what to do:-\n\nenglish - https://youtu.be/glpfq4nxclg\n\ntamil - https://youtu.be/koopgszki-4\n\ngo to the same codepen where you worked on the code for the previous week's assignment make the necessary changes to achieve what is described in the project prompt shown in the video.\n\nlist of changes to achieve:-\n1. change the color of the heading and the bold letters in the list items (use any color other than black)\n2. all the items should be center aligned\n3. change the background color of the webpage (use any color other than white)\n4. add border to the image.\n\ncomplete all these changes in your codepen and save it and add the link to your codepen as a private comment and then mark it as done.",
+      "active": true,
+      "created_at": "2021-09-01T09:10:57.291Z",
+      "updated_at": "2021-10-15T05:34:39.294Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 61,
+    "fields": {
+      "title": "Demo Project 1",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/0J0o92iD5bc\n\nTamil - https://youtu.be/-MqoTFahODI\n\nIf you have been doing your work on Codepen, copy all the code to a file in Acode app and use that to work on the demo projects.\n\nList of changes to achieve:-\n1. Your profile page website should contain the following four pages:-\n\n    1. Home Page\n    2. About Page\n    3. Gallery Page\n    4. Contact Page\n\n\n2. There should be a horizontal navigation menu to navigate between these pages easily, as shown in the video.\n\nJust learn to google how to find out things that you don't know. You will need to research on google to complete these tasks.\n\nComplete all these changes in your HTML website and deploy your website to Netlify. Instructions are specified below.",
+      "index": 1,
+      "course": 2,
+      "section": 17,
+      "due_date": null,
+      "points": 20,
+      "status": "PU",
+      "searchField": "demo project 1watch this video to understand what to do:-\n\nenglish - https://youtu.be/0j0o92id5bc\n\ntamil - https://youtu.be/-mqotfahodi\n\nif you have been doing your work on codepen, copy all the code to a file in acode app and use that to work on the demo projects.\n\nlist of changes to achieve:-\n1. your profile page website should contain the following four pages:-\n\n    1. home page\n    2. about page\n    3. gallery page\n    4. contact page\n\n\n2. there should be a horizontal navigation menu to navigate between these pages easily, as shown in the video.\n\njust learn to google how to find out things that you don't know. you will need to research on google to complete these tasks.\n\ncomplete all these changes in your html website and deploy your website to netlify. instructions are specified below.",
+      "active": true,
+      "created_at": "2021-09-01T09:11:39.723Z",
+      "updated_at": "2021-10-15T05:34:38.896Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 62,
+    "fields": {
+      "title": "Demo Project 2",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/B_tPec6OkSk\n\nTamil - https://youtu.be/SGqwji7SOok\n\nIn the same files that you used for Demo Project 1, implement the following features:-\n1. Embed a YouTube video in your About page as shown in the demo. Use any YouTube video. Make sure to use a different video than what is shown.\n2. Implement the fixed footer at the bottom as shown.\n\nJust learn to google how to find out things that you don't know. You will need to research on google to complete these tasks.\n\nComplete all these changes in your HTML website and either update your deployment on Netlify or upload a new site on Netlify.",
+      "index": 2,
+      "course": 2,
+      "section": 17,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "demo project 2watch this video to understand what to do:-\n\nenglish - https://youtu.be/b_tpec6oksk\n\ntamil - https://youtu.be/sgqwji7sook\n\nin the same files that you used for demo project 1, implement the following features:-\n1. embed a youtube video in your about page as shown in the demo. use any youtube video. make sure to use a different video than what is shown.\n2. implement the fixed footer at the bottom as shown.\n\njust learn to google how to find out things that you don't know. you will need to research on google to complete these tasks.\n\ncomplete all these changes in your html website and either update your deployment on netlify or upload a new site on netlify.",
+      "active": true,
+      "created_at": "2021-09-01T09:17:02.919Z",
+      "updated_at": "2021-10-15T05:48:00.595Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 63,
+    "fields": {
+      "title": "Demo Project 3",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/DPb0pagxP9I\n\nTamil - https://youtu.be/-k5eCDUnhy4\n\nIn the same files that you used for Demo Project 1 and 2, implement the following features:-\n1. Add a contact page with the following features:-\n    1. At least one text input field\n    2. At least one dropdown field\n    3. A textarea field\n    4. A styled submit button (i.e. a button with customized look)\n\nJust learn to google how to find out things that you don't know. You will need to research on google to complete these tasks.",
+      "index": 3,
+      "course": 2,
+      "section": 17,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "demo project 3watch this video to understand what to do:-\n\nenglish - https://youtu.be/dpb0pagxp9i\n\ntamil - https://youtu.be/-k5ecdunhy4\n\nin the same files that you used for demo project 1 and 2, implement the following features:-\n1. add a contact page with the following features:-\n    1. at least one text input field\n    2. at least one dropdown field\n    3. a textarea field\n    4. a styled submit button (i.e. a button with customized look)\n\njust learn to google how to find out things that you don't know. you will need to research on google to complete these tasks.",
+      "active": true,
+      "created_at": "2021-09-01T09:17:43.568Z",
+      "updated_at": "2021-10-15T05:54:30.111Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 64,
+    "fields": {
+      "title": "Demo Project 4",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/qdCJLBu-VuY\n\nTamil - https://youtu.be/8Zp6chdCdRo\n\nIn the same files that you used for the previous Demo Projects, implement the following features:-\n\nAdd the following in the Gallery page-\n1. Entire gallery page should have a pattern as a background. (Use a different background pattern of your choice than what is shown in the video)\n2. Add some images on the page as shown in the video (Use any images you want)\n\nJust learn to google how to find out things that you don't know. You will need to research on google to complete these tasks.\n\nOnce done, update your Netlify deployment with the lastest changes.\n",
+      "index": 4,
+      "course": 2,
+      "section": 17,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "demo project 4watch this video to understand what to do:-\n\nenglish - https://youtu.be/qdcjlbu-vuy\n\ntamil - https://youtu.be/8zp6chdcdro\n\nin the same files that you used for the previous demo projects, implement the following features:-\n\nadd the following in the gallery page-\n1. entire gallery page should have a pattern as a background. (use a different background pattern of your choice than what is shown in the video)\n2. add some images on the page as shown in the video (use any images you want)\n\njust learn to google how to find out things that you don't know. you will need to research on google to complete these tasks.\n\nonce done, update your netlify deployment with the lastest changes.\n",
+      "active": true,
+      "created_at": "2021-09-01T09:18:59.489Z",
+      "updated_at": "2021-10-15T06:12:07.831Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 65,
+    "fields": {
+      "title": "Demo Project 5",
+      "instructions": "Watch this video to understand what to do:-\n\nEnglish - https://youtu.be/OAxsxTF5lIA\n\nTamil - https://youtu.be/UNl6e59eVFM\n\nMake your website mobile responsive. In the video you can see how the final website looks.\n\nMake sure to open your website on a browser like Google Chrome on your phone to check how it looks like on a mobile device before submitting your work.\n\nComplete all these changes your existing site and deploy the changes to Netlify.",
+      "index": 5,
+      "course": 2,
+      "section": 17,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "demo project 5watch this video to understand what to do:-\n\nenglish - https://youtu.be/oaxsxtf5lia\n\ntamil - https://youtu.be/unl6e59evfm\n\nmake your website mobile responsive. in the video you can see how the final website looks.\n\nmake sure to open your website on a browser like google chrome on your phone to check how it looks like on a mobile device before submitting your work.\n\ncomplete all these changes your existing site and deploy the changes to netlify.",
+      "active": true,
+      "created_at": "2021-09-01T09:19:43.030Z",
+      "updated_at": "2021-10-15T06:02:38.643Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 66,
+    "fields": {
+      "title": "Tips for building your project for the competition",
+      "instructions": "1. How to get started with your project - https://youtu.be/pXFMD5QNOvY\n\n2. How to improve your project - https://youtu.be/gYxI7tBue3E",
+      "index": 1,
+      "course": 2,
+      "section": 22,
+      "due_date": null,
+      "points": 0,
+      "status": "PU",
+      "searchField": "tips for building your project for the competition1. how to get started with your project - https://youtu.be/pxfmd5qnovy\n\n2. how to improve your project - https://youtu.be/gyxi7tbue3e",
+      "active": false,
+      "created_at": "2021-09-01T09:29:24.600Z",
+      "updated_at": "2021-10-15T05:29:27.432Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 67,
+    "fields": {
+      "title": "Final Project",
+      "instructions": "You have to create a website as your final project. You can pick one of the following topics or choose your own kind of website to build:-\n\n1. Website for a school\n2. Website for a photographer\n3. Website for a shop keeper\n4. Website to show tourist places in your region\n5. Website for your team\n6. ***Your own Idea!***\n\nYour project website will be evaluated on the following criteria. \n\n- **Overall presentation** - How visually appealing and well-organised your website looks, proper usage of colors, proper spacing etc.\n- **Complexity of features** - No. of pages in your website, how much content, how many varieties of features\n- **Creativity** - How realistic your website looks, use of media (images/videos/audio clips/animations)\n- **Learning to learn** - Bonus features that you learned on your own (use of features not taught in the course)\n- **Originality** - How unique is your project?\n- **Code quality** - Formatting of code, no repetitive code, fewer lines of code, proper comments",
+      "index": 1,
+      "course": 2,
+      "section": 22,
+      "due_date": null,
+      "points": 60,
+      "status": "PU",
+      "searchField": "final projectyou have to create a website as your final project. you can pick one of the following topics or choose your own kind of website to build:-\n\n1. website for a school\n2. website for a photographer\n3. website for a shop keeper\n4. website to show tourist places in your region\n5. website for your team\n6. ***your own idea!***\n\nyour project website will be evaluated on the following criteria. \n\n- **overall presentation** - how visually appealing and well-organised your website looks, proper usage of colors, proper spacing etc.\n- **complexity of features** - no. of pages in your website, how much content, how many varieties of features\n- **creativity** - how realistic your website looks, use of media (images/videos/audio clips/animations)\n- **learning to learn** - bonus features that you learned on your own (use of features not taught in the course)\n- **originality** - how unique is your project?\n- **code quality** - formatting of code, no repetitive code, fewer lines of code, proper comments",
+      "active": true,
+      "created_at": "2021-09-01T09:30:04.732Z",
+      "updated_at": "2021-10-15T05:34:39.050Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 68,
+    "fields": {
+      "title": "Course Feedback",
+      "instructions": "Thank you for participating in this course and congratulations on successfully completing it.\n\nPleaes fill out the course feedback survey to share your inputs and offer any suggestions that you may have.",
+      "index": 2,
+      "course": 2,
+      "section": 22,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "course feedbackthank you for participating in this course and congratulations on successfully completing it.\n\npleaes fill out the course feedback survey to share your inputs and offer any suggestions that you may have.",
+      "active": true,
+      "created_at": "2021-09-01T09:30:52.447Z",
+      "updated_at": "2021-10-16T13:19:05.456Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 69,
+    "fields": {
+      "title": "Start learning JS on FreeCodeCamp",
+      "instructions": "Visit freecodecamp.org and start learning JS.\n\nLink - https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/\n\nComplete your first challenge and attach the screenshot of the success message shown on the screen.",
+      "index": 2,
+      "course": 1,
+      "section": 32,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "start learning js on freecodecampvisit freecodecamp.org and start learning js.\n\nlink - https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/\n\ncomplete your first challenge and attach the screenshot of the success message shown on the screen.",
+      "active": true,
+      "created_at": "2021-09-02T10:25:28.493Z",
+      "updated_at": "2021-11-14T16:04:16.787Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 70,
+    "fields": {
+      "title": "Publish your project to Netlify (For users on computer)",
+      "instructions": "Watch this video to learn how to publish your website on the internet:-\n\nEnglish - https://youtu.be/siag1Q7gewk\n\nTamil - https://youtu.be/ICb9SJrcHNU\n\nFollow the guide in the video to publish your project and paste the link below and submit.",
+      "index": 2,
+      "course": 2,
+      "section": 11,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "publish your project to netlify (for users on computer)watch this video to learn how to publish your website on the internet:-\n\nenglish - https://youtu.be/siag1q7gewk\n\ntamil - https://youtu.be/icb9sjrchnu\n\nfollow the guide in the video to publish your project and paste the link below and submit.",
+      "active": true,
+      "created_at": "2021-09-05T09:35:45.051Z",
+      "updated_at": "2021-10-15T05:34:39.203Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 71,
+    "fields": {
+      "title": "JS Demo Project 2",
+      "instructions": "TBD If you are seeing this, please contact the Ragav Yarasi, the instructor at 9080095880.",
+      "index": 8,
+      "course": 1,
+      "section": 31,
+      "due_date": null,
+      "points": 0,
+      "status": "PU",
+      "searchField": "js demo project 2tbd if you are seeing this, please contact the ragav yarasi, the instructor at 9080095880.",
+      "active": false,
+      "created_at": "2021-10-12T15:10:55.231Z",
+      "updated_at": "2021-11-14T16:04:31.677Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 72,
+    "fields": {
+      "title": "JS Demo Project 3",
+      "instructions": "TBD If you are seeing this, please contact the Ragav Yarasi, the instructor at 9080095880.",
+      "index": 9,
+      "course": 1,
+      "section": 31,
+      "due_date": null,
+      "points": 0,
+      "status": "PU",
+      "searchField": "js demo project 3tbd if you are seeing this, please contact the ragav yarasi, the instructor at 9080095880.",
+      "active": false,
+      "created_at": "2021-10-12T15:12:47.322Z",
+      "updated_at": "2021-11-14T16:04:55.675Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 73,
+    "fields": {
+      "title": "JS Demo Project 4",
+      "instructions": "TBD If you are seeing this, please contact the Ragav Yarasi, the instructor at 9080095880.",
+      "index": 10,
+      "course": 1,
+      "section": 31,
+      "due_date": null,
+      "points": 0,
+      "status": "PU",
+      "searchField": "js demo project 4tbd if you are seeing this, please contact the ragav yarasi, the instructor at 9080095880.",
+      "active": false,
+      "created_at": "2021-10-12T15:15:15.532Z",
+      "updated_at": "2021-11-14T16:05:28.717Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 74,
+    "fields": {
+      "title": "HTML & JS Project",
+      "instructions": "TBD.\n\nIf you are seeing this, please contact the Ragav Yarasi, the instructor at 9080095880.",
+      "index": 1,
+      "course": 1,
+      "section": 33,
+      "due_date": null,
+      "points": 0,
+      "status": "PU",
+      "searchField": "html & js projecttbd.\n\nif you are seeing this, please contact the ragav yarasi, the instructor at 9080095880.",
+      "active": true,
+      "created_at": "2021-10-12T15:16:57.641Z",
+      "updated_at": "2021-11-14T16:04:16.709Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 75,
+    "fields": {
+      "title": "JSON ",
+      "instructions": "English - https://youtu.be/1TUICdIoOg4\n\nTamil - https://youtu.be/Gr8OXmXXltc\n\nOnce you've finished watching the video, answer the question(s) below and click submit.\n\n**Hint** - For each of the following exercises, you may want to verify your work by copy pasting the code on Codepen and checking to see if everything is correct before submitting. This will help you avoid submitting incorrect work.",
+      "index": 2,
+      "course": 1,
+      "section": 28,
+      "due_date": null,
+      "points": 20,
+      "status": "PU",
+      "searchField": "json english - https://youtu.be/1tuicdioog4\n\ntamil - https://youtu.be/gr8oxmxxltc\n\nonce you've finished watching the video, answer the question(s) below and click submit.\n\n**hint** - for each of the following exercises, you may want to verify your work by copy pasting the code on codepen and checking to see if everything is correct before submitting. this will help you avoid submitting incorrect work.",
+      "active": true,
+      "created_at": "2021-10-13T12:10:48.112Z",
+      "updated_at": "2021-11-14T16:04:16.822Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 76,
+    "fields": {
+      "title": "Course Feedback",
+      "instructions": "Thank you for participating in this course and congratulations on successfully completing it.\n\nPleaes fill out the course feedback survey to share your inputs and offer any suggestions that you may have.",
+      "index": 2,
+      "course": 1,
+      "section": 33,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "course feedbackthank you for participating in this course and congratulations on successfully completing it.\n\npleaes fill out the course feedback survey to share your inputs and offer any suggestions that you may have.",
+      "active": true,
+      "created_at": "2021-10-16T12:43:26.488Z",
+      "updated_at": "2021-11-14T16:04:17.124Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 77,
+    "fields": {
+      "title": "Complete 10% of JS challenges",
+      "instructions": "Complete at least 10% of JS challenges on FreeCodeCamp and attach screenshot of proof.",
+      "index": 4,
+      "course": 1,
+      "section": 24,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 10% of js challengescomplete at least 10% of js challenges on freecodecamp and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-10-16T14:35:37.674Z",
+      "updated_at": "2021-11-14T16:04:17.670Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 78,
+    "fields": {
+      "title": "Complete 20% of JS challenges",
+      "instructions": "Complete at least 20% of JS challenges on FreeCodeCamp and attach screenshot of proof.",
+      "index": 3,
+      "course": 1,
+      "section": 25,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 20% of js challengescomplete at least 20% of js challenges on freecodecamp and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-10-16T15:00:32.410Z",
+      "updated_at": "2021-11-14T16:04:17.432Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 79,
+    "fields": {
+      "title": "Complete 30% of JS challenges",
+      "instructions": "Complete at least 30% of JS challenges on FreeCodeCamp and attach screenshot of proof.",
+      "index": 3,
+      "course": 1,
+      "section": 26,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 30% of js challengescomplete at least 30% of js challenges on freecodecamp and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-10-16T15:05:35.664Z",
+      "updated_at": "2021-11-14T16:04:17.466Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 80,
+    "fields": {
+      "title": "Complete 40% of JS challenges",
+      "instructions": "Complete at least 40% of JS challenges on FreeCodeCamp and attach screenshot of proof.",
+      "index": 4,
+      "course": 1,
+      "section": 27,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 40% of js challengescomplete at least 40% of js challenges on freecodecamp and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-10-16T15:06:41.116Z",
+      "updated_at": "2021-11-14T16:04:17.603Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 81,
+    "fields": {
+      "title": "Complete 50% of JS challenges",
+      "instructions": "Complete at least 50% of JS challenges on FreeCodeCamp and attach screenshot of proof.",
+      "index": 3,
+      "course": 1,
+      "section": 28,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 50% of js challengescomplete at least 50% of js challenges on freecodecamp and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-10-16T15:07:48.912Z",
+      "updated_at": "2021-11-14T16:04:17.501Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 82,
+    "fields": {
+      "title": "Complete 60% of JS challenges",
+      "instructions": "Complete at least 60% of JS challenges on FreeCodeCamp and attach screenshot of proof.",
+      "index": 3,
+      "course": 1,
+      "section": 34,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 60% of js challengescomplete at least 60% of js challenges on freecodecamp and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-10-16T15:09:10.800Z",
+      "updated_at": "2021-11-14T16:04:17.535Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 83,
+    "fields": {
+      "title": "Complete 70% of JS challenges",
+      "instructions": "Complete at least 70% of JS challenges on FreeCodeCamp and attach screenshot of proof.",
+      "index": 3,
+      "course": 1,
+      "section": 29,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 70% of js challengescomplete at least 70% of js challenges on freecodecamp and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-10-16T15:10:28.260Z",
+      "updated_at": "2021-12-03T14:31:57.041Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 84,
+    "fields": {
+      "title": "Complete 80% of JS challenges",
+      "instructions": "Complete at least 80% of JS challenges on FreeCodeCamp and attach screenshot of proof.",
+      "index": 4,
+      "course": 1,
+      "section": 30,
+      "due_date": null,
+      "points": 5,
+      "status": "PU",
+      "searchField": "complete 80% of js challengescomplete at least 80% of js challenges on freecodecamp and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-10-16T15:12:26.948Z",
+      "updated_at": "2021-11-14T16:04:17.636Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 85,
+    "fields": {
+      "title": "Complete 100% of JS challenges",
+      "instructions": "Complete 100% of JS challenges on FreeCodeCamp and attach screenshot of proof.",
+      "index": 7,
+      "course": 1,
+      "section": 31,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "complete 100% of js challengescomplete 100% of js challenges on freecodecamp and attach screenshot of proof.",
+      "active": true,
+      "created_at": "2021-10-16T15:13:56.357Z",
+      "updated_at": "2021-11-14T16:04:17.738Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 86,
+    "fields": {
+      "title": "JS Demo Project 2 - Multiply 2 numbers provided by the user",
+      "instructions": "English - https://youtu.be/viZhRkKB0SQ\n\nTamil - https://youtu.be/ifwVbXayXYY\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 2,
+      "course": 1,
+      "section": 31,
+      "due_date": null,
+      "points": 20,
+      "status": "PU",
+      "searchField": "js demo project 2 - multiply 2 numbers provided by the userenglish - https://youtu.be/vizhrkkb0sq\n\ntamil - https://youtu.be/ifwvbxayxyy\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-11-14T15:19:26.872Z",
+      "updated_at": "2021-11-14T16:06:54.404Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 87,
+    "fields": {
+      "title": "JS Demo Project 3 - Multiply 2 numbers in separate screens",
+      "instructions": "English - https://youtu.be/jQdZ5YraunY\n\nTamil - https://youtu.be/I9bGwNLrreM\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 3,
+      "course": 1,
+      "section": 31,
+      "due_date": null,
+      "points": 20,
+      "status": "PU",
+      "searchField": "js demo project 3 - multiply 2 numbers in separate screensenglish - https://youtu.be/jqdz5yrauny\n\ntamil - https://youtu.be/i9bgwnlrrem\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-11-14T15:25:58.176Z",
+      "updated_at": "2021-11-14T16:08:22.191Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 88,
+    "fields": {
+      "title": "JS Demo Project 4 - Build a multiplication table generator ",
+      "instructions": "English - https://youtu.be/docXyYb7IVY\n\nTamil - https://youtu.be/yDttduYi1ws\n\nOnce you've finished watching the video, answer the question(s) below and click submit.",
+      "index": 4,
+      "course": 1,
+      "section": 31,
+      "due_date": null,
+      "points": 20,
+      "status": "PU",
+      "searchField": "js demo project 4 - build a multiplication table generator english - https://youtu.be/docxyyb7ivy\n\ntamil - https://youtu.be/ydttduyi1ws\n\nonce you've finished watching the video, answer the question(s) below and click submit.",
+      "active": true,
+      "created_at": "2021-11-14T15:31:31.311Z",
+      "updated_at": "2021-11-14T16:09:44.163Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 90,
+    "fields": {
+      "title": "JS Demo Project 5 - Build a disco Lights Effect Generator in the browser",
+      "instructions": "English - https://youtu.be/s-ppAPlc124\n\nTamil - https://youtu.be/eg4sSsY80SI\n\nOnce you've finished watching the video, answer the question(s) below and click submit.\n\n**Hint** - Look into JS method ```\nsetInterval()\n```",
+      "index": 5,
+      "course": 1,
+      "section": 31,
+      "due_date": null,
+      "points": 10,
+      "status": "PU",
+      "searchField": "js demo project 5 - build a disco lights effect generator in the browserenglish - https://youtu.be/s-ppaplc124\n\ntamil - https://youtu.be/eg4sssy80si\n\nonce you've finished watching the video, answer the question(s) below and click submit.\n\n**hint** - look into js method ```\nsetinterval()\n```",
+      "active": true,
+      "created_at": "2021-11-14T15:45:47.671Z",
+      "updated_at": "2021-11-14T16:10:23.993Z"
+    }
+  },
+  {
+    "model": "vidhya.chapter",
+    "pk": 91,
+    "fields": {
+      "title": "JS Demo Project 6 - Build a stopwatch",
+      "instructions": "English - https://youtu.be/WU-CQhhGDPk\n\nTamil - https://youtu.be/Rohg2fzw-7Y\n\nOnce you've finished watching the video, answer the question(s) below and click submit.\n\n**Hint** - Look into these JS methods - ```setInterval()``` and ```clearInterval()```",
+      "index": 6,
+      "course": 1,
+      "section": 31,
+      "due_date": null,
+      "points": 30,
+      "status": "PU",
+      "searchField": "js demo project 6 - build a stopwatchenglish - https://youtu.be/wu-cqhhgdpk\n\ntamil - https://youtu.be/rohg2fzw-7y\n\nonce you've finished watching the video, answer the question(s) below and click submit.\n\n**hint** - look into these js methods - ```setinterval()``` and ```clearinterval()```",
+      "active": true,
+      "created_at": "2021-11-14T15:52:44.188Z",
+      "updated_at": "2021-11-14T16:11:33.984Z"
+    }
+  }
+]

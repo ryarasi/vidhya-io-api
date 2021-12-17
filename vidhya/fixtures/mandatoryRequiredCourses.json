@@ -1,0 +1,7 @@
+[
+  {
+    "model": "vidhya.mandatoryrequiredcourses",
+    "pk": 4,
+    "fields": { "course": 1, "requirement": 2 }
+  }
+]
