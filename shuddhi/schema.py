@@ -1,10 +1,11 @@
 import vidhya.gqSchema
+import vidhya.gqTesting
 import graphene
 from graphql_auth import mutations
 from graphql_auth.schema import UserQuery, MeQuery
 from channels.auth import get_user
 import channels_graphql_ws
-
+from django.conf import settings
 
 class AuthMutation(graphene.ObjectType):
     register = mutations.Register.Field()
@@ -21,8 +22,9 @@ class AuthMutation(graphene.ObjectType):
     refresh_token = mutations.RefreshToken.Field()
     revoke_token = mutations.RevokeToken.Field()
 
+testQueries = test=vidhya.gqTesting.Query if settings.ENABLED_AUTOMATED_TESTING else vidhya.gqTesting.EmptyQuery 
 
-class Query(vidhya.gqSchema.Query, UserQuery, MeQuery, graphene.ObjectType):
+class Query(vidhya.gqSchema.Query, testQueries, UserQuery, MeQuery, graphene.ObjectType):
     # This class will inherit from multiple Queries
     # as we begin to add more apps to our project
     pass
@@ -36,6 +38,7 @@ class Mutation(vidhya.gqSchema.Mutation, AuthMutation, graphene.ObjectType):
 
 class Subscription(vidhya.gqSchema.Subscription):
     pass
+
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation,

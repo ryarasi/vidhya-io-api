@@ -8,6 +8,7 @@ from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmis
 from common.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS
 from graphql import GraphQLError
 
+
 def generate_public_institution(institution):
     learnerCount = 0
     score = 0

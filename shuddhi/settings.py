@@ -34,6 +34,8 @@ env.read_env(os.path.join(BASE_DIR, '.env'))  # This reads the environment varia
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DJANGO_DEBUG', default=False)
+# This will enable queries intended for automated testing, false for production
+ENABLED_AUTOMATED_TESTING = env.bool('ENABLED_AUTOMATED_TESTING', default=not DEBUG)
 # Authorized origins
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 # Whether or not requests from other origins are allowed
