@@ -1,6 +1,6 @@
 import graphene
 from graphene_django.types import ObjectType
-from vidhya.models import Announcement, Course, CourseParticipant, User
+from vidhya.models import Announcement, Course, CourseParticipant, ExerciseSubmission, User
 from django.conf import settings
 from common.cyTestingData import EXISTING_DATA
 
@@ -20,6 +20,7 @@ class Query(ObjectType):
     cy_create_global_announcement = graphene.Field(OkResponse)
     cy_delete_global_announcement = graphene.Field(OkResponse)
     cy_add_learner_to_course = graphene.Field(OkResponse)
+    cy_clear_learner_exercise_submissions = graphene.Field(OkResponse)
 
     def resolve_cy_delete_new_user(root, info, **kwargs):
         ok = False
@@ -64,6 +65,7 @@ class Query(ObjectType):
                     pass
         response = OkResponse(ok=ok)
         return response
+
     def resolve_cy_add_learner_to_course(root, info, **kwargs):
 
         ok = True
@@ -77,6 +79,25 @@ class Query(ObjectType):
                 course.participants.remove(learner.id)
             course.participants.add(learner.id)
             course.save()
+            ok=True
+            # except:
+            #     ok=False
+            # Adding in one course
+        response = OkResponse(ok=ok)
+        return response
+
+
+    def resolve_cy_clear_learner_exercise_submissions(root, info, **kwargs):
+        ok = True
+        if settings.ENABLED_AUTOMATED_TESTING:
+            learner_data = EXISTING_DATA['learner']
+            submissions = ExerciseSubmission.objects.filter(participant_id=learner_data['id'])
+            for submission in submissions:
+                try:
+                    submission.delete()
+                except:
+                    ok=False
+
             ok=True
             # except:
             #     ok=False
