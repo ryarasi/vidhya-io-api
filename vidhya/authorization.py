@@ -96,8 +96,6 @@ def redact_user(root, info, user):
 
 
 def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
-    print("from rows_acessible => ", user, RESOURCE_TYPE, record, method, options)
-    print("resource type => ", RESOURCES["MEMBER"])
     if RESOURCE_TYPE == RESOURCES["MEMBER"]:
         institution_id = None
         try:
