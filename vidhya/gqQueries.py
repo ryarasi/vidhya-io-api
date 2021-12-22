@@ -527,7 +527,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['GET']))
     def resolve_announcement(root, info, id, **kwargs):
         current_user = info.context.user
-        announcement_instance = Announcement.objects.get(id, active=True)
+        announcement_instance = Announcement.objects.get(pk=id, active=True)
         allow_access = rows_accessible(current_user, RESOURCES['ANNOUNCEMENT'], announcement_instance)        
 
         if allow_access == True:
