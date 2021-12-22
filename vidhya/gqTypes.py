@@ -5,7 +5,7 @@ from graphene_django.types import DjangoObjectType
 from django.db.models import Q
 from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
 from django.db import models
-from common.authorization import USER_ROLES_NAMES
+from vidhya.authorization import USER_ROLES_NAMES
 
 ##############
 # Query Types
@@ -44,13 +44,6 @@ class GroupType(DjangoObjectType):
 
 class AnnouncementType(DjangoObjectType):
     seen = graphene.Boolean()
-
-    def get_relevant_announcements(user):
-        groups = Group.objects.all().filter(
-        Q(members__in=[user]) | Q(admins__in=[user]), active=True).order_by('-id')
-
-        qs = Announcement.objects.all().filter(Q(recipients_global=True) | (Q(recipients_institution=True) & Q(institution_id=user.institution_id)) | Q(groups__in=groups),active=True).order_by('-id')
-        return qs
 
     def resolve_seen(self, info):
         seen = False

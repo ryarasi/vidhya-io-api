@@ -7,16 +7,12 @@ import graphene
 from graphql import GraphQLError
 from vidhya.models import CompletedChapters, Criterion, CriterionResponse, Issue, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
-from common.authorization import has_access, RESOURCES, ACTIONS
+from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
-
-CREATE_METHOD = 'CREATE'
-UPDATE_METHOD = 'UPDATE'
-DELETE_METHOD = 'DELETE'
 
 
 class CreateInstitution(graphene.Mutation):
@@ -1150,7 +1146,7 @@ class CreateCourse(graphene.Mutation):
         searchField = searchField.lower()
 
         course_instance = Course(title=input.title, blurb=input.blurb, description=input.description,
-                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, pass_score_percentage = input.pass_score_percentage, pass_completion_percentage = input.pass_complete_percentage, searchField=searchField)
+                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, pass_score_percentage = input.pass_score_percentage, pass_completion_percentage = input.pass_completion_percentage, searchField=searchField)
         course_instance.save()
 
         if input.institution_ids:
