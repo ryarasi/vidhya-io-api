@@ -2084,7 +2084,7 @@ class PatchCriterionResponses(graphene.Mutation):
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
+    # @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['LIST']))
     def mutate(root, info):
         ok = False
 
@@ -2092,7 +2092,10 @@ class PatchCriterionResponses(graphene.Mutation):
         total_count = all_criterion_responses.count()
         processed_count = 0
         for response in all_criterion_responses:
-            submission = ExerciseSubmission.objects.get(participant_id=response.participant_id, exercise_id = response.exercise.id)
+            try:
+                submission = ExerciseSubmission.objects.get(participant_id=response.participant.id, exercise_id = response.exercise.id)
+            except:
+                print('Could not find submission with participant id ', response.participant.id, ' and exercise id ', response.exercise.id)
             response.exercise_submission_id = submission.id
 
             # Saving the response to the database
