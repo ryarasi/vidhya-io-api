@@ -156,7 +156,10 @@ def is_chapter_locked(user, chapter):
 
 
 def rows_accessible(user, RESOURCE_TYPE, options={}):
-    subscription_method = options['subscription_method']
+    try:
+        subscription_method = options['subscription_method']
+    except:
+        subscription_method = None
 
     if RESOURCE_TYPE == RESOURCES["MEMBER"]:
         institution_id = None
