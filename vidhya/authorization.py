@@ -196,11 +196,10 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
 
         if admin_user:
             # if the user is super user then they
-            qs = Institution.objects.all().filter(active=True).order_by("-id")
+            qs = Institution.objects.all().order_by("-id")
         else:
             # If the user is not a super user, we filter the users by institution
-            qs = Institution.objects.all().filter(
-                active=True, pk=user.institution.id).order_by("-id")
+            qs = Institution.objects.all().filter(pk=user.institution.id).order_by("-id")
 
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
@@ -209,9 +208,9 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         return qs
             
     if RESOURCE_TYPE == RESOURCES["USER_ROLE"]:
-        current_user_role = UserRole.objects.all().get(name=user.role, active=True)
+        current_user_role = UserRole.objects.all().get(name=user.role)
         current_user_role_priority = current_user_role.priority
-        qs = UserRole.objects.all().filter(priority__gte=current_user_role_priority, active=True).order_by("-priority")
+        qs = UserRole.objects.all().filter(priority__gte=current_user_role_priority).order_by("-priority")
 
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
@@ -237,10 +236,10 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
     if RESOURCE_TYPE == RESOURCES["GROUP"]:
         admin_user = is_admin_user(user)
         if admin_user:
-            qs = Group.objects.all().filter(active=True).order_by("-id")
+            qs = Group.objects.all().order_by("-id")
         else:
             qs = Group.objects.all().filter(
-                Q(members__in=[user]) | Q(admins__in=[user]), active=True).distinct().order_by("-id")
+                Q(members__in=[user]) | Q(admins__in=[user])).distinct().order_by("-id")
 
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
@@ -250,10 +249,10 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         return qs
 
     if RESOURCE_TYPE == RESOURCES["PROJECT"]:
-        qs = Project.objects.filter(active=True)
+        qs = Project.objects.all()
         author_id = options["author_id"]
         if author_id is not None:
-            qs = Project.objects.filter(author_id=author_id, active=True)
+            qs = Project.objects.filter(author_id=author_id)
         if author_id is not user.id:
             qs = qs = qs.filter(public=True)
 
@@ -267,10 +266,10 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         PUBLISHED = Course.StatusChoices.PUBLISHED
         if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
             qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructor_id=user.id), active=True).distinct().order_by("-id")
+                Q(participants__in=[user]) | Q(instructor_id=user.id)).distinct().order_by("-id")
         else:
             qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED, active=True).distinct().order_by("-id")
+                Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("-id")
         
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
@@ -282,14 +281,14 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         course_id = options["course_id"]
         PUBLISHED = Course.StatusChoices.PUBLISHED
         if has_access(user, RESOURCES["CHAPTER"], ACTIONS["CREATE"]):
-            qs = Chapter.objects.all().filter(active=True).order_by("index")
+            qs = Chapter.objects.all().order_by("index")
         else:
-            qs = Chapter.objects.all().filter(active=True, status=PUBLISHED).order_by("index")
+            qs = Chapter.objects.all().filter(status=PUBLISHED).order_by("index")
 
         
         if course_id is not None:
             try:
-                course = Course.objects.get( Q(status=PUBLISHED) | Q(instructor_id=user.id),pk=course_id, active=True )
+                course = Course.objects.get( Q(status=PUBLISHED) | Q(instructor_id=user.id),pk=course_id)
             except:
                 raise GraphQLError("Course unavailable")            
             filter = (
@@ -306,7 +305,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
     if RESOURCE_TYPE == RESOURCES["EXERCISE"]:
         chapter_id = options['chapter_id']
         try:
-            chapter = Chapter.objects.get(pk=chapter_id, active=True)
+            chapter = Chapter.objects.get(pk=chapter_id)
         except Chapter.DoesNotExist:
             return None
 
@@ -318,7 +317,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
             pass
             
         qs = Exercise.objects.all().filter(
-            chapter_id=chapter_id, active=True).order_by("index")
+            chapter_id=chapter_id).order_by("index")
 
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
@@ -370,7 +369,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         return qs
 
     if RESOURCE_TYPE == RESOURCES["CHAT"]:
-        qs = Chat.objects.all().filter(active=True, chat_type="IL")
+        qs = Chat.objects.all().filter(chat_type="IL")
         qs = qs = qs.filter(Q(individual_member_one=user.id) | Q(
             individual_member_two=user.id))
 
@@ -384,9 +383,9 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         chat_id = options["chat_id"]
         accessible_chat_ids = rows_accessible(user, RESOURCES["CHAT"]).values_list("id", flat=True)
         if chat_id is None:
-            qs = ChatMessage.objects.all().filter(Q(chat_id__in=accessible_chat_ids), active=True).order_by("-id")
+            qs = ChatMessage.objects.all().filter(Q(chat_id__in=accessible_chat_ids)).order_by("-id")
         elif chat_id in accessible_chat_ids:
-            qs = ChatMessage.objects.all().filter(chat=chat_id, active=True).order_by("-id")
+            qs = ChatMessage.objects.all().filter(chat=chat_id).order_by("-id")
         else:
             qs = []
 
@@ -400,7 +399,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         admin_user = is_admin_user(user)
         if admin_user:
             # if the user is super user then they gbet to see all issues
-            qs = Issue.objects.filter(active=True).order_by("-id")
+            qs = Issue.objects.all().order_by("-id")
         else:
             # If the user is not a super user, we filter issues pertaining to their institution and users in their institution
             qs = Issue.objects.filter(institution_id=user.institution.id).order_by("-id")
@@ -439,8 +438,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
                 course = Course.objects.get(Q(status=Course.StatusChoices.PUBLISHED) | Q(instructor_id=user.id), pk=course_id, active=True, )
             except:
                 raise GraphQLError("Course unavailable")
-            qs = CourseSection.objects.all().filter(
-                active=True, course_id=course_id).order_by("index")
+            qs = CourseSection.objects.all().filter(course_id=course_id).order_by("index")
         else:
             qs = []
 

@@ -302,7 +302,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
     def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        qs = rows_accessible(current_user, RESOURCES['INSTITTUION'])
+        qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
 
         if searchField is not None:
             filter = (
