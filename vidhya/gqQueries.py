@@ -350,7 +350,7 @@ class Query(ObjectType):
         current_user = info.context.user
         admin_user = is_admin_user(current_user)
 
-        qs = rows_accessible(current_user, RESOURCES['USER'], None, None, {'all_institutions': all_institutions})
+        qs = rows_accessible(current_user, RESOURCES['USER'], {'all_institutions': all_institutions})
 
         if searchField is not None:
             filter = (
@@ -566,7 +566,7 @@ class Query(ObjectType):
 
     def resolve_projects(root, info, author_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        qs = rows_accessible(current_user, RESOURCES['PROJECT'], None, None, {'author_id': author_id})
+        qs = rows_accessible(current_user, RESOURCES['PROJECT'], {'author_id': author_id})
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -586,15 +586,11 @@ class Query(ObjectType):
         current_user = info.context.user
         course_instance = Course.objects.get(pk=id, active=True)
         
-        locked = CourseType.resolve_locked(course_instance, info)
-        if locked:
+        allow_access = is_record_accessible(current_user, RESOURCES['COURSE'], course_instance)
+        if not allow_access:
             raise GraphQLError('This course is locked for you. Please complete the prerequisites.')
         else:
-            allow_access = is_record_accessible(current_user, RESOURCES['COURSE'], course_instance)
-            if allow_access == True:
-                return course_instance
-            else:
-                return None
+            return course_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
@@ -628,7 +624,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_course_sections(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        qs = rows_accessible(current_user, RESOURCES['COURSE_SECTION'],None, None, {'course_id':course_id} )
+        qs = rows_accessible(current_user, RESOURCES['COURSE_SECTION'], {'course_id':course_id} )
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -659,7 +655,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_chapters(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        qs = rows_accessible(current_user, RESOURCES['CHAPTER'], None, None, {'course_id': course_id})
+        qs = rows_accessible(current_user, RESOURCES['CHAPTER'], {'course_id': course_id})
 
         if searchField is not None:
             filter = (
@@ -695,7 +691,7 @@ class Query(ObjectType):
         current_user = info.context.user
     
         if chapter_id is not None:
-            qs = rows_accessible(current_user, RESOURCES['EXERCISE'], None, None, {'chapter_id': chapter_id})
+            qs = rows_accessible(current_user, RESOURCES['EXERCISE'], {'chapter_id': chapter_id})
 
             submissions = ExerciseSubmission.objects.all().filter(chapter_id = chapter_id, participant_id = current_user.id, active=True)
 

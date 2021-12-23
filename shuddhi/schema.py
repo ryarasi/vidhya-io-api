@@ -24,6 +24,7 @@ class AuthMutation(graphene.ObjectType):
 
 testQueries = test=vidhya.gqTesting.Query if settings.ENABLED_AUTOMATED_TESTING else vidhya.gqTesting.EmptyQuery 
 
+
 class Query(vidhya.gqSchema.Query, testQueries, UserQuery, MeQuery, graphene.ObjectType):
     # This class will inherit from multiple Queries
     # as we begin to add more apps to our project
