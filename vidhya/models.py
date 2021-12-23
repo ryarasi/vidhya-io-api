@@ -380,6 +380,7 @@ class Criterion(models.Model):
 
 class CriterionResponse(models.Model):
     criterion = models.ForeignKey(Criterion, on_delete=models.CASCADE)
+    exercise_submission = models.ForeignKey('ExerciseSubmission', on_delete=models.CASCADE)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
     score = models.IntegerField(default=0)
