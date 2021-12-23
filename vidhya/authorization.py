@@ -1,7 +1,8 @@
 from django.db.models.query_utils import Q
 from graphql import GraphQLError
 from django.conf import settings
-from vidhya.models import User, Announcement, Chapter, Chat, ChatMessage, Course, CourseSection, Exercise, ExerciseKey, ExerciseSubmission, Group, Institution, Issue, Project, Report, UserRole
+from vidhya.models import CompletedChapters, CompletedCourses, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, Announcement, Chapter, Chat, ChatMessage, Course, CourseSection, Exercise, ExerciseKey, ExerciseSubmission, Group, Institution, Issue, Project, Report, UserRole
+
 
 UPDATE_METHOD = "UPDATE"
 DELETE_METHOD = "DELETE"
@@ -94,8 +95,69 @@ def redact_user(root, info, user):
 
     return user
 
+def is_course_locked(user, course):
+    locked = True
+    # Checking if the user is the author of the course
+    if course.instructor.id == user.id:
+        # If yes, we mark it as unlocked
+        locked = False
+        return locked        
+    completed_courses = CompletedCourses.objects.all().filter(participant_id=user.id)
+    required_courses = MandatoryRequiredCourses.objects.all().filter(course_id=course.id)
+    required_course_ids = required_courses.values_list('requirement_id',flat=True)
+    completed_course_ids = completed_courses.values_list('course_id',flat=True)
 
-def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
+    if required_course_ids:
+        if set(required_course_ids).issubset(set(completed_course_ids)):
+            locked = False
+
+    return locked
+
+def is_chapter_locked(user, chapter):
+    locked = None
+
+    # Letting the user see it if they are a grader
+    user_role = user.role.name;
+    grader = user_role == USER_ROLES_NAMES['GRADER']
+
+    # Checking if the user is the author of the course or a grader
+    if chapter.course.instructor.id == user.id or grader:
+        # If yes, we mark it as unlocked
+        return locked
+
+    course_locked = is_course_locked(user, chapter.course) # Checking if this belongs to a course that is locked
+    if course_locked:
+        # If the course is locked, we immediately return locked is true
+        locked = 'This course is locked for you'
+        return locked
+
+    # If the course is unlocked we 
+    completed_chapters = CompletedChapters.objects.all().filter(participant_id=user.id)
+    required_chapters = MandatoryChapters.objects.all().filter(chapter_id=chapter.id)
+    required_chapter_ids = required_chapters.values_list('requirement_id',flat=True)
+    completed_chapter_ids = completed_chapters.values_list('chapter_id',flat=True)
+    pending_chapter_ids = []
+    for id in required_chapter_ids:
+        if id not in completed_chapter_ids:
+            pending_chapter_ids.append(id)
+    if pending_chapter_ids:
+        locked = 'To participate in this course, you must have completed '
+        pending_chapters_list = ''
+        for id in pending_chapter_ids:
+            try:
+                chapter= Chapter.objects.get(pk=id, active=True)
+                if pending_chapters_list != '':
+                    pending_chapters_list += ', '
+                pending_chapters_list += '"' + str(chapter.section.index) +'.'+str(chapter.index)+'. '+chapter.title +'"'
+            except:
+                pass
+        locked += pending_chapters_list
+    return locked
+
+
+def rows_accessible(user, RESOURCE_TYPE, options={}):
+    subscription_method = options['subscription_method']
+
     if RESOURCE_TYPE == RESOURCES["MEMBER"]:
         institution_id = None
         try:
@@ -114,15 +176,11 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
             # If the user is not a super user, we filter the users by institution
             qs = User.objects.all().filter(institution_id=institution_id).order_by("-id")
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["INSTITUTION"]:
         admin_user = is_admin_user(user)
@@ -135,30 +193,22 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
             qs = Institution.objects.all().filter(
                 active=True, pk=user.institution.id).order_by("-id")
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
             
     if RESOURCE_TYPE == RESOURCES["USER_ROLE"]:
         current_user_role = UserRole.objects.all().get(name=user.role, active=True)
         current_user_role_priority = current_user_role.priority
         qs = UserRole.objects.all().filter(priority__gte=current_user_role_priority, active=True).order_by("-priority")
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(name=record.name).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["ANNOUNCEMENT"]:
         admin = is_admin_user(user)
@@ -169,16 +219,11 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
             
             qs = Announcement.objects.all().filter(Q(recipients_global=True) | (Q(recipients_institution=True) & Q(institution_id=user.institution_id)) | Q(groups__in=groups)).order_by("-id")
             
-        if method == DELETE_METHOD:
-            qs = qs.filter(active=False)
+        if subscription_method == DELETE_METHOD:
+            qs.filter(active=False)
         else:
-            qs = qs.filter(active=True)
-
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+            qs.filter(active=True)
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["GROUP"]:
         admin_user = is_admin_user(user)
@@ -188,15 +233,11 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
             qs = Group.objects.all().filter(
                 Q(members__in=[user]) | Q(admins__in=[user]), active=True).distinct().order_by("-id")
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(name=record.id).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["PROJECT"]:
         qs = Project.objects.filter(active=True)
@@ -205,15 +246,12 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
             qs = Project.objects.filter(author_id=author_id, active=True)
         if author_id is not user.id:
             qs = qs.filter(public=True)
-        if method == DELETE_METHOD:
+
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["COURSE"]:
         PUBLISHED = Course.StatusChoices.PUBLISHED
@@ -224,15 +262,11 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
             qs = Course.objects.all().filter(
                 Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED, active=True).distinct().order_by("-id")
         
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["CHAPTER"]:
         course_id = options["course_id"]
@@ -253,24 +287,22 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
             )
             qs = qs.filter(filter)
             
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["EXERCISE"]:
-        chapter_id = options["chapter_id"]
+        chapter_id = options['chapter_id']
         try:
             chapter = Chapter.objects.get(pk=chapter_id, active=True)
         except Chapter.DoesNotExist:
             return None
-        status = Course.StatusChoices.PUBLISHED
-        if chapter.status != status:
+
+        PUBLISHED = Course.StatusChoices.PUBLISHED
+        
+        if chapter.status != PUBLISHED:
             has_access(user,RESOURCES["CHAPTER"], ACTIONS["CREATE"], False)
         else:
             pass
@@ -278,15 +310,11 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
         qs = Exercise.objects.all().filter(
             chapter_id=chapter_id, active=True).order_by("index")
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["EXERCISE_SUBMISSION"]:
         grader = has_access(user, RESOURCES["EXERCISE_SUBMISSION"], ACTIONS["LIST"])
@@ -295,15 +323,11 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
         else:
             qs = ExerciseSubmission.objects.all().filter(participant_id=user.id).order_by("-id")
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["REPORT"]:
         admin_user = is_admin_user(user)
@@ -316,15 +340,11 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
             else:
                 qs = []
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["EXERCISE_KEY"]:
         grader = has_access(user, RESOURCES["EXERCISE_SUBMISSION"], ACTIONS["LIST"])
@@ -333,30 +353,22 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
         else:
             qs = []
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["CHAT"]:
         qs = Chat.objects.all().filter(active=True, chat_type="IL")
         qs = qs.filter(Q(individual_member_one=user.id) | Q(
             individual_member_two=user.id))
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
         
     if RESOURCE_TYPE == RESOURCES["CHAT_MESSAGE"]:
         chat_id = options["chat_id"]
@@ -368,15 +380,11 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
         else:
             qs = []
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
-
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["ISSUE"]:
         admin_user = is_admin_user(user)
@@ -387,29 +395,33 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
             # If the user is not a super user, we filter issues pertaining to their institution and users in their institution
             qs = Issue.objects.filter(institution_id=user.institution.id).order_by("-id")
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
+        return qs
 
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs        
     if RESOURCE_TYPE == RESOURCES["CRITERION"]:
         accessible_exercise_ids = rows_accessible(user, RESOURCES["COURSE"]).values_list("id",flat=True)
         qs = CourseSection.objects.all().filter(Q(exercise_id__in=accessible_exercise_ids)).order_by("index")
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
+        return qs
 
-        if record is not None:
-            return qs.filter(id=record.id).exists()
+    if RESOURCE_TYPE == RESOURCES["CRITERION_RESPONSE"]:
+        accessible_exercise_submission_ids = rows_accessible(user, RESOURCES['EXERCISE_SUBMISSION']).values_list('id',flat=True)
+
+        qs = CriterionResponse.objects.all().filter(Q(exercise_submission_id__in=accessible_exercise_submission_ids)).order_by("-id")
+        
+        if subscription_method == DELETE_METHOD:
+            qs.filter(active=False)
         else:
-            return qs        
-    # if RESOURCE_TYPE == RESOURCES["CRITERION_RESPONSE"]:
+            qs.filter(active=True)
+        return qs
+        
     if RESOURCE_TYPE == RESOURCES["COURSE_SECTION"]:
         course_id = options["course_id"]
         if course_id is not None:
@@ -422,15 +434,138 @@ def rows_accessible(user, RESOURCE_TYPE, record=None, method=None, options={}):
         else:
             qs = []
 
-        if method == DELETE_METHOD:
+        if subscription_method == DELETE_METHOD:
             qs.filter(active=False)
         else:
             qs.filter(active=True)
+        return qs
 
-        if record is not None:
-            return qs.filter(id=record.id).exists()
-        else:
-            return qs
+def is_record_accessible(user, RESOURCE_TYPE, record=None, subscription_method=None, options={}):
+    if record is None or user is None or RESOURCE_TYPE is None:
+        return False
 
+    default_options = {'subscription_method': subscription_method}
 
-    
+    if RESOURCE_TYPE == RESOURCES["MEMBER"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options )
+
+        allow_access = qs.filter(id=record.id).exists()
+
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["INSTITUTION"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options )
+
+        allow_access = qs.filter(id=record.id).exists()
+
+        return allow_access
+            
+    if RESOURCE_TYPE == RESOURCES["USER_ROLE"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options )
+
+        allow_access = qs.filter(name=record.name).exists()
+
+        return allow_access            
+
+    if RESOURCE_TYPE == RESOURCES["ANNOUNCEMENT"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options )
+
+        allow_access = qs.filter(id=record.id).exists()
+
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["GROUP"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options )
+
+        allow_access = qs.filter(id=record.id).exists()
+
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["PROJECT"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options )
+
+        allow_access = qs.filter(id=record.id).exists()
+
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["COURSE"]:
+        allow_access = is_course_locked(user, record)
+
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["CHAPTER"]:
+        chapter_is_locked = is_chapter_locked(user, record)
+
+        allow_access = chapter_is_locked is None
+
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["EXERCISE"]:
+        chapter_is_locked = is_chapter_locked(user, record.chapter)
+
+        allow_access = chapter_is_locked is None
+
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["EXERCISE_SUBMISSION"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options)
+
+        allow_access = qs.filter(id=record.id).exists()
+
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["REPORT"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options)
+
+        allow_access = qs.filter(id=record.id).exists()
+        
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["EXERCISE_KEY"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options)
+
+        allow_access = qs.filter(id=record.id).exists()
+        
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["CHAT"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options)
+
+        allow_access = qs.filter(id=record.id).exists()
+        
+        return allow_access
+        
+    if RESOURCE_TYPE == RESOURCES["CHAT_MESSAGE"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options)
+
+        allow_access = qs.filter(id=record.id).exists()
+        
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["ISSUE"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options)
+
+        allow_access = qs.filter(id=record.id).exists()
+        
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["CRITERION"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options)
+
+        allow_access = qs.filter(id=record.id).exists()
+        
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["CRITERION_RESPONSE"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options)
+
+        allow_access = qs.filter(id=record.id).exists()
+        
+        return allow_access
+
+    if RESOURCE_TYPE == RESOURCES["COURSE_SECTION"]:
+        qs = rows_accessible(user, RESOURCE_TYPE, default_options)
+
+        allow_access = qs.filter(id=record.id).exists()
+        
+        return allow_access

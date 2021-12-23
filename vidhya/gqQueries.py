@@ -5,7 +5,7 @@ from graphql_jwt.decorators import login_required, user_passes_test
 from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
 from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
-from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible
+from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible
 from graphql import GraphQLError
 
 
@@ -292,7 +292,7 @@ class Query(ObjectType):
     def resolve_institution(root, info, id, **kwargs):
         current_user = info.context.user
         institution_instance = Institution.objects.get(pk=id, active=True)
-        allow_access = rows_accessible(current_user, RESOURCES['INSTITUTION'], institution_instance)
+        allow_access = is_record_accessible(current_user, RESOURCES['INSTITUTION'], institution_instance)
         if allow_access == True:
             return institution_instance
         else:
@@ -478,7 +478,7 @@ class Query(ObjectType):
     def resolve_group(root, info, id, **kwargs):
         current_user = info.context.user
         group_instance = Group.objects.get(pk=id, active=True)
-        allow_access = rows_accessible(current_user, RESOURCES['GROUP'],group_instance)
+        allow_access = is_record_accessible(current_user, RESOURCES['GROUP'],group_instance)
         if allow_access:
             group_instance = None
 
@@ -528,7 +528,7 @@ class Query(ObjectType):
     def resolve_announcement(root, info, id, **kwargs):
         current_user = info.context.user
         announcement_instance = Announcement.objects.get(pk=id, active=True)
-        allow_access = rows_accessible(current_user, RESOURCES['ANNOUNCEMENT'], announcement_instance)        
+        allow_access = is_record_accessible(current_user, RESOURCES['ANNOUNCEMENT'], announcement_instance)        
 
         if allow_access == True:
             current_user.announcements.add(announcement_instance.id) # Marking this announcement as seen by this user
@@ -558,7 +558,7 @@ class Query(ObjectType):
     def resolve_project(root, info, id, **kwargs):
         current_user = info.context.user
         project_instance = Project.objects.get(pk=id, active=True)
-        allow_access = rows_accessible(current_user, RESOURCES['PROJECT'], project_instance)
+        allow_access = is_record_accessible(current_user, RESOURCES['PROJECT'], project_instance)
         if allow_access == True:
             return project_instance
         else:
@@ -590,7 +590,7 @@ class Query(ObjectType):
         if locked:
             raise GraphQLError('This course is locked for you. Please complete the prerequisites.')
         else:
-            allow_access = rows_accessible(current_user, RESOURCES['COURSE'], course_instance)
+            allow_access = is_record_accessible(current_user, RESOURCES['COURSE'], course_instance)
             if allow_access == True:
                 return course_instance
             else:
@@ -679,12 +679,15 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
     def resolve_exercise(root, info, id, **kwargs):
         current_user = info.context.user
-        exercise_instance = Exercise.objects.get(pk=id, active=True)
-        allow_access = rows_accessible(current_user, RESOURCES['EXERCISE'], None, None, {'chapter_id', exercise_instance.chapter.id})
-        if allow_access == True:
-            return exercise_instance
-        else:
-            return None
+        try:
+            exercise_instance = Exercise.objects.get(pk=id, active=True)
+            allow_access = is_record_accessible(current_user, RESOURCES['EXERCISE'], exercise_instance)
+            if allow_access != True:
+                exercise_instance = None
+        except:
+            exercise_instance = None
+
+        return None
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
@@ -720,7 +723,7 @@ class Query(ObjectType):
         current_user = info.context.user
         exercise_submission_instance = ExerciseSubmission.objects.get(
             pk=id, active=True)
-        allow_access = rows_accessible(current_user, RESOURCES['EXERCISE_SUBMISSION'], exercise_submission_instance)
+        allow_access = is_record_accessible(current_user, RESOURCES['EXERCISE_SUBMISSION'], exercise_submission_instance)
         if allow_access==True:
             return exercise_submission_instance
         else:
@@ -884,7 +887,7 @@ class Query(ObjectType):
         current_user = info.context.user
         issue_instance = Issue.objects.get(
             pk=id, active=True)
-        allow_access = rows_accessible(current_user, RESOURCES['ISSUE'], issue_instance)
+        allow_access = is_record_accessible(current_user, RESOURCES['ISSUE'], issue_instance)
         if allow_access == True:
             return issue_instance
         else:
@@ -1111,7 +1114,7 @@ class Query(ObjectType):
     def resolve_report(root, info, id, **kwargs):
         current_user = info.context.user
         report_instance = Report.objects.get(pk=id, active=True)
-        allow_access = rows_accessible(current_user, RESOURCES['REPORT'], report_instance)
+        allow_access = is_record_accessible(current_user, RESOURCES['REPORT'], report_instance)
         if allow_access == True:
             return report_instance
         else:
@@ -1221,7 +1224,7 @@ class Query(ObjectType):
     def resolve_chat_message(root, info, id, **kwargs):
         current_user=info.context.user
         chat_message_instance = ChatMessage.objects.get(pk=id, active=True)
-        allow_access = rows_accessible(current_user, RESOURCES['CHAT_MESSAGE'], chat_message_instance)
+        allow_access = is_record_accessible(current_user, RESOURCES['CHAT_MESSAGE'], chat_message_instance)
         if allow_access == True:
             return chat_message_instance
         else:
