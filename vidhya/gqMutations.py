@@ -7,16 +7,12 @@ import graphene
 from graphql import GraphQLError
 from vidhya.models import CompletedChapters, Criterion, CriterionResponse, Issue, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementInput, AnnouncementType, AnnouncementType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
-from common.authorization import has_access, RESOURCES, ACTIONS
+from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
-
-CREATE_METHOD = 'CREATE'
-UPDATE_METHOD = 'UPDATE'
-DELETE_METHOD = 'DELETE'
 
 
 class CreateInstitution(graphene.Mutation):
@@ -1150,7 +1146,7 @@ class CreateCourse(graphene.Mutation):
         searchField = searchField.lower()
 
         course_instance = Course(title=input.title, blurb=input.blurb, description=input.description,
-                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, pass_score_percentage = input.pass_score_percentage, pass_completion_percentage = input.pass_complete_percentage, searchField=searchField)
+                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, pass_score_percentage = input.pass_score_percentage, pass_completion_percentage = input.pass_completion_percentage, searchField=searchField)
         course_instance.save()
 
         if input.institution_ids:
@@ -1973,7 +1969,9 @@ class CreateCriterionResponse(graphene.Mutation):
     def validate_criterion_response_input(input):
         error = ""
         if not input.participant_id:
-            error += "Participant is a required field<br />"        
+            error += "Participant is a required field<br />"
+        if not input.exercise_submission_id:
+            error += "Exercise Submission is a requird field <br />" 
         if not input.remarker_id:
             error += "Remarker is a required field<br />"
         if not input.exercise_id:
@@ -1991,7 +1989,7 @@ class CreateCriterionResponse(graphene.Mutation):
         CreateCriterionResponse.validate_criterion_response_input(input)
 
 
-        criterion_response_instance = CriterionResponse(criterion_id=input.criterion_id, exercise_id=input.exercise_id, participant_id = input.participant_id, remarker_id = input.remarker_id, score = input.score)
+        criterion_response_instance = CriterionResponse(criterion_id=input.criterion_id, exercise_submission_id=input.exercise_submission_id, exercise_id=input.exercise_id, participant_id = input.participant_id, remarker_id = input.remarker_id, score = input.score)
         criterion_response_instance.searchField= CreateCriterionResponse.generate_searchField(criterion_response_instance)
         criterion_response_instance.save()
 
@@ -2025,6 +2023,7 @@ class UpdateCriterionResponse(graphene.Mutation):
         if criterion_response_instance:
             ok = True
             criterion_response_instance.criterion_id = input.criterion_id if input.criterion_id is not None else criterion_response_instance.criterion_id
+            criterion_response_instance.exercise_submission_id = input.exercise_submission_id if input.exercise_submission_id is not None else criterion_response_instance.exercise_submission_id
             criterion_response_instance.exercise_id = input.exercise_id if input.exercise_id is not None else criterion_response_instance.exercise_id
             criterion_response_instance.score = input.score if input.score is not None else criterion_response_instance.score
             criterion_response_instance.remarks = input.remarks if input.remarks is not None else criterion_response_instance.remarks
@@ -2073,7 +2072,36 @@ class DeleteCriterionResponse(graphene.Mutation):
             return DeleteCriterionResponse(ok=ok, criterion_response=criterion_response)
         return DeleteCriterionResponse(ok=ok, criterion_response=None)
 
+class PatchCriterionResponses(graphene.Mutation):
+    class Meta:
+        description = "Mutation to patch criterion responses"
 
+    class Arguments:
+        pass
+
+    ok = graphene.Boolean()
+    criterion_responses_count = graphene.Int()
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['CREATE']))
+    def mutate(root, info):
+        ok = False
+
+        all_criterion_responses = CriterionResponse.objects.all()
+        total_count = all_criterion_responses.count()
+        processed_count = 0
+        for response in all_criterion_responses:
+            submission = ExerciseSubmission.objects.get(participant_id=response.participant_id, exercise_id = response.exercise.id)
+            response.exercise_submission_id = submission.id
+
+            # Saving the response to the database
+            response.save()
+            processed_count += 1
+
+        ok = True if processed_count == total_count else False
+        return PatchCriterionResponses(ok=ok, criterion_responses_count=processed_count)
+        
 class PatchExerciseSubmissionsSearchFields(graphene.Mutation):
     class Meta:
         description = "Mutation to patch searchFields of all submissions"
@@ -3132,4 +3160,5 @@ class Mutation(graphene.ObjectType):
     patch_exercise_submissions_searchFields = PatchExerciseSubmissionsSearchFields.Field()
     patch_reports_searchFields = PatchReportsSearchFields.Field()
     patch_completed_chapters = PatchCompletedChapters.Field()
+    patch_criterion_responses = PatchCriterionResponses.Field()
 

@@ -5,7 +5,7 @@ from graphql_jwt.decorators import login_required, user_passes_test
 from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
 from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
-from common.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS
+from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible
 from graphql import GraphQLError
 
 
@@ -186,7 +186,7 @@ class Query(ObjectType):
         CourseType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     # Course Section Queries
-    course_section = graphene.Field(CourseSectionType, id=graphene.ID())
+    # course_section = graphene.Field(CourseSectionType, id=graphene.ID()) # No use for this one
     course_sections = graphene.List(CourseSectionType, course_id=graphene.ID(required=True), searchField=graphene.String(
     ), limit=graphene.Int(), offset=graphene.Int())
 
@@ -290,26 +290,19 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['GET']))
     def resolve_institution(root, info, id, **kwargs):
+        current_user = info.context.user
         institution_instance = Institution.objects.get(pk=id, active=True)
-        if institution_instance is not None:
-            return institution_instance
-        else:
-            return None
+        allow_access = is_record_accessible(current_user, RESOURCES['INSTITUTION'], institution_instance)
+        if allow_access != True:
+            institution_instance = None
+
+        return institution_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
     def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        current_user_role_name = current_user.role.name
-        admin_user = is_admin_user(info)
-
-        if admin_user:
-            # if the user is super user then they
-            qs = Institution.objects.all().filter(active=True).order_by('-id')
-        else:
-            # If the user is not a super user, we filter the users by institution
-            qs = Institution.objects.all().filter(
-                active=True, pk=current_user.institution.id).order_by('-id')        
+        qs = rows_accessible(current_user, RESOURCES['INSTITTUION'])
 
         if searchField is not None:
             filter = (
@@ -355,22 +348,9 @@ class Query(ObjectType):
 
     def process_users(root, info, searchField=None, all_institutions=False, membership_status_not=[], membership_status_is=[], roles=[], unpaginated = False, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        institution_id = None
-        try:
-            institution_id = current_user.institution.id
-        except:
-            pass
+        admin_user = is_admin_user(current_user)
 
-        admin_user = is_admin_user(info)
-
-        if admin_user or all_institutions == True:
-            # if the user is super user then they see users from all institutions
-            qs = User.objects.all().filter(active=True).order_by('-id')
-        else:
-            # If the user is not a super user, we filter the users by institution
-            qs = User.objects.all().filter(
-                active=True, institution_id=institution_id).order_by('-id')
-
+        qs = rows_accessible(current_user, RESOURCES['MEMBER'], {'all_institutions': all_institutions})
 
         if searchField is not None:
             filter = (
@@ -474,9 +454,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['LIST']))
     def resolve_user_roles(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        current_user_role = UserRole.objects.all().get(name=current_user.role, active=True)
-        current_user_role_priority = current_user_role.priority
-        qs = UserRole.objects.all().filter(priority__gte=current_user_role_priority, active=True).order_by('-name')
+        qs = rows_accessible(current_user, RESOURCES['USER_ROLE'])
 
         if searchField is not None:
             filter = (
@@ -500,11 +478,8 @@ class Query(ObjectType):
     def resolve_group(root, info, id, **kwargs):
         current_user = info.context.user
         group_instance = Group.objects.get(pk=id, active=True)
-        # Fetching the group only if the user is a super admin or a group member/admin
-        admin_user = is_admin_user(info)
-        user_is_a_group_member = current_user.id in group_instance.members.values_list('id',flat=True)
-        user_is_a_group_admin = current_user.id in group_instance.admins.values_list('id',flat=True)
-        if not admin_user and not user_is_a_group_member and not user_is_a_group_admin:
+        allow_access = is_record_accessible(current_user, RESOURCES['GROUP'],group_instance)
+        if not allow_access:
             group_instance = None
 
         return group_instance
@@ -513,12 +488,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['LIST']))
     def resolve_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        admin_user = is_admin_user(info)
-        if admin_user:
-            qs = Group.objects.all().filter(active=True).order_by('-id')
-        else:
-            qs = Group.objects.all().filter(
-                Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).distinct().order_by('-id')
+        qs = rows_accessible(current_user, RESOURCES['GROUP'])
 
         if searchField is not None:
             filter = (
@@ -557,22 +527,21 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['GET']))
     def resolve_announcement(root, info, id, **kwargs):
         current_user = info.context.user
-        groups = Group.objects.all().filter(
-            Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True).order_by('-id')
+        announcement_instance = Announcement.objects.get(pk=id, active=True)
+        allow_access = is_record_accessible(current_user, RESOURCES['ANNOUNCEMENT'], announcement_instance)        
 
-        announcement_instance = Announcement.objects.get(
-            Q(recipients_global=True) | (Q(recipients_institution=True) & Q(institution_id=current_user.institution_id)) | Q(groups__in=groups),pk=id, active=True)
-        if announcement_instance is not None:
+        if allow_access == True:
             current_user.announcements.add(announcement_instance.id) # Marking this announcement as seen by this user
-            return announcement_instance
         else:
-            return None
+            announcement_instance = None
+
+        return announcement_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['LIST']))
     def resolve_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        qs = AnnouncementType.get_relevant_announcements(current_user)
+        qs = rows_accessible(current_user, RESOURCES['ANNOUNCEMENT'])
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -588,22 +557,17 @@ class Query(ObjectType):
 
 
     def resolve_project(root, info, id, **kwargs):
-        project_instance=None
-        try:
-            project_instance = Project.objects.get(pk=id, active=True)
-        except:
-            raise GraphQLError('')
-            pass
+        current_user = info.context.user
+        project_instance = Project.objects.get(pk=id, active=True)
+        allow_access = is_record_accessible(current_user, RESOURCES['PROJECT'], project_instance)
+        
+        if allow_access != True:
+            project_instance = None
         return project_instance
 
     def resolve_projects(root, info, author_id=None, searchField=None, limit=None, offset=None, **kwargs):
-        qs = Project.objects.filter(active=True)
         current_user = info.context.user
-        if author_id is not None:
-            qs = Project.objects.filter(author_id=author_id, active=True)
-        if author_id is not current_user.id:
-            filter = (Q(public=True))
-            qs = qs.filter(filter)
+        qs = rows_accessible(current_user, RESOURCES['PROJECT'], {'author_id': author_id})
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -620,28 +584,20 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['GET']))
     def resolve_course(root, info, id, **kwargs):
+        current_user = info.context.user
         course_instance = Course.objects.get(pk=id, active=True)
-        # locked = CourseType.resolve_locked(course_instance, info)
-        # if locked:
-        #     raise GraphQLError('This course is locked for you. Please complete the prerequisites.')
-
-        if course_instance is not None:
-            return course_instance
+        
+        allow_access = is_record_accessible(current_user, RESOURCES['COURSE'], course_instance)
+        if not allow_access:
+            raise GraphQLError('This course is locked for you. Please complete the prerequisites.')
         else:
-            return None
+            return course_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        status = Course.StatusChoices.PUBLISHED
-        if has_access(current_user, RESOURCES['COURSE'], ACTIONS['CREATE']):
-            qs = Course.objects.all().filter(
-                Q(participants__in=[current_user]) | Q(instructor_id=current_user.id), active=True).distinct().order_by('-id')
-        else:
-            qs = Course.objects.all().filter(
-                Q(participants__in=[current_user]) | Q(instructor_id=current_user.id), status=status, active=True).distinct().order_by('-id')
-
+        qs = rows_accessible(current_user, RESOURCES['COURSE'])
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -656,41 +612,33 @@ class Query(ObjectType):
 
         return qs
 
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['GET']))
-    def resolve_course_section(root, info, id, **kwargs):
-        course_instance = CourseSection.objects.get(pk=id, active=True)
-        if course_instance is not None:
-            return course_instance
-        else:
-            return None
+    # @login_required
+    # @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['GET']))
+    # def resolve_course_section(root, info, id, **kwargs):
+    #     course_instance = CourseSection.objects.get(pk=id, active=True)
+    #     if course_instance is not None:
+    #         return course_instance
+    #     else:
+    #         return None
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_course_sections(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        if course_id is not None:
-            try:
-                course = Course.objects.get(Q(status=Course.StatusChoices.PUBLISHED) | Q(instructor_id=current_user.id), pk=course_id, active=True, )
-            except:
-                raise GraphQLError('Course unavailable')
-            qs = CourseSection.objects.all().filter(
-                active=True, course_id=course_id).order_by('index')
+        qs = rows_accessible(current_user, RESOURCES['COURSE_SECTION'], {'course_id':course_id} )
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField.lower())
+            )
+            qs = qs.filter(filter)
 
-            if searchField is not None:
-                filter = (
-                    Q(searchField__icontains=searchField.lower())
-                )
-                qs = qs.filter(filter)
+        if offset is not None:
+            qs = qs[offset:]
 
-            if offset is not None:
-                qs = qs[offset:]
+        if limit is not None:
+            qs = qs[:limit]
 
-            if limit is not None:
-                qs = qs[:limit]
-
-            return qs
-        return None
+        return qs
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
@@ -708,22 +656,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_chapters(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
-        published = Course.StatusChoices.PUBLISHED
-        if has_access(current_user, RESOURCES['CHAPTER'], ACTIONS['CREATE']):
-            qs = Chapter.objects.all().filter(active=True).order_by('index')
-        else:
-            qs = Chapter.objects.all().filter(active=True, status=published).order_by('index')
-
-        
-        if course_id is not None:
-            try:
-                course = Course.objects.get( Q(status=published) | Q(instructor_id=current_user.id),pk=course_id, active=True )
-            except:
-                raise GraphQLError('Course unavailable')            
-            filter = (
-                Q(course_id=course_id)
-            )
-            qs = qs.filter(filter)
+        qs = rows_accessible(current_user, RESOURCES['CHAPTER'], {'course_id': course_id})
 
         if searchField is not None:
             filter = (
@@ -742,11 +675,16 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['GET']))
     def resolve_exercise(root, info, id, **kwargs):
-        exercise_instance = Exercise.objects.get(pk=id, active=True)
-        if exercise_instance is not None:
-            return exercise_instance
-        else:
-            return None
+        current_user = info.context.user
+        try:
+            exercise_instance = Exercise.objects.get(pk=id, active=True)
+            allow_access = is_record_accessible(current_user, RESOURCES['EXERCISE'], exercise_instance)
+            if allow_access != True:
+                exercise_instance = None
+        except:
+            exercise_instance = None
+
+        return exercise_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
@@ -754,18 +692,7 @@ class Query(ObjectType):
         current_user = info.context.user
     
         if chapter_id is not None:
-            try:
-                chapter = Chapter.objects.get(pk=chapter_id, active=True)
-            except Chapter.DoesNotExist:
-                return None
-            status = Course.StatusChoices.PUBLISHED
-            if chapter.status != status:
-                has_access(current_user,RESOURCES['CHAPTER'], ACTIONS['CREATE'], False)
-            else:
-                pass
-             
-            qs = Exercise.objects.all().filter(
-                chapter_id=chapter_id, active=True).order_by('index')
+            qs = rows_accessible(current_user, RESOURCES['EXERCISE'], {'chapter_id': chapter_id})
 
             submissions = ExerciseSubmission.objects.all().filter(chapter_id = chapter_id, participant_id = current_user.id, active=True)
 
@@ -790,12 +717,14 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['GET']))
     def resolve_exercise_submission(root, info, id, **kwargs):
+        current_user = info.context.user
         exercise_submission_instance = ExerciseSubmission.objects.get(
             pk=id, active=True)
-        if exercise_submission_instance is not None:
-            return exercise_submission_instance
-        else:
-            return None   
+        allow_access = is_record_accessible(current_user, RESOURCES['EXERCISE_SUBMISSION'], exercise_submission_instance)
+        if allow_access != True:
+            exercise_submission_instance = None
+
+        return exercise_submission_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['LIST']))
@@ -952,27 +881,23 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['GET']))
     def resolve_issue(root, info, id, **kwargs):
+        current_user = info.context.user
         issue_instance = Issue.objects.get(
             pk=id, active=True)
-        if issue_instance is not None:
-            return issue_instance
-        else:
-            return None   
+        allow_access = is_record_accessible(current_user, RESOURCES['ISSUE'], issue_instance)
+        if allow_access != True:
+            issue_instance = None
+
+        return issue_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['LIST']))
     def resolve_issues(root, info, resource_id=None, resource_type=None, link=None, reporter_id=None, issue_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
+        current_user = info.context.user
         if issue_id is not None:
             qs = Issue.objects.all().filter(active=True, pk=issue_id)
         else:
-            admin_user = is_admin_user(info)
-            current_user = info.context.user
-            if admin_user:
-                # if the user is super user then they gbet to see all issues
-                qs = Issue.objects.filter(active=True).order_by('-id')
-            else:
-                # If the user is not a super user, we filter issues pertaining to their institution and users in their institution
-                qs = Issue.objects.filter(institution_id=current_user.institution.id).order_by('-id')
+            qs = rows_accessible(current_user, RESOURCES['ISSUE'])
 
             if resource_id is not None:
                 filter = (
@@ -1184,17 +1109,18 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['GET']))
     def resolve_report(root, info, id, **kwargs):
+        current_user = info.context.user
         report_instance = Report.objects.get(pk=id, active=True)
-        if report_instance is not None:
-            return report_instance
-        else:
-            return None
+        allow_access = is_record_accessible(current_user, RESOURCES['REPORT'], report_instance)
+        if allow_access != True:
+            report_instance = None
+        return report_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['LIST']))
     def resolve_reports(root, info, participant_id=None, course_id=None, institution_id=None, searchField=None, limit=None, offset=None, **kwargs):
-
-        qs = Report.objects.all().filter(active=True).order_by('-completed')
+        current_user = info.context.user
+        qs = rows_accessible(current_user, RESOURCES['REPORT'])
 
         if participant_id is not None:
             filter = (
@@ -1244,12 +1170,9 @@ class Query(ObjectType):
     def resolve_chats(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
 
-        groups = Group.objects.all().filter(
-            Q(members__in=[current_user]) | Q(admins__in=[current_user]), active=True)
+        groups = rows_accessible(current_user, RESOURCES['GROUP'])
 
-        chats = Chat.objects.all().filter(active=True, chat_type='IL')
-        chats = chats.filter(Q(individual_member_one=current_user.id) | Q(
-            individual_member_two=current_user.id))
+        chats = rows_accessible(current_user, RESOURCES['CHAT'])
 
         if offset is not None:
             chats = chats[offset:]
@@ -1295,18 +1218,17 @@ class Query(ObjectType):
 
     @login_required
     def resolve_chat_message(root, info, id, **kwargs):
+        current_user=info.context.user
         chat_message_instance = ChatMessage.objects.get(pk=id, active=True)
-        if chat_message_instance is not None:
-            return chat_message_instance
-        else:
-            return None
+        allow_access = is_record_accessible(current_user, RESOURCES['CHAT_MESSAGE'], chat_message_instance)
+        if allow_access == True:
+            chat_message_instance = None 
+        return chat_message_instance
 
     @login_required
     def resolve_chat_messages(root, info, chat_id=None, searchField=None, limit=None, offset=None, **kwargs):
-        if chat_id is None:
-            qs = ChatMessage.objects.all().filter(active=True).order_by('-id')
-        else:
-            qs = ChatMessage.objects.all().filter(chat=chat_id, active=True).order_by('-id')
+        current_user = info.context.user
+        qs = rows_accessible(current_user, RESOURCES['CHAT_MESSAGE'])
 
         if searchField is not None:
             filter = (
@@ -1332,7 +1254,7 @@ class Query(ObjectType):
         announcements_seen = AnnouncementsSeen.objects.all().filter(user_id=current_user.id)
         announcements_seen_ids = announcements_seen.values_list('announcement_id',flat=True)
 
-        relevant_announcements = AnnouncementType.get_relevant_announcements(current_user)
+        relevant_announcements = rows_accessible(current_user, RESOURCES['ANNOUNCEMENT'])
         announcements=relevant_announcements.filter(~Q(pk__in=announcements_seen_ids)).count()
 
         unread_count = UnreadCount(announcements=announcements, assignments=assignments)
