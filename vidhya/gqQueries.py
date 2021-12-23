@@ -293,10 +293,10 @@ class Query(ObjectType):
         current_user = info.context.user
         institution_instance = Institution.objects.get(pk=id, active=True)
         allow_access = is_record_accessible(current_user, RESOURCES['INSTITUTION'], institution_instance)
-        if allow_access == True:
-            return institution_instance
-        else:
-            return None
+        if allow_access != True:
+            institution_instance = None
+
+        return institution_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
@@ -350,7 +350,7 @@ class Query(ObjectType):
         current_user = info.context.user
         admin_user = is_admin_user(current_user)
 
-        qs = rows_accessible(current_user, RESOURCES['USER'], {'all_institutions': all_institutions})
+        qs = rows_accessible(current_user, RESOURCES['MEMBER'], {'all_institutions': all_institutions})
 
         if searchField is not None:
             filter = (
@@ -479,7 +479,7 @@ class Query(ObjectType):
         current_user = info.context.user
         group_instance = Group.objects.get(pk=id, active=True)
         allow_access = is_record_accessible(current_user, RESOURCES['GROUP'],group_instance)
-        if allow_access:
+        if not allow_access:
             group_instance = None
 
         return group_instance
@@ -532,9 +532,10 @@ class Query(ObjectType):
 
         if allow_access == True:
             current_user.announcements.add(announcement_instance.id) # Marking this announcement as seen by this user
-            return announcement_instance
         else:
-            return None
+            announcement_instance = None
+
+        return announcement_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['LIST']))
@@ -559,10 +560,10 @@ class Query(ObjectType):
         current_user = info.context.user
         project_instance = Project.objects.get(pk=id, active=True)
         allow_access = is_record_accessible(current_user, RESOURCES['PROJECT'], project_instance)
-        if allow_access == True:
-            return project_instance
-        else:
-            return None
+        
+        if allow_access != True:
+            project_instance = None
+        return project_instance
 
     def resolve_projects(root, info, author_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
@@ -683,7 +684,7 @@ class Query(ObjectType):
         except:
             exercise_instance = None
 
-        return None
+        return exercise_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
@@ -720,10 +721,10 @@ class Query(ObjectType):
         exercise_submission_instance = ExerciseSubmission.objects.get(
             pk=id, active=True)
         allow_access = is_record_accessible(current_user, RESOURCES['EXERCISE_SUBMISSION'], exercise_submission_instance)
-        if allow_access==True:
-            return exercise_submission_instance
-        else:
-            return None   
+        if allow_access != True:
+            exercise_submission_instance = None
+
+        return exercise_submission_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['LIST']))
@@ -884,10 +885,10 @@ class Query(ObjectType):
         issue_instance = Issue.objects.get(
             pk=id, active=True)
         allow_access = is_record_accessible(current_user, RESOURCES['ISSUE'], issue_instance)
-        if allow_access == True:
-            return issue_instance
-        else:
-            return None   
+        if allow_access != True:
+            issue_instance = None
+
+        return issue_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['LIST']))
@@ -1111,10 +1112,9 @@ class Query(ObjectType):
         current_user = info.context.user
         report_instance = Report.objects.get(pk=id, active=True)
         allow_access = is_record_accessible(current_user, RESOURCES['REPORT'], report_instance)
-        if allow_access == True:
-            return report_instance
-        else:
-            return None
+        if allow_access != True:
+            report_instance = None
+        return report_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['LIST']))
@@ -1222,9 +1222,8 @@ class Query(ObjectType):
         chat_message_instance = ChatMessage.objects.get(pk=id, active=True)
         allow_access = is_record_accessible(current_user, RESOURCES['CHAT_MESSAGE'], chat_message_instance)
         if allow_access == True:
-            return chat_message_instance
-        else:
-            return None
+            chat_message_instance = None 
+        return chat_message_instance
 
     @login_required
     def resolve_chat_messages(root, info, chat_id=None, searchField=None, limit=None, offset=None, **kwargs):

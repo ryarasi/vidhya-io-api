@@ -246,6 +246,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
             qs = qs.filter(active=False)
         else:
             qs = qs.filter(active=True)
+        print('groups accessible => ', qs)
         return qs
 
     if RESOURCE_TYPE == RESOURCES["PROJECT"]:

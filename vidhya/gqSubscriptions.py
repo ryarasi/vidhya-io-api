@@ -36,7 +36,7 @@ class NotifyUser(channels_graphql_ws.Subscription):
     @staticmethod
     @login_required
     def publish(payload, info):
-        if is_record_accessible(info.context.user, RESOURCES['USER'],payload['user'], payload['method']):
+        if is_record_accessible(info.context.user, RESOURCES['MEMBER'],payload['user'], payload['method']):
             return NotifyUser(user=payload["user"], method=payload["method"])
         else:
             return None        
