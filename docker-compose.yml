@@ -17,11 +17,11 @@ services:
     restart: always
   pg_admin:
     image: dpage/pgadmin4:latest
-    container_name: pgadmin4
+    container_name: vidhya_io_pgadmin4
     ports:
       - "5000:80"
     logging:
-      driver: none      
+      driver: none
     environment:
       - GUNICORN_THREADS=1
       - PGADMIN_DEFAULT_EMAIL=admin@email.com
@@ -32,7 +32,7 @@ services:
   web:
     build: .
     command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
-    container_name: shuddhi
+    container_name: vidhya_io_api
     volumes:
       - .:/shuddhi
     ports:
