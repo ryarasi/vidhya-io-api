@@ -2314,7 +2314,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             if not submission_rubric:
                 # While creating the submission, or if for some reason criteria for submissions don't exist yet, we create new
                 for criterion in exercise_rubric:
-                    criterion_response_instance = CriterionResponse(criterion_id=criterion.id, exercise_id=exercise.id, participant_id=submission.participant.id, score=0)
+                    criterion_response_instance = CriterionResponse(criterion_id=criterion.id, exercise_id=exercise.id, participant_id=submission.participant.id, exercise_submission_id=submission.id, score=0)
                     criterion_response_instance.save()     
             else:
                 # If it exists already, we simply update them.
