@@ -250,7 +250,11 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
 
     if RESOURCE_TYPE == RESOURCES["PROJECT"]:
         qs = Project.objects.all()
-        author_id = options["author_id"]
+        author_id = None
+        try:
+            author_id = options["author_id"]
+        except:
+            pass
         if author_id is not None:
             qs = Project.objects.filter(author_id=author_id)
         if author_id is not user.id:
@@ -490,7 +494,7 @@ def is_record_accessible(user, RESOURCE_TYPE, record=None, subscription_method=N
         return allow_access
 
     if RESOURCE_TYPE == RESOURCES["PROJECT"]:
-        qs = rows_accessible(user, RESOURCE_TYPE, default_options )
+        qs = rows_accessible(user, RESOURCE_TYPE, options )
 
         allow_access = qs = qs.filter(id=record.id).exists()
 
