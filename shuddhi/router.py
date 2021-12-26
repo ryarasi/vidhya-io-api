@@ -48,7 +48,7 @@ application = ProtocolTypeRouter(
         "http": get_asgi_application(),
         "websocket": AllowedHostsOriginValidator(TokenAuthMiddleware(
             URLRouter(
-                [path("graphql/", MyGraphqlWsConsumer.as_asgi())]
+                [path("ws/graphql/", MyGraphqlWsConsumer.as_asgi())]
             )
         )),
     }
