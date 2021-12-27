@@ -25,20 +25,6 @@ services:
     env_file:
       - database.env
     restart: always
-  pg_admin:
-    image: dpage/pgadmin4:latest
-    container_name: vidhya_io_pgadmin4
-    ports:
-      - "5000:80"
-    logging:
-      driver: none
-    environment:
-      - GUNICORN_THREADS=1
-      - PGADMIN_DEFAULT_EMAIL=admin@email.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
-    depends_on:
-      - db
-    restart: "on-failure"
 
   web:
     build: .
