@@ -211,7 +211,7 @@ DATABASES['default'].update(db_from_env)
 # }
 
 
-hosts = [(REDIS_URL, 6379)]
+hosts = [REDIS_URL]
 
 if DEBUG:
     hosts = [('redis', 6379)]
