@@ -10,6 +10,7 @@ services:
     depends_on:
       - web
     restart: "on-failure"
+
   redis:
     image: redis:latest
     ports:
@@ -18,6 +19,7 @@ services:
       - ./config/redis.conf:/redis.conf
     command: ["redis-server", "/redis.conf"]
     restart: "on-failure"
+
   db:
     image: postgres:13
     volumes:
