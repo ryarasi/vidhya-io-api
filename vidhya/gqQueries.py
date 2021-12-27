@@ -732,7 +732,7 @@ class Query(ObjectType):
         if submission_id is not None:
             qs = ExerciseSubmission.objects.all().filter(active=True, pk=submission_id)
         else:
-            qs = ExerciseSubmission.objects.all().filter(active=True).order_by('-id')
+            qs = ExerciseSubmission.objects.all().filter(active=True).order_by('-updated_at')
 
             if exercise_id is not None:
                 filter = (
@@ -794,7 +794,7 @@ class Query(ObjectType):
                 flagged = 0
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
-            unique_exercises = ExerciseSubmission.objects.filter(status=status, active=True).values_list('exercise', flat=True).distinct().order_by()
+            unique_exercises = ExerciseSubmission.objects.filter(status=status, active=True).values_list('exercise', flat=True).distinct().order_by('-updated_at')
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_exercises = unique_exercises.filter(filter)
@@ -825,7 +825,7 @@ class Query(ObjectType):
                         groups.append(card)
         
         if group_by == RESOURCES['CHAPTER']:
-            unique_chapters = ExerciseSubmission.objects.filter(status=status, active=True).values_list('chapter', flat=True).distinct().order_by()
+            unique_chapters = ExerciseSubmission.objects.filter(status=status, active=True).values_list('chapter', flat=True).distinct().order_by('-updated_at')
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_chapters = unique_chapters.filter(filter)                   
@@ -852,7 +852,7 @@ class Query(ObjectType):
                     groups.append(card)        
 
         if group_by == RESOURCES['COURSE']:
-            unique_courses = ExerciseSubmission.objects.filter(status=status, active=True).values_list('course', flat=True).distinct().order_by()         
+            unique_courses = ExerciseSubmission.objects.filter(status=status, active=True).values_list('course', flat=True).distinct().order_by('-updated_at')      
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_courses = unique_courses.filter(filter)                                  
