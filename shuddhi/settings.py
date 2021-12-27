@@ -85,6 +85,7 @@ EMAIL_USE_SSL = ENV_EMAIL_USE_SSL
 DEFAULT_FROM_EMAIL=ENV_DEFAULT_FROM_EMAIL
 
 INSTALLED_APPS = [
+    'channels',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -99,7 +100,6 @@ INSTALLED_APPS = [
     'graphql_auth',
     'rest_framework',
     'django_filters',
-    'channels'
 ]
 
 GRAPHENE = {
