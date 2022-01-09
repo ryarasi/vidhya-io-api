@@ -2295,16 +2295,23 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
 
     # Method checks if the course is completed by the participant and if yes, adds it to the completed courses for the participant
     def markCourseCompleted(course_id, participant):
+        print('Checking in mark courses completed', course_id, participant)
+        course = None
         try:
             course = Course.objects.get(pk=course_id, active=True)
-            if course:
-                report = Report.objects.get(course_id=course_id, participant_id=participant.id, active=True)
-                course_completion_pass = report.completed >= course.pass_completed_percentage
-                course_score_pass = report.percentage >= course.pass_score_percentage
-                if course_completion_pass and course_score_pass: 
-                    participant.courses.add(course_id)
         except:
-            pass      
+            pass    
+        print("Course => ", course)
+        if course:
+            report = Report.objects.get(course_id=course_id, participant_id=participant.id, active=True)
+            print("repot => ", report)
+            course_completion_pass = report.completed >= course.pass_completed_percentage
+            print('report completed => ', report.completed, ' pass completion percentage ', course.pass_completed_percentage)
+            course_score_pass = report.percentage >= course.pass_score_percentage
+            print('report score => ', report.percentage, ' pass score percentage ', course.pass_score_percentage)
+            if course_completion_pass and course_score_pass: 
+                print('adding course as completed!')
+                participant.courses.add(course_id)  
 
     def process_submission_rubric(submission, input_rubric):
         exercise = submission.exercise
