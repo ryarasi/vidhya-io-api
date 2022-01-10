@@ -36,7 +36,10 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-          context: .
+          context: ./
           file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/vidhya-api:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/vidhya-api:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/vidhya-api:buildcache,mode=max
