@@ -5,6 +5,7 @@ services:
     build: ./nginx
     ports:
       - ${PORT}:80
+
     volumes:
       - static-data:/vol/static
     depends_on:
@@ -20,29 +21,17 @@ services:
     command: ["redis-server", "/redis.conf"]
     restart: "on-failure"
 
-  db:
-    image: postgres:13
-    volumes:
-      - ./data/db:/var/lib/postgresql/data
-    env_file:
-      - database.env
-    restart: always
-
   web:
     build: .
-    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:${APP_PORT}"
     container_name: vidhya_io_api
     volumes:
       - .:/shuddhi
     ports:
-      - 8000:8000
-    expose:
-      - 8000
+      - ${APP_PORT}:${APP_PORT}
     depends_on:
-      - db
       - redis
     restart: "on-failure"
 
 volumes:
-  database-data: # named volumes can be managed easier using docker-compose
   static-data:
