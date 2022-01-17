@@ -5,7 +5,6 @@ services:
     build: ./nginx
     ports:
       - ${PORT}:80
-
     volumes:
       - static-data:/vol/static
     depends_on:
@@ -23,12 +22,14 @@ services:
 
   web:
     build: .
-    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:${APP_PORT}"
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     container_name: vidhya_io_api
     volumes:
       - .:/shuddhi
     ports:
-      - ${APP_PORT}:${APP_PORT}
+      - 8000:8000
+    expose:
+      - 8000
     depends_on:
       - redis
     restart: "on-failure"
