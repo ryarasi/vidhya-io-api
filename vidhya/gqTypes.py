@@ -326,6 +326,8 @@ class AnnouncementInput(graphene.InputObjectType):
     title = graphene.String(required=True)
     author_id = graphene.ID(name="author", required=True)
     public = graphene.Boolean()
+    image = graphene.String()
+    blurb = graphene.String()
     message = graphene.String(required=True)
     institution_id = graphene.Int(name="institution", required=True)
     recipients_global = graphene.Boolean()

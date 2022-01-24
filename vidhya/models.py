@@ -209,6 +209,9 @@ class Announcement(models.Model):
     author = models.ForeignKey(
         User, related_name="announcementAuthor", on_delete=models.PROTECT)
     public = models.BooleanField(default=False)
+    image = models.CharField(max_length=250, blank=True,
+                              null=True)
+    blurb = models.CharField(max_length=500, blank=True, null=True)
     message = models.CharField(max_length=2000)
     institution = models.ForeignKey(Institution, on_delete=models.PROTECT)
     recipients_global = models.BooleanField(default=False)

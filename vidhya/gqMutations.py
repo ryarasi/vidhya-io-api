@@ -676,7 +676,7 @@ class CreateAnnouncement(graphene.Mutation):
                 # They can be public only when the creator is an admin user
                 public = True
 
-        announcement_instance = Announcement(title=input.title, author_id=input.author_id, public=public, message=input.message,
+        announcement_instance = Announcement(title=input.title, author_id=input.author_id, public=public, image=input.image, blurb=input.blurb, message=input.message,
                                              institution_id=input.institution_id, recipients_global=input.recipients_global, recipients_institution=input.recipients_institution, searchField=searchField)
         announcement_instance.save()
 
@@ -715,6 +715,9 @@ class UpdateAnnouncement(graphene.Mutation):
         if announcement_instance:
             ok = True
             announcement_instance.title = input.title if input.title is not None else announcement.title
+            announcement_instance.image = input.image if input.image is not None else announcement.image
+            announcement_instance.blurb = input.blurb if input.blurb is not None else announcement.blurb
+            announcement_instance.message = input.message if input.message is not None else announcement.message
             announcement_instance.author_id = input.author if input.author is not None else announcement.author
             announcement_instance.institution_id = input.institution_id if input.institution_id is not None else announcement.institution_id
 
