@@ -221,11 +221,11 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
     if RESOURCE_TYPE == RESOURCES["ANNOUNCEMENT"]:
         admin = is_admin_user(user)
         if admin:
-            qs = Announcement.objects.all().order_by("-id")
+            qs = Announcement.objects.all().filter(public=False, active=True).order_by("-id")
         else:
             groups = rows_accessible(user, RESOURCES["GROUP"])
             
-            qs = Announcement.objects.all().filter(Q(recipients_global=True) | (Q(recipients_institution=True) & Q(institution_id=user.institution_id)) | Q(groups__in=groups)).order_by("-id")
+            qs = Announcement.objects.all().filter(Q(recipients_global=True) | (Q(recipients_institution=True) & Q(institution_id=user.institution_id)) | Q(groups__in=groups), public=False, active=True).order_by("-id")
         
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
