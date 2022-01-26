@@ -9,7 +9,7 @@ from vidhya.models import CompletedChapters, Criterion, CriterionResponse, Issue
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
-from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD
+from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
@@ -635,12 +635,7 @@ class CreateAnnouncement(graphene.Mutation):
     ok = graphene.Boolean()
     announcement = graphene.Field(AnnouncementType)
 
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['CREATE']))
-    def mutate(root, info, input=None):
-        current_user = info.context.user
-        ok = True
+    def validate_announcement(input):
         error = ""
         if input.title is None:
             error += "Title is a required field<br />"
@@ -648,12 +643,21 @@ class CreateAnnouncement(graphene.Mutation):
             error += "Author is a required field<br />"
         if input.message is None:
             error += "Message is a required field<br />"
-        if  not input.recipients_global and not input.recipients_institution and not input.group_ids:
+        if  not input.recipients_global and not input.recipients_institution and not input.group_ids and not input.public:
             error += "Recipients is a required field<br />"
         if input.institution_id is None:
             error += "Institution is a required field<br />"
         if error:
             raise GraphQLError(error)
+
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['CREATE']))
+    def mutate(root, info, input=None):
+        current_user = info.context.user
+        CreateAnnouncement.validate_announcement(input)
+        ok = True
         searchField = input.title
         searchField += input.message if input.message is not None else ""
         searchField = searchField.lower()
@@ -664,8 +668,15 @@ class CreateAnnouncement(graphene.Mutation):
         
         if input.recipients_institution == True:
             input.recipients_global = False
+        
+        public = False # By default all announcements are private
+        if input.public == True:
+            admin_user = is_admin_user(current_user)
+            if admin_user:
+                # They can be public only when the creator is an admin user
+                public = True
 
-        announcement_instance = Announcement(title=input.title, author_id=input.author_id, message=input.message,
+        announcement_instance = Announcement(title=input.title, author_id=input.author_id, public=public, image=input.image, blurb=input.blurb, message=input.message,
                                              institution_id=input.institution_id, recipients_global=input.recipients_global, recipients_institution=input.recipients_institution, searchField=searchField)
         announcement_instance.save()
 
@@ -697,14 +708,28 @@ class UpdateAnnouncement(graphene.Mutation):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['UPDATE']))
     def mutate(root, info, id, input=None):
+        CreateAnnouncement.validate_announcement(input)
         ok = False
         announcement = Announcement.objects.get(pk=id, active=True)
         announcement_instance = announcement
         if announcement_instance:
             ok = True
             announcement_instance.title = input.title if input.title is not None else announcement.title
+            announcement_instance.image = input.image if input.image is not None else announcement.image
+            announcement_instance.blurb = input.blurb if input.blurb is not None else announcement.blurb
+            announcement_instance.message = input.message if input.message is not None else announcement.message
             announcement_instance.author_id = input.author if input.author is not None else announcement.author
             announcement_instance.institution_id = input.institution_id if input.institution_id is not None else announcement.institution_id
+
+            public = False # By default all announcements are private
+            if input.public == True:
+                admin_user = is_admin_user(info.context.user)
+                if admin_user:
+                    # They can be public only when the creator is an admin user
+                    public = True
+
+            announcement_instance.public = public
+
 
             searchField = input.title
             searchField += input.message if input.message is not None else ""

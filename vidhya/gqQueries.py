@@ -143,6 +143,10 @@ class Query(ObjectType):
 
     public_institution = graphene.Field(PublicInstitutionType, code=graphene.String())
     public_institutions = graphene.Field(PublicInstitutions, searchField=graphene.String(), limit = graphene.Int(), offset = graphene.Int())
+   
+    public_announcement = graphene.Field(AnnouncementType, id=graphene.ID())
+    public_announcements = graphene.List(
+        AnnouncementType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     # Auth Queries
     institution_by_invitecode = graphene.Field(
@@ -555,6 +559,29 @@ class Query(ObjectType):
             qs = qs[:limit]
         return qs
 
+    def resolve_public_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        qs = Announcement.objects.all().filter(public=True, active=True).order_by("-created_at")
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField.lower())
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+        return qs
+
+    def resolve_public_announcement(root, info, id, **kwargs):
+        announcement_instance = None
+        try:
+            announcement_instance = Announcement.objects.get(pk=id, public=True, active=True)
+        except:
+            raise GraphQLError("The record you're looking for doesn't exist")
+        return announcement_instance
 
     def resolve_project(root, info, id, **kwargs):
         current_user = info.context.user
