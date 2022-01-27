@@ -535,10 +535,11 @@ class Query(ObjectType):
         allow_access = is_record_accessible(current_user, RESOURCES['ANNOUNCEMENT'], announcement_instance)        
 
         if allow_access == True:
+            announcement_instance.views += 1;
+            announcement_instance.save()
             current_user.announcements.add(announcement_instance.id) # Marking this announcement as seen by this user
         else:
             announcement_instance = None
-
         return announcement_instance
 
     @login_required
@@ -581,6 +582,8 @@ class Query(ObjectType):
             announcement_instance = Announcement.objects.get(pk=id, public=True, active=True)
         except:
             raise GraphQLError("The record you're looking for doesn't exist")
+        announcement_instance.views += 1;
+        announcement_instance.save()
         return announcement_instance
 
     def resolve_project(root, info, id, **kwargs):

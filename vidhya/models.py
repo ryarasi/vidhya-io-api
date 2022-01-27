@@ -209,6 +209,7 @@ class Announcement(models.Model):
     author = models.ForeignKey(
         User, related_name="announcementAuthor", on_delete=models.PROTECT)
     public = models.BooleanField(default=False)
+    views = models.IntegerField(default=0)
     image = models.CharField(max_length=250, blank=True,
                               null=True)
     blurb = models.CharField(max_length=500, blank=True, null=True)
