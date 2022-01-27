@@ -704,6 +704,11 @@ class UpdateAnnouncement(graphene.Mutation):
     ok = graphene.Boolean()
     announcement = graphene.Field(AnnouncementType)
 
+    def increment_views(id):
+        announcement_instance = Announcement.objects.get(pk=id, active=True)
+        announcement_instance.views = announcement_instance.views + 1;
+        announcement_instance.save()
+
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['UPDATE']))
