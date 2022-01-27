@@ -7,7 +7,7 @@ from django.db.models import Q
 from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
 from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible
 from graphql import GraphQLError
-
+from .gqMutations import UpdateAnnouncement
 
 def generate_public_institution(institution):
     learnerCount = 0
@@ -535,8 +535,7 @@ class Query(ObjectType):
         allow_access = is_record_accessible(current_user, RESOURCES['ANNOUNCEMENT'], announcement_instance)        
 
         if allow_access == True:
-            announcement_instance.views += 1;
-            announcement_instance.save()
+            UpdateAnnouncement.increment_views(id)
             current_user.announcements.add(announcement_instance.id) # Marking this announcement as seen by this user
         else:
             announcement_instance = None
@@ -582,8 +581,7 @@ class Query(ObjectType):
             announcement_instance = Announcement.objects.get(pk=id, public=True, active=True)
         except:
             raise GraphQLError("The record you're looking for doesn't exist")
-        announcement_instance.views += 1;
-        announcement_instance.save()
+        UpdateAnnouncement.increment_views(id)
         return announcement_instance
 
     def resolve_project(root, info, id, **kwargs):
