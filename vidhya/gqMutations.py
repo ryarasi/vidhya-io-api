@@ -176,13 +176,14 @@ class AddInvitecode(graphene.Mutation):
         try:
             institution = Institution.objects.get(invitecode=invitecode, active=True)
             user = User.objects.get(email=email, active=True)
+            if user and institution:
+                ok = True
+                user.institution_id = institution.id
+                user.save()            
         except:
             raise GraphQLError(
                 "There was an error in your registration. Please contact the admin.")
-        if user and institution:
-            ok = True
-            user.institution_id = institution.id
-            user.save()
+
         return AddInvitecode(ok=ok)
 
 
