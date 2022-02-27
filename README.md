@@ -17,6 +17,12 @@ The following instructions assumes that you are attempting to setup the project 
 2. [Setup Docker Compose](https://docs.docker.com/compose/install/)
 3. [Setup Python](https://www.python.org/downloads/)
 
+## Starting Project
+
+1. Ensure that you are in the `dev` branch.
+2. cd into the api repo.
+3. Execute `npm start`
+
 ## Project recreation instructions
 
 1. Create a new folder for the project and copy over the following files from this reop:-
