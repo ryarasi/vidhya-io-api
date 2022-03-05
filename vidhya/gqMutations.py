@@ -5,7 +5,7 @@ from typing import final
 from django.db.models.query_utils import Q
 import graphene
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, Criterion, CriterionResponse, Issue, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, Criterion, CriterionResponse, EmailOTP, Issue, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
@@ -13,7 +13,7 @@ from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, 
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
-
+from common.utils import random_number_with_N_digits
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -141,7 +141,7 @@ class DeleteInstitution(graphene.Mutation):
 
 class VerifyInvitecode(graphene.Mutation):
     class Meta:
-        descriptioin = "Mutation to add the invitecode that the user used to register"
+        description = "Mutation to add the invitecode that the user used to register"
 
     class Arguments:
         invitecode = graphene.String(required=True)
@@ -159,6 +159,104 @@ class VerifyInvitecode(graphene.Mutation):
         else:
             return VerifyInvitecode(ok=ok)
 
+class GenerateEmailOTP(graphene.Mutation):
+    class Meta:
+        description = "Mutation to generate email OTP and save it to the database"
+
+    class Arguments:
+        email = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def check_email_verified(email=None):
+        email_verified = False # Variable to check whether the provided email is already verified        
+        try:
+            # Checking whether the email has been veriied previously, by searching or a record with the same email and 'True' in verified column
+            verified_email = EmailOTP.objects.get(email=email, verified=True).exists()
+            # if the record exists, we mark the verified_email field as true
+            if verified_email:
+                email_verified=True
+        except:
+            pass
+    
+        return email_verified
+
+    @staticmethod
+    def check_if_email_otp_exists(email=None):
+        email_otp = False
+        try:
+            email_otp = EmailOTP.objects.get(email=email)
+        except:
+            pass
+        return email_otp
+
+    @staticmethod
+    def send_email_otp(email):
+        email_otp = EmailOTP.objects.get(email=email)
+        send_mail(
+            'Your email verification code',
+            'Dear user,\n\nThe code for verifying your email ID is as follows\n\n' + email_otp.otp + '\n\nPlease do not reply to this email.',
+            settings.DEFAULT_FROM_EMAIL,
+            [email_otp.email],
+            fail_silently=False,
+        )
+
+    @staticmethod
+    def mutate(root, info, email=None):
+        ok = False
+        if email is None:
+            ok = False
+        else:
+            email_verified = GenerateEmailOTP.check_email_verified()
+
+            # If the email was previously verified, we simply mark ok as true and return the result to the user
+            if email_verified:
+                ok = True
+                
+            else:
+                email_otp = GenerateEmailOTP.check_if_email_otp_exists(email)
+                if email_otp:
+                    # If a record with the email ID already exists, we regenerate the OTP for the email
+                    def generate_otp():
+                        return random_number_with_N_digits(10)
+                    email_otp.otp = generate_otp()
+                else:
+                    # If record with email doesn't already exist, then we create a new record
+                    email_otp = EmailOTP(email=email)
+                email_otp.save()
+                # Once the record is saved, we send the OTP to the email ID
+                GenerateEmailOTP.send_email_otp(email)
+            
+                ok = True        
+
+        return GenerateEmailOTP(ok=ok)
+
+class VerifyEmailOTP(graphene.Mutation):
+    class Meta:
+        description = "Mutation to verify the OTP sent to their email"
+
+    class Arguments:
+        email = graphene.String(required=True)
+        otp = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, email=None, otp=None):
+        ok = False
+        record = None
+        if email and otp:
+            try:
+                record = EmailOTP.objects.get(email=email,
+                    otp=otp)
+            except:
+               pass
+            if record:
+                record.verified = True
+                record.save()
+                ok = True
+        return VerifyEmailOTP(ok=ok)                
 
 class AddInvitecode(graphene.Mutation):
     class Meta:
@@ -3128,6 +3226,8 @@ class Mutation(graphene.ObjectType):
 
     add_invitecode = AddInvitecode.Field()
     verify_invitecode = VerifyInvitecode.Field()
+    generate_email_otp = GenerateEmailOTP.Field()
+    verify_email_otp = VerifyEmailOTP.Field()
 
     # create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
