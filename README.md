@@ -6,7 +6,7 @@ This repo contains the Django-based Graphql API for the Vidhya.io app. This READ
 
 - Python 3.8.5
 - pip 20.0.2 (Python 3.8)
-- PostgreSQL 14.2
+- PostgreSQL 12
 - Docker 20.10.6, build 370c289
 - Docker Compose 1.29.1, build c34c88b2
 
@@ -23,7 +23,7 @@ The following instructions assumes that you are attempting to setup the project 
 
 1. Ensure that you are in the `dev` branch.
 2. cd into the api repo.
-3. Create a file called `.env` and copy the contents of the `sample.env` and fill it up with appropriate info.
+3. Duplicate the `sample.env` file and rename it to `.env`
 4. Setup the database with these commands
    1. In the terminal execute `psql -U postgres` to enter psql.
    2. `CREATE DATABASE shuddhidb;`
