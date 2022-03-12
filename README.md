@@ -34,13 +34,15 @@ The following instructions assumes that you are attempting to setup the project 
    7. `GRANT ALL PRIVILEGES ON DATABASE shuddhidb TO shuddhiadmin;`
    8. `\q`
    9. `exit`
-5. Execute `npm start` to start the project inside docker
-6. If this is the first time you are running the project, do the following:-
-   1. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
+5. If this is the first time you are running the project, do the following:-
+   1. Run `npm run build`
+   2. Run `npm run start`
+   3. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser` in a new terminal window
       1. Choose your username and password.
       2. Now you can go to `localhost:8000/admin` to log into the console
-   2. Run migrations with `npm run makemigrations` and then `npm run migrate`
-   3. Populate the database using fixtures by executing this `docker-compose run web python manage.py loaddata ./vidhya/fixtures/initial_data.json`.
+   4. Run migrations with `npm run makemigrations` and then `npm run migrate`
+   5. Populate the database using fixtures by executing this `docker-compose run web python manage.py loaddata ./vidhya/fixtures/initial_data.json`.
+6. If this is not the first time, then you can simply execute `npm start` to start the project inside docker
 
 ## Project recreation instructions
 
