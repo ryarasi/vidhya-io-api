@@ -6,6 +6,7 @@ This repo contains the Django-based Graphql API for the Vidhya.io app. This READ
 
 - Python 3.8.5
 - pip 20.0.2 (Python 3.8)
+- PostgreSQL 14.2
 - Docker 20.10.6, build 370c289
 - Docker Compose 1.29.1, build c34c88b2
 
@@ -16,8 +17,34 @@ The following instructions assumes that you are attempting to setup the project 
 1. [Setup Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 2. [Setup Docker Compose](https://docs.docker.com/compose/install/)
 3. [Setup Python](https://www.python.org/downloads/)
+4. [Setup PostgreSQL](https://www.postgresql.org/download/)
+
+## Starting Project
+
+1. Ensure that you are in the `dev` branch.
+2. cd into the api repo.
+3. Create a file called `.env` and copy the contents of the `sample.env` and fill it up with appropriate info.
+4. Setup the database with these commands
+   1. In the terminal execute `psql -U postgres` to enter psql.
+   2. `CREATE DATABASE shuddhidb;`
+   3. `CREATE USER shuddhiadmin WITH PASSWORD 'password';`
+   4. `ALTER ROLE shuddhiadmin SET client_encoding TO 'utf8';`
+   5. `ALTER ROLE shuddhiadmin SET default_transaction_isolation TO 'read committed';`
+   6. `ALTER ROLE shuddhiadmin SET timezone TO 'UTC';`
+   7. `GRANT ALL PRIVILEGES ON DATABASE shuddhidb TO shuddhiadmin;`
+   8. `\q`
+   9. `exit`
+5. Execute `npm start` to start the project inside docker
+6. If this is the first time you are running the project, do the following:-
+   1. Create an administrative user for the project with `docker-compose run web python manage.py createsuperuser`
+      1. Choose your username and password.
+      2. Now you can go to `localhost:8000/admin` to log into the console
+   2. Run migrations with `npm run makemigrations` and then `npm run migrate`
+   3. Populate the database using fixtures by executing this `docker-compose run web python manage.py loaddata ./vidhya/fixtures/initial_data.json`.
 
 ## Project recreation instructions
+
+The instructions are helpful if you wish to recreate this project from the scratch. Not needed if you wish to just run the project locally.
 
 1. Create a new folder for the project and copy over the following files from this reop:-
    1. `.gitignore`
@@ -55,20 +82,28 @@ The following instructions assumes that you are attempting to setup the project 
 
 ```
 DJANGO_SECRET_KEY='django-insecure-)3@2sm6lgn_p83_t(l-44hd16ou5-qbk=rso!$b1#$fu*n2^rq'
+ENABLED_AUTOMATED_TESTING=true
 DJANGO_DEBUG=true
 DJANGO_ALLOWED_HOSTS=localhost,0.0.0.0
 DJANGO_CORS_ORIGIN_ALLOW_ALL=true
+REDIS_URL="Needs to be set on Redis to go on heroku"
 FRONTEND_DOMAIN_URL=localhost:4200
-SENDGRID_API_KEY="Needs to be set on Heroku to be able to send emails in production"
-FROM_EMAIL_ID=ragav.code@gmail.com
-REDIS_URL="Needs to be set on Heroku to use Redis add-on "
+ENV_DEFAULT_FROM_EMAIL=mail@email.com
+ENV_EMAIL_HOST_USER=11b14065118c386fee370e61df2c748e
+ENV_EMAIL_HOST_PASSWORD=fffdbe9cdd900098103c4efae521db75
+ENV_EMAIL_PORT=587
+ENV_EMAIL_USE_TLS=true
+ENV_EMAIL_USE_SSL=false
+PORT=8080
+APP_PORT=8001
 ```
 
 11. Create your superuser in django (different from the db user created above) that will be used for the admin console in the backend with `docker-compose run web python manage.py createsuperuser` and follow prompts to setup username and password. You can use the credentials to login to the admin console at `http://localhost:8000/admin/login/`.
 12. Test setup type in the following commands:-
-    1. Start the postgres docker container with `docker start shuddhi-db` 1. If this says that ports are already in use, then shut down postgres and try again `sudo service postgresql stop`
-    2. Once the postgres container is up and running, start the docker for the project with `docker-compose up`
-    3. Visit `localhost:8000` or `localhost:8000/graphql` to check if setup has worked.
+    1. Start the postgres docker container with `docker start shuddhi-db`
+    2. If this says that ports are already in use, then shut down postgres and try again `sudo service postgresql stop`
+    3. Once the postgres container is up and running, start the docker for the project with `docker-compose up`
+    4. Visit `localhost:8000` or `localhost:8000/graphql` to check if setup has worked.
 13. In order to run `makemigrations` and `migrate` commands on the project, we must now do it inside the docker container by adding `docker-compose run web` before whichever command you wish to execute on the project. Eg `docker-compose run web python manage.py migrate`
 
 ## Docker adaptations of regular Django commands:-
