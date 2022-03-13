@@ -1,6 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db.models.deletion import PROTECT
-from common.utils import random_number_with_N_digits
+from common.utils import random_number_with_N_digits, generate_otp
 from django.core.validators import MaxValueValidator, MinLengthValidator, MinValueValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -62,6 +62,16 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.name}' 
+
+class EmailOTP(models.Model):
+    email = LowercaseEmailField(blank=False, max_length=255)
+    def generate_otp():
+        return generate_otp()
+    otp = models.CharField(max_length=10, validators=[
+                                  MinLengthValidator(10)], unique=True, default=generate_otp)
+    verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 class CompletedChapters(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
