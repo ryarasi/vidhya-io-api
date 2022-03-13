@@ -13,7 +13,7 @@ from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, 
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
-from common.utils import random_number_with_N_digits
+from common.utils import generate_otp
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -188,7 +188,7 @@ class GenerateEmailOTP(graphene.Mutation):
         try:
             email_otp = EmailOTP.objects.get(email=email)
         except:
-            pass
+            email_otp = EmailOTP(email=email)
         return email_otp
 
     @staticmethod
@@ -216,14 +216,7 @@ class GenerateEmailOTP(graphene.Mutation):
                 
             else:
                 email_otp = GenerateEmailOTP.check_if_email_otp_exists(email)
-                if email_otp:
-                    # If a record with the email ID already exists, we regenerate the OTP for the email
-                    def generate_otp():
-                        return random_number_with_N_digits(10)
-                    email_otp.otp = generate_otp()
-                else:
-                    # If record with email doesn't already exist, then we create a new record
-                    email_otp = EmailOTP(email=email)
+                email_otp.otp = generate_otp()
                 email_otp.save()
                 # Once the record is saved, we send the OTP to the email ID
                 GenerateEmailOTP.send_email_otp(email)
@@ -269,6 +262,10 @@ class AddInvitecode(graphene.Mutation):
     ok = graphene.Boolean()
 
     @staticmethod
+    def removeEmailOtpRecord(email=None):
+        EmailOTP.objects.filter(email=email).delete()
+
+    @staticmethod
     def mutate(root, info, invitecode, email, input=None):
         ok = False
         try:
@@ -277,7 +274,8 @@ class AddInvitecode(graphene.Mutation):
             if user and institution:
                 ok = True
                 user.institution_id = institution.id
-                user.save()            
+                user.save()
+                AddInvitecode.removeEmailOtpRecord();
         except:
             raise GraphQLError(
                 "There was an error in your registration. Please contact the admin.")
