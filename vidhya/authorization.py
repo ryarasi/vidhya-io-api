@@ -134,7 +134,7 @@ def is_chapter_locked(user, chapter):
     course_locked = is_course_locked(user, chapter.course) # Checking if this belongs to a course that is locked
     if course_locked:
         # If the course is locked, we immediately return locked is true
-        locked = 'This course is locked for you'
+        locked = 'This chapter is locked for you'
         return locked
 
     # If the course is unlocked we 
@@ -147,7 +147,7 @@ def is_chapter_locked(user, chapter):
         if id not in completed_chapter_ids:
             pending_chapter_ids.append(id)
     if pending_chapter_ids:
-        locked = 'To participate in this course, you must have completed '
+        locked = 'To view this chapter, you must have completed '
         pending_chapters_list = ''
         for id in pending_chapter_ids:
             try:
