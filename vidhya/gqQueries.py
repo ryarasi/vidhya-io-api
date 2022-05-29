@@ -8,6 +8,7 @@ from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmis
 from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
+from django.core.cache import cache
 
 def generate_public_institution(institution):
     learnerCount = 0
@@ -560,6 +561,15 @@ class Query(ObjectType):
         return qs
 
     def resolve_public_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        def generate_cache_key(item='public_announcements', searchField=searchField, limit=limit, offset=offset):
+            return 'item'+item+'searchField'+searchField+'-'+limit+'-'+offset
+
+        cache_key = generate_cache_key('public_announcements',searchField,limit,offset)
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         qs = Announcement.objects.all().filter(public=True, active=True).order_by("-created_at")
 
         if searchField is not None:
@@ -573,6 +583,9 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+            
+        cache.set(cache_key, qs)            
+
         return qs
 
     def resolve_public_announcement(root, info, id, **kwargs):
