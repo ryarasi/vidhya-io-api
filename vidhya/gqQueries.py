@@ -561,11 +561,15 @@ class Query(ObjectType):
         return qs
 
     def resolve_public_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        print('Resolving public announcements...')
         def generate_cache_key(item='public_announcements', searchField=searchField, limit=limit, offset=offset):
-            return 'item'+item+'searchField'+searchField+'-'+limit+'-'+offset
+            cache_key = 'item'+item+'searchField'+str(searchField)+'-'+str(limit)+'-'+str(offset)
+            print('cache_key => ', cache_key)
+            return cache_key
 
         cache_key = generate_cache_key('public_announcements',searchField,limit,offset)
         cached_response = cache.get(cache_key)
+        print('cached_response => ', cached_response)
 
         if cached_response:
             return cached_response
@@ -584,7 +588,8 @@ class Query(ObjectType):
         if limit is not None:
             qs = qs[:limit]
             
-        cache.set(cache_key, qs)            
+        cache.set(cache_key, qs)
+        print('final cache', cache)
 
         return qs
 
