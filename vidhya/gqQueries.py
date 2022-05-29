@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AnonymousUser
+from jmespath import search
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
@@ -9,6 +10,7 @@ from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_ad
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
+from .cache import generate_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_projects_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_specific_cache_key, generate_users_cache_key
 
 def generate_public_institution(institution):
     learnerCount = 0
@@ -256,6 +258,13 @@ class Query(ObjectType):
 
     def resolve_public_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
+        cache_key = generate_cache_key('public_institutions', searchField, limit, offset)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         qs = Institution.objects.all().filter(public=True, active=True).order_by('-id')  
 
         if searchField is not None:
@@ -281,6 +290,9 @@ class Query(ObjectType):
         public_institutions.sort(key=lambda x: x.score, reverse=True) # Sorting the results by score before proceeding with pagination        
 
         results = PublicInstitutions(records=public_institutions, total=total)
+
+        cache.set(cache_key, results)
+
         return results            
 
     @login_required
@@ -306,6 +318,14 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
     def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
+
+        cache_key = generate_cache_key('institutions', searchField, limit, offset)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+        
         current_user = info.context.user
         qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
 
@@ -324,6 +344,9 @@ class Query(ObjectType):
             qs = qs[:limit]
         
         results = Institutions(records=qs, total=total)
+
+        cache.set(cache_key, results)
+
         return results
 
     @login_required
@@ -352,6 +375,7 @@ class Query(ObjectType):
             return None
 
     def process_users(root, info, searchField=None, all_institutions=False, membership_status_not=[], membership_status_is=[], roles=[], unpaginated = False, limit=None, offset=None, **kwargs):
+
         current_user = info.context.user
         admin_user = is_admin_user(current_user)
 
@@ -408,16 +432,36 @@ class Query(ObjectType):
             sorted_qs = sorted_qs[:limit]
         
         results = Users(records=sorted_qs, total=total)
+
         return results
 
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
+        
+        cache_key = generate_users_cache_key('users', searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset)
+
+        cached_response = cache.get(cache_key)
+        
+        if cached_response:
+            return cached_response
+
         all_institutions=False
         unpaginated = False
         qs = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset, **kwargs)
+
+        cache.set(cache_key, qs)
+
         return qs
 
     def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):   
+        
+        cache_key = generate_users_cache_key('public_users', searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset)
+
+        cached_response = cache.get(cache_key)
+        
+        if cached_response:
+            return cached_response
+
         all_institutions=True
         unpaginated = True        
         results = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset, **kwargs)
@@ -444,6 +488,9 @@ class Query(ObjectType):
         if limit is not None:
             public_users = public_users[:limit]
         results = PublicUsers(records=public_users, total=total)
+
+        cache.set(cache_key, results)
+
         return results
 
     @login_required
@@ -458,6 +505,13 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['LIST']))
     def resolve_user_roles(root, info, searchField=None, limit=None, offset=None, **kwargs):
+
+        cache_key = generate_cache_key('user_roles', searchField, limit, offset)
+
+        cached_response = cache.get(cache_key)
+        if cached_response:
+            return cached_response
+
         current_user = info.context.user
         qs = rows_accessible(current_user, RESOURCES['USER_ROLE'])
 
@@ -476,6 +530,9 @@ class Query(ObjectType):
             qs = qs[:limit]
         
         results = UserRoles(records=qs, total=total)
+
+        cache.set(cache_key, results)
+
         return results
 
     @login_required
@@ -493,6 +550,14 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['LIST']))
     def resolve_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
+
+        cache_key = generate_user_specific_cache_key('groups',searchField,limit,offset,current_user)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         qs = rows_accessible(current_user, RESOURCES['GROUP'])
 
         if searchField is not None:
@@ -506,12 +571,23 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+
+        cache.set(cache_key, qs)
+
         return qs
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['GROUP'], ACTIONS['LIST']))
     def resolve_admin_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
+
+        cache_key = generate_user_specific_cache_key('admin_groups', searchField, limit, offset, current_user)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         qs = Group.objects.all().filter(
              Q(admins__in=[current_user]), active=True).distinct().order_by('-id')
 
@@ -526,6 +602,9 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+
+        cache.set(cache_key, qs)
+
         return qs
 
     @login_required
@@ -545,8 +624,17 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['LIST']))
     def resolve_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
+
+        cache_key = generate_cache_key('announcements', searchField, limit, offset)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         current_user = info.context.user
         qs = rows_accessible(current_user, RESOURCES['ANNOUNCEMENT'])
+
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -558,18 +646,16 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+
+        cache.set(cache_key, qs)
+
         return qs
 
     def resolve_public_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
-        print('Resolving public announcements...')
-        def generate_cache_key(item='public_announcements', searchField=searchField, limit=limit, offset=offset):
-            cache_key = 'item'+item+'searchField'+str(searchField)+'-'+str(limit)+'-'+str(offset)
-            print('cache_key => ', cache_key)
-            return cache_key
 
         cache_key = generate_cache_key('public_announcements',searchField,limit,offset)
+
         cached_response = cache.get(cache_key)
-        print('cached_response => ', cached_response)
 
         if cached_response:
             return cached_response
@@ -589,7 +675,6 @@ class Query(ObjectType):
             qs = qs[:limit]
             
         cache.set(cache_key, qs)
-        print('final cache', cache)
 
         return qs
 
@@ -613,6 +698,15 @@ class Query(ObjectType):
 
     def resolve_projects(root, info, author_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
+
+        cache_key = generate_projects_cache_key('projects', searchField, limit, offset, author_id, current_user)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
+
         qs = rows_accessible(current_user, RESOURCES['PROJECT'], {'author_id': author_id})
         if searchField is not None:
             filter = (
@@ -625,6 +719,9 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+        
+        cache.set(cache_key, qs)
+
         return qs
 
     @login_required
@@ -642,7 +739,16 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
+        
         current_user = info.context.user
+
+        cache_key = generate_user_specific_cache_key('courses', searchField, limit, offset, current_user)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         qs = rows_accessible(current_user, RESOURCES['COURSE'])
         if searchField is not None:
             filter = (
@@ -655,6 +761,8 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+
+        cache.set(cache_key, qs)
 
         return qs
 
@@ -702,6 +810,14 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_chapters(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
+
+        cache_key = generate_courses_cache_key('chapters', searchField, limit, offset, course_id, current_user)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         qs = rows_accessible(current_user, RESOURCES['CHAPTER'], {'course_id': course_id})
 
         if searchField is not None:
@@ -715,6 +831,8 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+
+        cache.set(cache_key, qs)
 
         return qs
 
@@ -736,6 +854,13 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_exercises(root, info, chapter_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
+
+        cache_key = generate_exercises_cache_key('exercises', searchField, limit, offset, chapter_id, current_user)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
     
         if chapter_id is not None:
             qs = rows_accessible(current_user, RESOURCES['EXERCISE'], {'chapter_id': chapter_id})
@@ -755,9 +880,15 @@ class Query(ObjectType):
             if limit is not None:
                 qs = qs[:limit]
                 submissions = submissions[:limit]
+            
+            result = ExerciseAndSubmissionType(exercises=qs, submissions=submissions)
 
-            return ExerciseAndSubmissionType(exercises=qs, submissions=submissions)
-        return None
+        else:
+            result = None
+
+        cache.set(cache_key, result)
+
+        return result
 
 
     @login_required
@@ -775,6 +906,14 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_SUBMISSION'], ACTIONS['LIST']))
     def resolve_exercise_submissions(root, info, exercise_id=None, chapter_id=None, course_id=None, participant_id=None, submission_id=None, status=None, flagged=None, searchField=None, limit=None, offset=None, **kwargs):
+
+        cache_key = generate_submissions_cache_key('exercise_submissions', searchField, limit, offset, exercise_id, chapter_id, course_id, participant_id, submission_id, status, flagged)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         if submission_id is not None:
             qs = ExerciseSubmission.objects.all().filter(active=True, pk=submission_id)
         else:
@@ -828,12 +967,22 @@ class Query(ObjectType):
             if limit is not None:
                 qs = qs[:limit]
 
+        cache.set(cache_key, qs)
+
         return qs
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
     def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField=None, flagged=None, limit=None, offset=None, **kwargs):
         groups = [] 
+
+        cache_key = generate_submission_groups_cache_key('exercise_submission_groups', searchField, limit, offset, group_by, status, flagged)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
 
         if flagged is not None:
             if flagged == False:
@@ -922,6 +1071,8 @@ class Query(ObjectType):
         if limit is not None:
             groups = groups[:limit]
 
+        cache.set(cache_key, groups)
+
         return groups   
 
     @login_required
@@ -940,6 +1091,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['LIST']))
     def resolve_issues(root, info, resource_id=None, resource_type=None, link=None, reporter_id=None, issue_id=None, status=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
+
         if issue_id is not None:
             qs = Issue.objects.all().filter(active=True, pk=issue_id)
         else:
@@ -1038,6 +1190,13 @@ class Query(ObjectType):
 
         current_user = info.context.user
 
+        cache_key = generate_user_specific_cache_key('assignments', limit, offset, status, current_user)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         courses = Course.objects.filter(participants__in=[current_user.id], active=True)
 
         course_ids = courses.values_list('id')
@@ -1101,7 +1260,8 @@ class Query(ObjectType):
         if limit is not None:
             assignments = assignments[:limit]
 
-       
+        cache.set(cache_key, assignments)
+
         return assignments   
 
     @login_required
@@ -1117,6 +1277,14 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['EXERCISE_KEY'], ACTIONS['LIST']))
     def resolve_exercise_keys(root, info, exercise_id=None, chapter_id=None, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
+
+        cache_key = generate_exercise_keys_cache_key('exercise_keys', searchField, limit, offset, exercise_id, chapter_id, course_id)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         qs = ExerciseKey.objects.all().filter(active=True).order_by('id')
 
         if exercise_id is not None:
@@ -1150,6 +1318,8 @@ class Query(ObjectType):
         if limit is not None:
             qs = qs[:limit]
 
+        cache.set(cache_key, qs)
+
         return qs
 
     @login_required
@@ -1166,6 +1336,14 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['REPORT'], ACTIONS['LIST']))
     def resolve_reports(root, info, participant_id=None, course_id=None, institution_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
+
+        cache_key = generate_reports_cache_key('reports', searchField, limit, offset, participant_id, course_id, institution_id, current_user)
+
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return cached_response
+
         qs = rows_accessible(current_user, RESOURCES['REPORT'])
 
         if participant_id is not None:
@@ -1201,7 +1379,10 @@ class Query(ObjectType):
         if limit is not None:
             qs = qs[:limit]
 
-        result = Reports(records= qs,total= total )
+        result = Reports(records= qs,total= total)
+
+        cache.set(cache_key, result)
+        
         return result
 
     @login_required
