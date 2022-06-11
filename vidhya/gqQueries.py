@@ -10,7 +10,7 @@ from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_ad
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
-from .cache import generate_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_projects_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_specific_cache_key, generate_users_cache_key
+from .cache import generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_institutions_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key
 
 def generate_public_institution(institution):
     learnerCount = 0
@@ -258,7 +258,7 @@ class Query(ObjectType):
 
     def resolve_public_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
-        cache_key = generate_cache_key('public_institutions', searchField, limit, offset)
+        cache_key = generate_public_institutions_cache_key(searchField, limit, offset)
 
         cached_response = cache.get(cache_key)
 
@@ -319,7 +319,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
     def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
-        cache_key = generate_cache_key('institutions', searchField, limit, offset)
+        cache_key = generate_institutions_cache_key(searchField, limit, offset)
 
         cached_response = cache.get(cache_key)
 
@@ -506,7 +506,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['LIST']))
     def resolve_user_roles(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
-        cache_key = generate_cache_key('user_roles', searchField, limit, offset)
+        cache_key = generate_user_roles_cache_key(searchField, limit, offset)
 
         cached_response = cache.get(cache_key)
         if cached_response:
@@ -551,7 +551,7 @@ class Query(ObjectType):
     def resolve_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
 
-        cache_key = generate_user_specific_cache_key('groups',searchField,limit,offset,current_user)
+        cache_key = generate_groups_cache_key(searchField,limit,offset,current_user)
 
         cached_response = cache.get(cache_key)
 
@@ -581,7 +581,7 @@ class Query(ObjectType):
     def resolve_admin_groups(root, info, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
 
-        cache_key = generate_user_specific_cache_key('admin_groups', searchField, limit, offset, current_user)
+        cache_key = generate_admin_groups_cache_key(searchField, limit, offset, current_user)
 
         cached_response = cache.get(cache_key)
 
@@ -625,7 +625,7 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['LIST']))
     def resolve_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
-        cache_key = generate_cache_key('announcements', searchField, limit, offset)
+        cache_key = generate_announcements_cache_key(searchField, limit, offset, current_user)
 
         cached_response = cache.get(cache_key)
 
@@ -653,7 +653,7 @@ class Query(ObjectType):
 
     def resolve_public_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
-        cache_key = generate_cache_key('public_announcements',searchField,limit,offset)
+        cache_key = generate_public_announcements_cache_key(searchField,limit,offset)
 
         cached_response = cache.get(cache_key)
 
@@ -742,7 +742,7 @@ class Query(ObjectType):
         
         current_user = info.context.user
 
-        cache_key = generate_user_specific_cache_key('courses', searchField, limit, offset, current_user)
+        cache_key = generate_courses_cache_key(searchField, limit, offset, current_user)
 
         cached_response = cache.get(cache_key)
 
@@ -811,7 +811,7 @@ class Query(ObjectType):
     def resolve_chapters(root, info, course_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
 
-        cache_key = generate_courses_cache_key('chapters', searchField, limit, offset, course_id, current_user)
+        cache_key = generate_chapters_cache_key(searchField, limit, offset, course_id, current_user)
 
         cached_response = cache.get(cache_key)
 
@@ -1190,7 +1190,7 @@ class Query(ObjectType):
 
         current_user = info.context.user
 
-        cache_key = generate_user_specific_cache_key('assignments', limit, offset, status, current_user)
+        cache_key = generate_assignments_cache_key(limit, offset, status, current_user)
 
         cached_response = cache.get(cache_key)
 
