@@ -14,6 +14,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
+from cache import institution_modified
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -58,6 +59,8 @@ class CreateInstitution(graphene.Mutation):
                    "method": CREATE_METHOD}
         NotifyInstitution.broadcast(
             payload=payload)
+
+        institution_modified() # Invalidating cache for institutions
 
         return CreateInstitution(ok=ok, institution=institution_instance)
 
@@ -105,6 +108,9 @@ class UpdateInstitution(graphene.Mutation):
                        "method": UPDATE_METHOD}
             NotifyInstitution.broadcast(
                 payload=payload)
+
+            institution_modified() # Invalidating cache for institutions
+
             return UpdateInstitution(ok=ok, institution=institution_instance)
         return UpdateInstitution(ok=ok, institution=None)
 
@@ -135,6 +141,9 @@ class DeleteInstitution(graphene.Mutation):
                        "method": DELETE_METHOD}
             NotifyInstitution.broadcast(
                 payload=payload)
+                
+            institution_modified() # Invalidating cache for institutions
+
             return DeleteInstitution(ok=ok, institution=institution_instance)
         return DeleteInstitution(ok=ok, institution=None)
 
