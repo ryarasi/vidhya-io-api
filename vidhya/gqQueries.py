@@ -10,7 +10,7 @@ from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_ad
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
-from .cache import generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_institutions_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key
+from .cache import generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key
 
 def generate_public_institution(institution):
     learnerCount = 0
@@ -438,7 +438,7 @@ class Query(ObjectType):
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
         
-        cache_key = generate_users_cache_key('users', searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset)
+        cache_key = generate_users_cache_key(searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset)
 
         cached_response = cache.get(cache_key)
         
@@ -455,7 +455,7 @@ class Query(ObjectType):
 
     def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):   
         
-        cache_key = generate_users_cache_key('public_users', searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset)
+        cache_key = generate_public_users_cache_key(searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset)
 
         cached_response = cache.get(cache_key)
         
@@ -699,7 +699,7 @@ class Query(ObjectType):
     def resolve_projects(root, info, author_id=None, searchField=None, limit=None, offset=None, **kwargs):
         current_user = info.context.user
 
-        cache_key = generate_projects_cache_key('projects', searchField, limit, offset, author_id, current_user)
+        cache_key = generate_projects_cache_key(searchField, limit, offset, author_id, current_user)
 
         cached_response = cache.get(cache_key)
 
