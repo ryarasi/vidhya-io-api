@@ -454,7 +454,7 @@ class Query(ObjectType):
 
     def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):   
         
-        cache_key = generate_public_users_cache_key(searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset)
+        cache_key = generate_public_users_cache_key(searchField, membership_status_not, membership_status_is, roles, limit, offset)
 
         cached_response = cache.get(cache_key)
         
@@ -463,7 +463,7 @@ class Query(ObjectType):
 
         all_institutions=True
         unpaginated = True        
-        results = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset, **kwargs)
+        results = Query.process_users(root, info, searchField, membership_status_not, membership_status_is, roles, unpaginated, limit, offset, **kwargs)
 
         records = results.records
         total = results.total

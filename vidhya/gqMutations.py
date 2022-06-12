@@ -14,7 +14,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
-from cache import institution_modified
+from .cache import institution_modified
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
