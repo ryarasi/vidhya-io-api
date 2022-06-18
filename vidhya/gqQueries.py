@@ -391,6 +391,7 @@ class Query(ObjectType):
 
         if membership_status_is:
             qs = qs.filter(membership_status__in=membership_status_is)
+        print('roles => ', roles)
         if roles:
             qs = qs.filter(role__in=roles)
 
@@ -436,6 +437,8 @@ class Query(ObjectType):
 
     @login_required
     def resolve_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
+        all_institutions=False
+        unpaginated = False
         
         cache_key = generate_users_cache_key(searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset)
 
@@ -444,8 +447,6 @@ class Query(ObjectType):
         if cached_response:
             return cached_response
 
-        all_institutions=False
-        unpaginated = False
         qs = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset, **kwargs)
 
         cache.set(cache_key, qs)
