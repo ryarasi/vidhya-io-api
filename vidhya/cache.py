@@ -1,4 +1,5 @@
 
+from tkinter import N
 from django.core.cache import cache
 
 separator = '-'
@@ -131,8 +132,6 @@ def set_cache(entity, key, response):
     cache.set(entity, cached_entity, timeout=None)
 
 
-
-
 # Cache Invalidation Methods
 
 def invalidate_cache(entity):
@@ -158,4 +157,41 @@ def invalidate_user_specific_cache(entity, user):
 def institutions_modified():
     invalidate_cache(CACHE_ENTITIES['INSTITUTIONS'])
     invalidate_cache(CACHE_ENTITIES['PUBLIC_INSTITUTIONS'])
-    
+
+def users_modified():
+    invalidate_cache(CACHE_ENTITIES['USERS'])
+    invalidate_cache(CACHE_ENTITIES['PUBLIC_USERS'])
+
+def user_roles_modified():
+    invalidate_cache(CACHE_ENTITIES['USER_ROLES'])
+
+def groups_modified():
+    invalidate_cache(CACHE_ENTITIES['GROUPS'])
+    invalidate_cache(CACHE_ENTITIES['ADMIN_GROUPS'])
+
+def public_announcements_modified():
+    invalidate_cache(CACHE_ENTITIES['PUBLIC_ANNOUNCEMENTS'])
+
+def private_announcements_modified():
+    invalidate_cache(CACHE_ENTITIES['ANNOUNCEMENTS'])
+
+def announcements_modified(announcement):
+    if announcement.public == True:
+        public_announcements_modified()
+    else:
+        private_announcements_modified()
+
+def user_announcements_modified(user):
+    invalidate_user_specific_cache(CACHE_ENTITIES['ANNOUNCEMENTS'], user)
+
+def projects_modified():
+    invalidate_cache(CACHE_ENTITIES['PROJECTS'])
+
+def courses_modified():
+    invalidate_cache(CACHE_ENTITIES['COURSES'])
+
+def chapters_modified():
+    invalidate_cache(CACHE_ENTITIES['CHAPTERS'])
+
+def exercises_modified():
+    invalidate_cache(CACHE_ENTITIES['EXERCISES'])
