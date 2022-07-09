@@ -33,13 +33,6 @@ services:
       - db
     restart: "on-failure"
 
-
-  memcached:
-    container_name: memcached
-    image: memcached:latest
-    ports:
-      - "11211:11211"
-
   web:
     build: .
     command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
@@ -53,7 +46,6 @@ services:
     depends_on:
       - db
       - redis
-      - memcached
     restart: "on-failure"
 
 volumes:

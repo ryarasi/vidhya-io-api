@@ -470,7 +470,7 @@ class Query(ObjectType):
 
         all_institutions=True
         unpaginated = True        
-        results = Query.process_users(root, info, searchField, membership_status_not, membership_status_is, roles, unpaginated, limit, offset, **kwargs)
+        results = Query.process_users(root, info, searchField, all_institutions, membership_status_not, membership_status_is, roles, unpaginated, limit, offset, **kwargs)
 
         records = results.records
         total = results.total
@@ -514,7 +514,7 @@ class Query(ObjectType):
 
         cache_entity = CACHE_ENTITIES['USER_ROLES']
 
-        cache_key = generate_user_roles_cache_key(searchField, limit, offset)
+        cache_key = generate_user_roles_cache_key(cache_entity, searchField, limit, offset)
 
         cached_response = fetch_cache(cache_entity, cache_key)
 

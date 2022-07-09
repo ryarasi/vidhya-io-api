@@ -108,21 +108,54 @@ def generate_reports_cache_key(entity, searchField=None, limit=None, offset=None
     return sanitize_cache_key(cache_key)
 
 
-# Cache fetch method
-
 def fetch_cache(entity, key):
+    print('Fetching cache => ', entity, ' key => ', key)
+    cached_response = None
     cached_item = cache.get(entity)
-    return cached_item[key]
+    if cached_item:
+        try:
+            cached_response = cached_item[key]
+        except:
+            pass
+    print('cached response => ', cached_response)
+    return cached_response
 
 # Set cache method
 
 def set_cache(entity, key, response):
+    print('Setting cache => ', entity, 'key => ', key, ' response => ', response)
     cached_entity = cache.get(entity)
+    if not cached_entity:
+        cached_entity = {}
     cached_entity[key] = response
-    cache.set(key, response)
+    cache.set(entity, cached_entity, timeout=None)
+
+
 
 
 # Cache Invalidation Methods
 
 def invalidate_cache(entity):
     cache.delete(entity)
+
+def invalidate_cache_with_keyword(entity, keyword):
+    cached_entity = cache.get(entity)
+    for item in cached_entity.keys():
+        if keyword in item:
+            del cached_entity[item]
+    cache.set(entity, cached_entity)
+
+def invalidate_user_specific_cache(entity, user):
+    cached_entity = cache.get(entity)
+    for item in cached_entity.keys():
+        if item.startswith(str(user.id)):
+            del cached_entity[item]
+    cache.set(entity, cached_entity)
+
+
+# Specific methods to invalidate certain entities
+
+def institutions_modified():
+    invalidate_cache(CACHE_ENTITIES['INSTITUTIONS'])
+    invalidate_cache(CACHE_ENTITIES['PUBLIC_INSTITUTIONS'])
+    

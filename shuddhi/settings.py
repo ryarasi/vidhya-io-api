@@ -201,12 +201,16 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 db_from_env = dj_database_url.config(default=DATABASE_URL, conn_max_age=500, ssl_require=True)
 DATABASES['default'].update(db_from_env)
 
-CACHE_HOST='memcached'
-CACHE_PORT=11211
+CACHE_HOST='redis'
+CACHE_PORT=6379
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': f'{CACHE_HOST}:{CACHE_PORT}',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f'{CACHE_HOST}://{CACHE_HOST}:{CACHE_PORT}/1',
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+        "KEY_PREFIX": "VIDHYA"
     }
 }
 
