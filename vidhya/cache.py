@@ -76,8 +76,8 @@ def generate_projects_cache_key(entity, searchField=None, limit=None, offset=Non
     cache_key = str(user.id) + str(entity) + separator + searchField_label + str(searchField) + limit_label + str(limit) + offset_label + str(offset) + 'author_id' + str(author_id)
     return sanitize_cache_key(cache_key)
 
-def generate_courses_cache_key(entity, searchField=None, limit=None, offset=None, course_id=None, user=None):
-    cache_key = str(user.id) + str(entity) + separator + searchField_label + str(searchField) + limit_label + str(limit) + offset_label + str(offset) + 'course_id' + str(course_id)
+def generate_courses_cache_key(entity, searchField=None, limit=None, offset=None, user=None):
+    cache_key = str(user.id) + str(entity) + separator + searchField_label + str(searchField) + limit_label + str(limit) + offset_label + str(offset)
     return sanitize_cache_key(cache_key)
 
 def generate_chapters_cache_key(entity, searchField, limit, offset, course_id, current_user):
