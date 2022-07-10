@@ -638,6 +638,8 @@ class Query(ObjectType):
     @user_passes_test(lambda user: has_access(user, RESOURCES['ANNOUNCEMENT'], ACTIONS['LIST']))
     def resolve_announcements(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
+        current_user = info.context.user 
+        
         cache_entity = CACHE_ENTITIES['ANNOUNCEMENTS']
 
         cache_key = generate_announcements_cache_key(cache_entity, searchField, limit, offset, current_user)
