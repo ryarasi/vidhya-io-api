@@ -5,7 +5,7 @@ from typing import final
 from django.db.models.query_utils import Q
 import graphene
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, Criterion, CriterionResponse, EmailOTP, Issue, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
@@ -2615,7 +2615,23 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         exercise_submission_instance.flagged = submission.flagged if submission.flagged is not None else exercise_submission_instance.flagged
         exercise_submission_instance.grader_id = grader_id
         exercise_submission_instance.searchField = searchField    
-        return exercise_submission_instance    
+        return exercise_submission_instance
+
+    def notify_graders(root, info, exercise_submission_instance):
+        notification_text = exercise_submission_instance.participant.name + ' has submitted a new assignment for ' + exercise_submission_instance.chapter.title + ' in ' + exercise_submission_instance.course.title + '/n/n. Please visit ' + settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.'
+        graders = CourseGrader.objects.filter(course_id=exercise_submission_instance.course.id).distinct()
+        print('Graders => ', graders)
+        for grader in graders:
+            recipient_list = [grader.grader.email]
+            print('recipients_list => ',recipient_list)
+            send_mail(
+                'There is a new assignment submission!',
+                notification_text,
+                settings.DEFAULT_FROM_EMAIL,
+                recipient_list,
+                fail_silently=False,
+            )
+        return
 
     """
         This method is a bit complicated as it handles two different scenarios.
@@ -2719,6 +2735,8 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             CreateUpdateExerciseSubmissions.markChapterCompleted(root, info, chapter_id, participant_id)
             # Updating completion % and score % in the report
             UpdateReport.mutate(root, info, course_id, participant_id)
+            # Sending email notification to graders
+            CreateUpdateExerciseSubmissions.notify_graders(root, info, exercise_submission_instance)
             ok = True
         else:
             UpdateReport.recalculate(root, info, finalSubmissions) # updating the reports
