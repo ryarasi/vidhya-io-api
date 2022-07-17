@@ -353,6 +353,7 @@ class CourseInput(graphene.InputObjectType):
     institution_ids = graphene.List(
         graphene.ID, name="institutions")
     participant_ids = graphene.List(graphene.ID, name="participants")
+    grader_ids = graphene.List(graphene.ID, name="graders")
     mandatory_prerequisite_ids = graphene.List(
         graphene.ID, name="mandatoryPrerequisites")
     recommended_prerequisite_ids = graphene.List(

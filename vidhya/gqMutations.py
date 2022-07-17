@@ -1331,8 +1331,17 @@ class CreateCourse(graphene.Mutation):
         searchField += input.description if input.description is not None else ""
         searchField = searchField.lower()
 
-        course_instance = Course(title=input.title, blurb=input.blurb, description=input.description,
-                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, pass_score_percentage = input.pass_score_percentage, pass_completion_percentage = input.pass_completion_percentage, searchField=searchField)
+        course_instance = Course(
+                                title=input.title, 
+                                blurb=input.blurb, 
+                                description=input.description,
+                                instructor_id=input.instructor_id,
+                                start_date=input.start_date, 
+                                end_date=input.end_date, 
+                                credit_hours=input.credit_hours, 
+                                pass_score_percentage = input.pass_score_percentage, 
+                                pass_completion_percentage = input.pass_completion_percentage, 
+                                searchField=searchField)
         course_instance.save()
 
         courses_modified() # Invalidating course cache
@@ -1342,6 +1351,9 @@ class CreateCourse(graphene.Mutation):
 
         if input.participant_ids or input.participant_ids == []:
             course_instance.participants.add(*input.participant_ids)
+
+        if input.grader_ids or input.grader_ids == []:
+            course_instance.graders.add(*input.grader_ids)            
 
         if input.mandatory_prerequisite_ids:
             course_instance.mandatory_prerequisites.add(
@@ -1406,6 +1418,10 @@ class UpdateCourse(graphene.Mutation):
             if input.participant_ids or input.participant_ids == []:
                 course_instance.participants.clear()
                 course_instance.participants.add(*input.participant_ids)
+
+            if input.grader_ids or input.grader_ids == []:
+                course_instance.graders.clear()
+                course_instance.graders.add(*input.grader_ids)                
 
             if input.mandatory_prerequisite_ids or input.mandatory_prerequisite_ids == []:
                 course_instance.mandatory_prerequisites.clear()
