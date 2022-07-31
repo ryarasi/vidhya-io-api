@@ -1064,14 +1064,14 @@ class Query(ObjectType):
     def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField=None, flagged=None, limit=None, offset=None, **kwargs):
         groups = [] 
 
-        cache_entity = CACHE_ENTITIES['SUBMISSION_GROUPS']
+        # cache_entity = CACHE_ENTITIES['SUBMISSION_GROUPS']
 
-        cache_key = generate_submission_groups_cache_key(cache_entity, searchField, limit, offset, group_by, status, flagged)
+        # cache_key = generate_submission_groups_cache_key(cache_entity, searchField, limit, offset, group_by, status, flagged)
 
-        cached_response = fetch_cache(cache_entity, cache_key)
+        # cached_response = fetch_cache(cache_entity, cache_key)
 
-        if cached_response:
-            return cached_response
+        # if cached_response:
+        #     return cached_response
 
 
         if flagged is not None:
@@ -1161,7 +1161,7 @@ class Query(ObjectType):
         if limit is not None:
             groups = groups[:limit]
 
-        set_cache(cache_entity, cache_key, groups)
+        # set_cache(cache_entity, cache_key, groups)
 
         return groups   
 

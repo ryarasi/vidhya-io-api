@@ -2634,7 +2634,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         return exercise_submission_instance
 
     def notify_graders(root, info, exercise_submission_instance):
-        notification_text = exercise_submission_instance.participant.name + ' has submitted a new assignment for ' + exercise_submission_instance.chapter.title + ' in ' + exercise_submission_instance.course.title + '/n/n. Please visit ' + settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.'
+        notification_text = exercise_submission_instance.participant.name + ' has submitted a new assignment for ' + exercise_submission_instance.chapter.title + ' in ' + exercise_submission_instance.course.title + './n/n' + 'Please visit ' + settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.'
         graders = CourseGrader.objects.filter(course_id=exercise_submission_instance.course.id).distinct()
         print('Graders => ', graders)
         for grader in graders:
