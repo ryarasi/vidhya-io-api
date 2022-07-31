@@ -1062,23 +1062,31 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
     def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField=None, flagged=None, limit=None, offset=None, **kwargs):
+        print('initiating resolve_exercise_submission_groups...')
         groups = [] 
 
-        # cache_entity = CACHE_ENTITIES['SUBMISSION_GROUPS']
+        cache_entity = CACHE_ENTITIES['SUBMISSION_GROUPS']
 
-        # cache_key = generate_submission_groups_cache_key(cache_entity, searchField, limit, offset, group_by, status, flagged)
+        cache_key = generate_submission_groups_cache_key(cache_entity, searchField, limit, offset, group_by, status, flagged)
 
-        # cached_response = fetch_cache(cache_entity, cache_key)
+        cached_response = fetch_cache(cache_entity, cache_key)
 
-        # if cached_response:
-        #     return cached_response
+        print('Cached response => ', cached_response)
+
+        if cached_response:
+            return cached_response
 
 
         if flagged is not None:
             if flagged == False:
                 flagged = 0
 
+        print('flagging check done')
+
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
+
+            print('group_by = EXERCISE_SUBMISSION')
+
             unique_exercises = ExerciseSubmission.objects.filter(status=status, active=True).values_list('exercise', flat=True).distinct().order_by('-updated_at')
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
@@ -1110,13 +1118,27 @@ class Query(ObjectType):
                         groups.append(card)
         
         if group_by == RESOURCES['CHAPTER']:
+
+            print('group_by = CHAPTER')
+
             unique_chapters = ExerciseSubmission.objects.filter(status=status, active=True).values_list('chapter', flat=True).distinct().order_by('-updated_at')
+
+            print('unique_chapters => ', unique_chapters)
+            
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
-                unique_chapters = unique_chapters.filter(filter)                   
+                unique_chapters = unique_chapters.filter(filter)
+
+            print('Looping through unique_chapters...')          
             for chapter_id in unique_chapters:
+                
+                print('chapter_id => ',chapter_id)
+
                 chapter = Chapter.objects.get(pk=chapter_id)
                 submissions = ExerciseSubmission.objects.all().filter(chapter=chapter, status=status, active=True)
+
+                print('submissions => ', submissions)
+
                 if flagged is not None:
                     filter=Q(flagged=flagged)
                     submissions = submissions.filter(filter)            
@@ -1134,9 +1156,15 @@ class Query(ObjectType):
                     chapter_title = section_index + chapter_index + chapter.title
 
                     card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter_title, subtitle=chapter.course.title, count=count)
+
+                    print('Adding card => ', chapter_title)
+                    
                     groups.append(card)        
 
         if group_by == RESOURCES['COURSE']:
+
+            print('group_by = COURSE')
+
             unique_courses = ExerciseSubmission.objects.filter(status=status, active=True).values_list('course', flat=True).distinct().order_by('-updated_at')      
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
@@ -1161,7 +1189,7 @@ class Query(ObjectType):
         if limit is not None:
             groups = groups[:limit]
 
-        # set_cache(cache_entity, cache_key, groups)
+        set_cache(cache_entity, cache_key, groups)
 
         return groups   
 
