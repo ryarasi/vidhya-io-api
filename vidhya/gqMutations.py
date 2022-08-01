@@ -14,7 +14,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
-from .cache import announcements_modified, chapters_modified, courses_modified, groups_modified, institutions_modified, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
+from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -2737,9 +2737,12 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             UpdateReport.mutate(root, info, course_id, participant_id)
             # Sending email notification to graders
             CreateUpdateExerciseSubmissions.notify_graders(root, info, exercise_submission_instance)
+
+            exercise_submission_submitted() # Clearing cache if assignment is submitted
             ok = True
         else:
             UpdateReport.recalculate(root, info, finalSubmissions) # updating the reports
+            exercise_submission_graded() # Clearing cache if grading is done
 
         return CreateUpdateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
 
