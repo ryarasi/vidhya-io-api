@@ -10,6 +10,7 @@ from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
 from .cache import  CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key, set_cache
+from datetime import date, datetime, timedelta
 
 def generate_public_institution(institution):
     learnerCount = 0
@@ -1062,16 +1063,22 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))    
     def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField=None, flagged=None, limit=None, offset=None, **kwargs):
-        print('initiating resolve_exercise_submission_groups...')
+
         groups = [] 
 
         cache_entity = CACHE_ENTITIES['SUBMISSION_GROUPS']
 
-        cache_key = generate_submission_groups_cache_key(cache_entity, searchField, limit, offset, group_by, status, flagged)
+        ###
+        # Here we set a cutoff date so that we don't try to sort through an expanding set of potentially infinite list of exercise submissions from the past
+        # We use this cut off date to fetch only the submissions from a specific number of days into the past
+        ###
+
+        today = datetime.today()
+        cutoff_date = today - timedelta(days=60) # Getting date 60 days prior to now     
+
+        cache_key = generate_submission_groups_cache_key(cache_entity, searchField, limit, offset, group_by, status, flagged, cutoff_date)
 
         cached_response = fetch_cache(cache_entity, cache_key)
-
-        print('Cached response => ', cached_response)
 
         if cached_response:
             return cached_response
@@ -1081,13 +1088,14 @@ class Query(ObjectType):
             if flagged == False:
                 flagged = 0
 
-        print('flagging check done')
+        all_submissions = ExerciseSubmission.objects.filter(status=status, active=True)
+
+        if status == ExerciseSubmission.StatusChoices['GRADED']:
+            all_submissions = ExerciseSubmission.objects.filter(status=status, active=True, created_at__gte = cutoff_date)
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
 
-            print('group_by = EXERCISE_SUBMISSION')
-
-            unique_exercises = ExerciseSubmission.objects.filter(status=status, active=True).values_list('exercise', flat=True).distinct().order_by('-updated_at')
+            unique_exercises = all_submissions.values_list('exercise', flat=True).distinct().order_by('-updated_at')
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_exercises = unique_exercises.filter(filter)
@@ -1119,25 +1127,16 @@ class Query(ObjectType):
         
         if group_by == RESOURCES['CHAPTER']:
 
-            print('group_by = CHAPTER')
+            unique_chapters = all_submissions.values_list('chapter', flat=True).distinct().order_by('-updated_at')
 
-            unique_chapters = ExerciseSubmission.objects.filter(status=status, active=True).values_list('chapter', flat=True).distinct().order_by('-updated_at')
-
-            print('unique_chapters => ', unique_chapters)
-            
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_chapters = unique_chapters.filter(filter)
-
-            print('Looping through unique_chapters...')          
+      
             for chapter_id in unique_chapters:
-                
-                print('chapter_id => ',chapter_id)
 
                 chapter = Chapter.objects.get(pk=chapter_id)
                 submissions = ExerciseSubmission.objects.all().filter(chapter=chapter, status=status, active=True)
-
-                print('submissions => ', submissions)
 
                 if flagged is not None:
                     filter=Q(flagged=flagged)
@@ -1157,15 +1156,11 @@ class Query(ObjectType):
 
                     card = ExerciseSubmissionGroup(id=chapter_id, type=group_by, title=chapter_title, subtitle=chapter.course.title, count=count)
 
-                    print('Adding card => ', chapter_title)
-                    
                     groups.append(card)        
 
         if group_by == RESOURCES['COURSE']:
 
-            print('group_by = COURSE')
-
-            unique_courses = ExerciseSubmission.objects.filter(status=status, active=True).values_list('course', flat=True).distinct().order_by('-updated_at')      
+            unique_courses = all_submissions.values_list('course', flat=True).distinct().order_by('-updated_at')      
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_courses = unique_courses.filter(filter)                                  
