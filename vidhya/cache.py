@@ -96,8 +96,8 @@ def generate_submissions_cache_key(entity, searchField=None, limit=None, offset=
     cache_key = str(entity) + separator + searchField_label + str(searchField) + limit_label + str(limit) + offset_label + str(offset) + 'exercise_id' + str(exercise_id) + 'chapter_id' + str(chapter_id) + 'course_id' + str(course_id) + 'participant_id' + str(participant_id) + 'submission_id' + str(submission_id) + status_label + str(status) + 'flagged' + str(flagged)
     return sanitize_cache_key(cache_key)    
 
-def generate_submission_groups_cache_key(entity, searchField=None, limit=None, offset=None, group_by=None, status=None, flagged=None):
-    cache_key = str(entity) + separator + searchField_label + str(searchField) + limit_label + str(limit) + offset_label + str(offset) + 'group_by' + str(group_by) + status_label + str(status) + 'flagged' + str(flagged)
+def generate_submission_groups_cache_key(entity, searchField=None, limit=None, offset=None, group_by=None, status=None, flagged=None, cutoff_date=None):
+    cache_key = str(entity) + separator + searchField_label + str(searchField) + limit_label + str(limit) + offset_label + str(offset) + 'group_by' + str(group_by) + status_label + str(status) + 'flagged' + str(flagged) + 'cutoff_date'+ str(cutoff_date)
     return sanitize_cache_key(cache_key)
 
 def generate_assignments_cache_key(entity, limit, offset, status, current_user):
