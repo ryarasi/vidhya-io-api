@@ -1090,7 +1090,7 @@ class Query(ObjectType):
 
         all_submissions = ExerciseSubmission.objects.filter(status=status, active=True)
 
-        if status == ExerciseSubmission.StatusChoices['GRADED']:
+        if status == ExerciseSubmission.StatusChoices['GRADED'] and not searchField:
             all_submissions = ExerciseSubmission.objects.filter(status=status, active=True, created_at__gte = cutoff_date)
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
