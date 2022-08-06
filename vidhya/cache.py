@@ -48,8 +48,8 @@ def generate_users_cache_key(entity=None, searchField=None, all_institutions=Non
     cache_key =  str(entity) + separator + searchField_label + str(searchField) + 'all_institutions' + str(all_institutions) + 'membership_status_not' + str(membership_status_not_str) + 'membership_status_is' + str(membership_status_is_str) + 'roles' + str(roles_str) + 'unpaginated' + str(unpaginated) + limit_label + str(limit) + offset_label + str(offset)
     return sanitize_cache_key(cache_key)
 
-def generate_public_users_cache_key(entity, searchField=None, membership_status_not=None, membership_status_is=None, roles=None, limit=None, offset=None):
-    cache_key =  str(entity) + separator + searchField_label + str(searchField) +  'membership_status_not' + str(membership_status_not) + 'membership_status_is' + str(membership_status_is) + 'roles' + str(roles) + limit_label + str(limit) + offset_label + str(offset)
+def generate_public_users_cache_key(entity, searchField=None, membership_status_not=None, membership_status_is=None, roles=None, limit=None, offset=None, user_role=None, user_institution=None):
+    cache_key =  str(entity) + separator + searchField_label + str(searchField) +  'membership_status_not' + str(membership_status_not) + 'membership_status_is' + str(membership_status_is) + 'roles' + str(roles) + limit_label + str(limit) + offset_label + str(offset) + 'role' + str(user_role) + 'institution' + str(user_institution)
     return sanitize_cache_key(cache_key)
 
 def generate_user_roles_cache_key(entity, searchField, limit, offset):
