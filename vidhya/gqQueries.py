@@ -462,7 +462,19 @@ class Query(ObjectType):
         
         cache_entity = CACHE_ENTITIES['PUBLIC_USERS']
 
-        cache_key = generate_public_users_cache_key(cache_entity, searchField, membership_status_not, membership_status_is, roles, limit, offset)
+        current_user = info.context.user
+
+        user_role = None
+        user_institution = None
+
+        try:
+            # Here we are also sourcing these variables for setting the cache key because these are useful in redacting user information like profile photo etc.
+            user_role = current_user.role.name
+            user_institution = current_user.institution.name
+        except:
+            pass
+
+        cache_key = generate_public_users_cache_key(cache_entity, searchField, membership_status_not, membership_status_is, roles, limit, offset, user_role, user_institution)
 
         cached_response = fetch_cache(cache_entity, cache_key)
         
