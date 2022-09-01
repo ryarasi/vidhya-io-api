@@ -15,6 +15,7 @@ from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
 from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
+from django.core.cache import cache
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -3329,6 +3330,20 @@ class ReorderCourseSections(graphene.Mutation):
  
         return ReorderCourseSections(ok=ok, course_sections=course_sections)
 
+class ClearServerCache(graphene.Mutation):
+    class Meta:
+        description = "Clear serverside cache"
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: is_admin_user(user))
+    def mutate(root, info):
+        cache.clear()
+        ok = True
+        return ClearServerCache(ok=ok)
+
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
@@ -3408,3 +3423,5 @@ class Mutation(graphene.ObjectType):
     patch_completed_chapters = PatchCompletedChapters.Field()
     patch_criterion_responses = PatchCriterionResponses.Field()
 
+    # Admin mutations
+    clear_server_cache = ClearServerCache.Field()
