@@ -1,3 +1,4 @@
+from typing import List
 from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
@@ -9,7 +10,7 @@ from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_ad
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
-from .cache import  CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key, set_cache
+from .cache import  CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key, set_cache
 from datetime import date, datetime, timedelta
 
 def generate_public_institution(institution):
@@ -133,6 +134,24 @@ class PublicInstitutions(graphene.ObjectType):
     records = graphene.List(PublicInstitutionType)
     total = graphene.Int()
 
+class PublicCourseType(graphene.ObjectType):
+    id = graphene.Int()
+    title = graphene.String()
+    blurb = graphene.String()
+    description = graphene.String()
+    instructor = graphene.Field(UserType)
+    mandatoryPrerequisites = graphene.List(CourseType)
+    recommendedPrerequisites = graphene.List(CourseType)
+    startDate = graphene.String()
+    endDate = graphene.String()
+    creditHours = graphene.Int()
+    createdAt = graphene.String()
+    updatedAt = graphene.String()
+
+class PublicCourses(graphene.ObjectType):
+    records = graphene.List(PublicCourseType)
+    total = graphene.Int()
+
 class UnreadCount(graphene.ObjectType):
     announcements = graphene.Int()
     assignments = graphene.Int()
@@ -150,6 +169,10 @@ class Query(ObjectType):
     public_announcement = graphene.Field(AnnouncementType, id=graphene.ID())
     public_announcements = graphene.List(
         AnnouncementType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+
+    public_course = graphene.Field(PublicCourseType, id=graphene.ID())
+    public_courses = graphene.Field(
+        PublicCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     # Auth Queries
     institution_by_invitecode = graphene.Field(
@@ -718,6 +741,47 @@ class Query(ObjectType):
             raise GraphQLError("The record you're looking for doesn't exist")
         UpdateAnnouncement.increment_views(id)
         return announcement_instance
+
+    def resolve_public_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
+
+        cache_entity = CACHE_ENTITIES['PUBLIC_COURSES']
+
+        cache_key = generate_public_courses_cache_key(cache_entity, searchField,limit,offset)
+
+        cached_response = fetch_cache(cache_entity, cache_key)
+
+        if cached_response:
+            return cached_response
+
+        qs = Course.objects.all().filter(status=Course.StatusChoices.PUBLISHED, active=True).order_by("-created_at")
+
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField.lower())
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        result = PublicCourses(records=qs, total=len(qs))
+
+        set_cache(cache_entity, cache_key, result)
+                
+        return result
+
+    def resolve_public_course(root, info, id, **kwargs):
+        course_instance = None
+        try:
+            course_instance = Course.objects.get(pk=id, status=Course.StatusChoices.PUBLISHED, active=True)
+        except:
+            raise GraphQLError("The record you're looking for doesn't exist")
+        
+        public_course = PublicCourseType(id=course_instance.id, title=course_instance.title, blurb=course_instance.blurb, description=course_instance.description, instructor=course_instance.instructor, mandatoryPrerequisites=course_instance.mandatoryPrerequisites, recommendedPrerequisites=course_instance.recommendedPrerequisites, startDate=course_instance.startDate, endDate=course_instance.endDate, creditHours=course_instance.creditHours, createdAt=course_instance.createdAt, updatedAt=course_instance.updatedAt)
+        return public_course
 
     def resolve_project(root, info, id, **kwargs):
         current_user = info.context.user
