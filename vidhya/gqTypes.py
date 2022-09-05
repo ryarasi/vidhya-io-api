@@ -346,13 +346,16 @@ class ProjectInput(graphene.InputObjectType):
 
 class CourseInput(graphene.InputObjectType):
     id = graphene.ID()
+    index = graphene.String()
     title = graphene.String(required=True)
     blurb = graphene.String(required=True)
     description = graphene.String(required=True)
+    video = graphene.String()
     instructor_id = graphene.ID(name="instructor", required=True)
     institution_ids = graphene.List(
         graphene.ID, name="institutions")
     participant_ids = graphene.List(graphene.ID, name="participants")
+    grader_ids = graphene.List(graphene.ID, name="graders")
     mandatory_prerequisite_ids = graphene.List(
         graphene.ID, name="mandatoryPrerequisites")
     recommended_prerequisite_ids = graphene.List(
