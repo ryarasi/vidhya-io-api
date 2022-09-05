@@ -136,9 +136,11 @@ class PublicInstitutions(graphene.ObjectType):
 
 class PublicCourseType(graphene.ObjectType):
     id = graphene.Int()
+    index = graphene.String()
     title = graphene.String()
     blurb = graphene.String()
     description = graphene.String()
+    video = graphene.String()
     instructor = graphene.Field(UserType)
     mandatoryPrerequisites = graphene.List(CourseType)
     recommendedPrerequisites = graphene.List(CourseType)
@@ -753,7 +755,7 @@ class Query(ObjectType):
         if cached_response:
             return cached_response
 
-        qs = Course.objects.all().filter(status=Course.StatusChoices.PUBLISHED, active=True).order_by("-created_at")
+        qs = Course.objects.all().filter(status=Course.StatusChoices.PUBLISHED, active=True).order_by("-index")
 
         if searchField is not None:
             filter = (
@@ -779,8 +781,25 @@ class Query(ObjectType):
             course_instance = Course.objects.get(pk=id, status=Course.StatusChoices.PUBLISHED, active=True)
         except:
             raise GraphQLError("The record you're looking for doesn't exist")
+
+        print('course_instance => ', course_instance, 'mandatory_prerequisites => ', course_instance.mandatory_prerequisites)
+
         
-        public_course = PublicCourseType(id=course_instance.id, title=course_instance.title, blurb=course_instance.blurb, description=course_instance.description, instructor=course_instance.instructor, mandatoryPrerequisites=course_instance.mandatoryPrerequisites, recommendedPrerequisites=course_instance.recommendedPrerequisites, startDate=course_instance.startDate, endDate=course_instance.endDate, creditHours=course_instance.creditHours, createdAt=course_instance.createdAt, updatedAt=course_instance.updatedAt)
+        public_course = PublicCourseType(
+            id=course_instance.id, 
+            index=course_instance.index,
+            title=course_instance.title, 
+            blurb=course_instance.blurb, 
+            description=course_instance.description, 
+            video=course_instance.video,
+            instructor=course_instance.instructor, 
+            # mandatoryPrerequisites= course_instance.mandatory_prerequisites, 
+            # recommendedPrerequisites=course_instance.recommended_prerequisites, 
+            startDate=course_instance.start_date, 
+            endDate=course_instance.end_date, 
+            creditHours=course_instance.credit_hours, 
+            createdAt=course_instance.created_at, 
+            updatedAt=course_instance.updated_at)
         return public_course
 
     def resolve_project(root, info, id, **kwargs):
