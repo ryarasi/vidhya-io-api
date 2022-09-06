@@ -755,7 +755,7 @@ class Query(ObjectType):
         if cached_response:
             return cached_response
 
-        qs = Course.objects.all().filter(status=Course.StatusChoices.PUBLISHED, active=True).order_by("-index")
+        qs = Course.objects.all().filter(status=Course.StatusChoices.PUBLISHED, active=True).order_by("index")
 
         if searchField is not None:
             filter = (
