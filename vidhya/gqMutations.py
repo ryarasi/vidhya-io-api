@@ -2668,6 +2668,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         current_user = info.context.user
         CreateUpdateExerciseSubmissions.check_errors(exercise_submissions, grading) # validating the input
         finalSubmissions = []
+        manual_grading_required = False # This is used to track if we need to email the graders so that we only email when there is a non-autograded submission
 
         # If we're trying to do a bulk automatic grading of eligible submissions...
         if grading == True and bulkauto == True:
@@ -2690,6 +2691,9 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading)
                 submission = processed_submission['submission']
                 autograded = processed_submission['autograded']
+                if not autograded:
+                    manual_grading_required = True # This is used to track if any autograded submission exists
+                    
                 searchField = '' # Initializing an empty searchField. This will be added before we save it.
 
                 # Checking if this is an update or a creation
@@ -2745,7 +2749,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 
                 # End of grading the submission
 
-        # Marking the chapter as submitted and updating scores
+        # Marking the chapter as submitted and updating scores if it is in "create" mode
         if not grading and finalSubmissions:
             chapter_id = finalSubmissions[0].chapter.id
             course_id = finalSubmissions[0].course_id
@@ -2755,11 +2759,15 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             # Updating completion % and score % in the report
             UpdateReport.mutate(root, info, course_id, participant_id)
             # Sending email notification to graders
-            CreateUpdateExerciseSubmissions.notify_graders(root, info, exercise_submission_instance)
+            print('Manual grading required => ', manual_grading_required)
+            if manual_grading_required:
+                print('Sending notification emails to graders...')
+                CreateUpdateExerciseSubmissions.notify_graders(root, info, exercise_submission_instance)
 
             exercise_submission_submitted() # Clearing cache if assignment is submitted
             ok = True
         else:
+            # If grading is done, i.e. it is in "update" mode, we recalculate the score
             UpdateReport.recalculate(root, info, finalSubmissions) # updating the reports
             exercise_submission_graded() # Clearing cache if grading is done
 
