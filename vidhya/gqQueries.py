@@ -210,7 +210,7 @@ class Query(ObjectType):
     # Project Queries
     project = graphene.Field(ProjectType, id=graphene.ID())
     projects = graphene.List(
-        ProjectType, author_id=graphene.ID(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        ProjectType, author_id=graphene.ID(), sortBy=graphene.String(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
 
     # Course Queries
     course = graphene.Field(CourseType, id=graphene.ID())

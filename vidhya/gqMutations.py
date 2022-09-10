@@ -1037,7 +1037,7 @@ class ClapProject(graphene.Mutation):
         except:
             pass
         if project:
-            if current_user:
+            if current_user.id:
                 user_already_clapped = ProjectClap.objects.filter(user_id=current_user.id, project_id=project.id).exists()
                 if not user_already_clapped:
                     ok=True

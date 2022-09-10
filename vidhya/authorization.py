@@ -259,13 +259,12 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
             sortBy = options["sortBy"]
         except:
             pass
-
-        if sortBy is SORT_BY_OPTIONS['NEW']:
-            sortField = '-created_at'
-        elif sortBy is SORT_BY_OPTIONS['TOP']:
-            sortField = '-claps'
+        if sortBy == SORT_BY_OPTIONS['NEW']:
+            sortField = "-created_at"
+        elif sortBy == SORT_BY_OPTIONS['TOP']:
+            sortField = "-claps"
         if author_id is not None:
-            qs = Project.objects.filter(author_id=author_id).order_by(sortField)
+            qs = Project.objects.filter(author_id=author_id).distinct().order_by(sortField)
         if author_id is not user.id:
             qs = qs = qs.filter(public=True)
 
