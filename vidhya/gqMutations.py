@@ -14,7 +14,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
-from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
+from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
 from django.core.cache import cache
 
 class CreateInstitution(graphene.Mutation):
@@ -1017,19 +1017,18 @@ class CreateProject(graphene.Mutation):
 
         return CreateProject(ok=ok, project=project_instance)
 
-class ToggleProjectClap(graphene.Mutation):
+class ClapProject(graphene.Mutation):
     class Meta:
-        description = "Mutation that lets a user toggle the project clap"
+        description = "Mutation that lets a user clap a project"
     
     class Arguments:
         id = graphene.ID(required=True)
-        clap = graphene.Boolean(required=True)
     
     ok = graphene.Boolean()
     project = graphene.Field(ProjectType)
 
     @staticmethod
-    def mutate(root, info, id, clap):
+    def mutate(root, info, id):
         ok = False
         current_user = info.context.user
         project = None
@@ -1038,15 +1037,21 @@ class ToggleProjectClap(graphene.Mutation):
         except:
             pass
         if project:
-            ok=True
-            project.clap = project.clap+1 if clap is True else project.clap-1
-
-        if current_user and clap:
-            project.clapsBy.add(current_user)
-        elif current_user and not clap:
-            project.clapsBy.remove(current_user)
+            if current_user:
+                user_already_clapped = ProjectClap.objects.filter(user_id=current_user.id, project_id=project.id).exists()
+                if not user_already_clapped:
+                    ok=True
+                    project.claps = project.claps + 1
+                    project.clapsBy.add(current_user)
+            else:
+                ok=True
+                project.claps = project.claps+1
+            project.save()
         
-        return ToggleProjectClap(ok=ok,project=project)
+        # Invalidating project cache
+        project_clapped()
+        
+        return ClapProject(ok=ok,project=project)
         
 
 
@@ -3418,7 +3423,7 @@ class Mutation(graphene.ObjectType):
     create_project = CreateProject.Field()
     update_project = UpdateProject.Field()
     delete_project = DeleteProject.Field()
-    toggle_project_clap = ToggleProjectClap.Field()
+    clap_project = ClapProject.Field()
 
     create_issue = CreateIssue.Field()
     update_issue = UpdateIssue.Field()
