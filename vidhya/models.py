@@ -200,13 +200,21 @@ class Project(models.Model):
     description = models.CharField(max_length=2000)
     link = models.CharField(max_length=1000)
     course = models.ForeignKey('Course', null=True, blank=True, on_delete=models.PROTECT)
+    contributors = models.ManyToManyField(User, through="ProjectContributor", through_fields=('project', 'contributor'), blank=True)
     public = models.BooleanField(default=True)
-    contributors = models.ManyToManyField('User', through="ProjectContributor", through_fields=('project', 'contributor'), blank=True)
-    public= models.BooleanField(default=True)
+    claps = models.IntegerField(default=0)
+    clapsBy = models.ManyToManyField(User, related_name='clappers', through='ProjectClap', through_fields=('project','user'),blank=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class ProjectClap(models.Model):
+    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    project=models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.project.claps}'        
 
 class ProjectContributor(models.Model):
     project=models.ForeignKey(Project, on_delete=models.CASCADE)

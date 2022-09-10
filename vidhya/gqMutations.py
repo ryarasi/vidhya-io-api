@@ -5,7 +5,7 @@ from typing import final
 from django.db.models.query_utils import Q
 import graphene
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
@@ -14,7 +14,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
-from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
+from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
 from django.core.cache import cache
 
 class CreateInstitution(graphene.Mutation):
@@ -1016,6 +1016,43 @@ class CreateProject(graphene.Mutation):
             payload=payload)
 
         return CreateProject(ok=ok, project=project_instance)
+
+class ClapProject(graphene.Mutation):
+    class Meta:
+        description = "Mutation that lets a user clap a project"
+    
+    class Arguments:
+        id = graphene.ID(required=True)
+    
+    ok = graphene.Boolean()
+    project = graphene.Field(ProjectType)
+
+    @staticmethod
+    def mutate(root, info, id):
+        ok = False
+        current_user = info.context.user
+        project = None
+        try:
+            project = Project.objects.get(pk=id, active=True)
+        except:
+            pass
+        if project:
+            if current_user.id:
+                user_already_clapped = ProjectClap.objects.filter(user_id=current_user.id, project_id=project.id).exists()
+                if not user_already_clapped:
+                    ok=True
+                    project.claps = project.claps + 1
+                    project.clapsBy.add(current_user)
+            else:
+                ok=True
+                project.claps = project.claps+1
+            project.save()
+        
+        # Invalidating project cache
+        project_clapped()
+        
+        return ClapProject(ok=ok,project=project)
+        
 
 
 class UpdateProject(graphene.Mutation):
@@ -3386,6 +3423,7 @@ class Mutation(graphene.ObjectType):
     create_project = CreateProject.Field()
     update_project = UpdateProject.Field()
     delete_project = DeleteProject.Field()
+    clap_project = ClapProject.Field()
 
     create_issue = CreateIssue.Field()
     update_issue = UpdateIssue.Field()
