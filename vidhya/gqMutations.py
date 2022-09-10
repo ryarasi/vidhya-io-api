@@ -5,7 +5,7 @@ from typing import final
 from django.db.models.query_utils import Q
 import graphene
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
@@ -1016,6 +1016,38 @@ class CreateProject(graphene.Mutation):
             payload=payload)
 
         return CreateProject(ok=ok, project=project_instance)
+
+class ToggleProjectClap(graphene.Mutation):
+    class Meta:
+        description = "Mutation that lets a user toggle the project clap"
+    
+    class Arguments:
+        id = graphene.ID(required=True)
+        clap = graphene.Boolean(required=True)
+    
+    ok = graphene.Boolean()
+    project = graphene.Field(ProjectType)
+
+    @staticmethod
+    def mutate(root, info, id, clap):
+        ok = False
+        current_user = info.context.user
+        project = None
+        try:
+            project = Project.objects.get(pk=id, active=True)
+        except:
+            pass
+        if project:
+            ok=True
+            project.clap = project.clap+1 if clap is True else project.clap-1
+
+        if current_user and clap:
+            project.clapsBy.add(current_user)
+        elif current_user and not clap:
+            project.clapsBy.remove(current_user)
+        
+        return ToggleProjectClap(ok=ok,project=project)
+        
 
 
 class UpdateProject(graphene.Mutation):
@@ -3386,6 +3418,7 @@ class Mutation(graphene.ObjectType):
     create_project = CreateProject.Field()
     update_project = UpdateProject.Field()
     delete_project = DeleteProject.Field()
+    toggle_project_clap = ToggleProjectClap.Field()
 
     create_issue = CreateIssue.Field()
     update_issue = UpdateIssue.Field()

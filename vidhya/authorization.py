@@ -3,6 +3,7 @@ from graphql import GraphQLError
 from django.conf import settings
 from vidhya.models import CompletedChapters, CompletedCourses, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, Announcement, Chapter, Chat, ChatMessage, Course, CourseSection, Exercise, ExerciseKey, ExerciseSubmission, Group, Institution, Issue, Project, Report, UserRole
 
+SORT_BY_OPTIONS = {'NEW': 'NEW', 'TOP':'TOP'}
 
 UPDATE_METHOD = "UPDATE"
 DELETE_METHOD = "DELETE"
@@ -251,12 +252,20 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
     if RESOURCE_TYPE == RESOURCES["PROJECT"]:
         qs = Project.objects.all()
         author_id = None
+        sortBy=SORT_BY_OPTIONS['NEW']
+        sortField = None
         try:
             author_id = options["author_id"]
+            sortBy = options["sortBy"]
         except:
             pass
+
+        if sortBy is SORT_BY_OPTIONS['NEW']:
+            sortField = '-created_at'
+        elif sortBy is SORT_BY_OPTIONS['TOP']:
+            sortField = '-claps'
         if author_id is not None:
-            qs = Project.objects.filter(author_id=author_id)
+            qs = Project.objects.filter(author_id=author_id).order_by(sortField)
         if author_id is not user.id:
             qs = qs = qs.filter(public=True)
 

@@ -6,7 +6,7 @@ from graphql_jwt.decorators import login_required, user_passes_test
 from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
 from django.db.models import Q
 from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
-from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible
+from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible, SORT_BY_OPTIONS
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
@@ -811,12 +811,12 @@ class Query(ObjectType):
             project_instance = None
         return project_instance
 
-    def resolve_projects(root, info, author_id=None, searchField=None, limit=None, offset=None, **kwargs):
+    def resolve_projects(root, info, author_id=None, searchField=None, sortBy=SORT_BY_OPTIONS['NEW'], limit=None, offset=None, **kwargs):
         current_user = info.context.user
 
         cache_entity = CACHE_ENTITIES['PROJECTS']
 
-        cache_key = generate_projects_cache_key(cache_entity, searchField, limit, offset, author_id, current_user)
+        cache_key = generate_projects_cache_key(cache_entity, searchField, sortBy, limit, offset, author_id, current_user)
 
         cached_response = fetch_cache(cache_entity, cache_key)
 
@@ -824,7 +824,7 @@ class Query(ObjectType):
             return cached_response
 
 
-        qs = rows_accessible(current_user, RESOURCES['PROJECT'], {'author_id': author_id})
+        qs = rows_accessible(current_user, RESOURCES['PROJECT'], {'sortBy': sortBy, 'author_id': author_id})
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
