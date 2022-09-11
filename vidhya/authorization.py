@@ -252,21 +252,15 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
     if RESOURCE_TYPE == RESOURCES["PROJECT"]:
         qs = Project.objects.all()
         author_id = None
-        sortBy=SORT_BY_OPTIONS['NEW']
-        sortField = None
         try:
             author_id = options["author_id"]
-            sortBy = options["sortBy"]
         except:
             pass
-        if sortBy == SORT_BY_OPTIONS['NEW']:
-            sortField = "-created_at"
-        elif sortBy == SORT_BY_OPTIONS['TOP']:
-            sortField = "-claps"
+
         if author_id is not None:
-            qs = Project.objects.filter(author_id=author_id).order_by(sortField)
+            qs = Project.objects.filter(author_id=author_id)
         if author_id is not user.id:
-            qs = qs = qs.filter(public=True).order_by(sortField)
+            qs = qs = qs.filter(public=True)
 
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
