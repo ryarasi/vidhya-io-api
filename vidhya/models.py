@@ -50,6 +50,7 @@ class User(AbstractUser):
     chapters = models.ManyToManyField('Chapter', through='CompletedChapters', through_fields=('participant', 'chapter'), blank=True)
     courses = models.ManyToManyField('Course', through='CompletedCourses', through_fields=('participant', 'course'), blank=True)
     announcements = models.ManyToManyField('Announcement', through='AnnouncementsSeen', through_fields=('user','announcement'), blank=True)
+    projects_clapped = models.ManyToManyField('Project', through="ProjectClap", through_fields=('user', 'project'),blank=True)
     searchField = models.CharField(max_length=600, blank=True, null=True)
     last_active = models.DateTimeField(
         blank=True, null=True, default=timezone.now)
@@ -202,7 +203,7 @@ class Project(models.Model):
     course = models.ForeignKey('Course', null=True, blank=True, on_delete=models.PROTECT)
     contributors = models.ManyToManyField(User, through="ProjectContributor", through_fields=('project', 'contributor'), blank=True)
     public = models.BooleanField(default=True)
-    claps = models.IntegerField(default=0)
+    claps = models.IntegerField(default=1)
     clapsBy = models.ManyToManyField(User, related_name='clappers', through='ProjectClap', through_fields=('project','user'),blank=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
     active = models.BooleanField(default=True)
