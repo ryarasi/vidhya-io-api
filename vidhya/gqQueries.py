@@ -824,7 +824,7 @@ class Query(ObjectType):
             return cached_response
 
 
-        qs = rows_accessible(current_user, RESOURCES['PROJECT'], {'sortBy': sortBy, 'author_id': author_id})
+        qs = rows_accessible(current_user, RESOURCES['PROJECT'], {'author_id': author_id})
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -836,6 +836,13 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+
+        if sortBy is not None:
+            if sortBy == SORT_BY_OPTIONS['NEW']:
+                sortField = "-created_at"
+            elif sortBy == SORT_BY_OPTIONS['TOP']:
+                sortField = "-claps"
+            qs = qs.order_by(sortField)
         
         set_cache(cache_entity, cache_key, qs)
 
