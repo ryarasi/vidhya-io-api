@@ -831,18 +831,18 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
 
-        if offset is not None:
-            qs = qs[offset:]
-
-        if limit is not None:
-            qs = qs[:limit]
-
         if sortBy is not None:
             if sortBy == SORT_BY_OPTIONS['NEW']:
                 sortField = "-created_at"
             elif sortBy == SORT_BY_OPTIONS['TOP']:
                 sortField = "-claps"
             qs = qs.order_by(sortField)
+            
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
         
         set_cache(cache_entity, cache_key, qs)
 
