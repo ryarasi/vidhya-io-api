@@ -1007,6 +1007,7 @@ class CreateProject(graphene.Mutation):
         project_instance = Project(title=input.title, author_id=input.author_id, link =input.link, public=input.public, description=input.description, course_id=input.course_id,
                                               searchField=searchField)
         project_instance.save()
+        current_user.projects_clapped.add(project_instance.id)
 
         projects_modified() # Invalidate projects cache
 
