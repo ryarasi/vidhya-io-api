@@ -264,9 +264,9 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         elif sortBy == SORT_BY_OPTIONS['TOP']:
             sortField = "-claps"
         if author_id is not None:
-            qs = Project.objects.filter(author_id=author_id).distinct().order_by(sortField)
+            qs = Project.objects.filter(author_id=author_id).order_by(sortField)
         if author_id is not user.id:
-            qs = qs = qs.filter(public=True)
+            qs = qs = qs.filter(public=True).order_by(sortField)
 
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
