@@ -201,6 +201,24 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 db_from_env = dj_database_url.config(default=DATABASE_URL, conn_max_age=500, ssl_require=True)
 DATABASES['default'].update(db_from_env)
 
+CACHE_HOST='redis'
+CACHE_PORT=6379
+
+if not REDIS_URL:
+    REDIS_URL = f'{CACHE_HOST}://{CACHE_HOST}:{CACHE_PORT}/1'
+    
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+        "KEY_PREFIX": "VIDHYA"
+    }
+}
+
+
 # CHANNEL_LAYERS = {
 #     "default": {
 #         "BACKEND": "channels_redis.core.RedisChannelLayer",

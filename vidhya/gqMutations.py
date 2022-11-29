@@ -5,7 +5,7 @@ from typing import final
 from django.db.models.query_utils import Q
 import graphene
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, Criterion, CriterionResponse, Issue, Project, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
@@ -13,7 +13,9 @@ from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, 
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
-
+from common.utils import generate_otp
+from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
+from django.core.cache import cache
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -58,6 +60,8 @@ class CreateInstitution(graphene.Mutation):
                    "method": CREATE_METHOD}
         NotifyInstitution.broadcast(
             payload=payload)
+
+        institutions_modified() # Invalidating the cache for institutions
 
         return CreateInstitution(ok=ok, institution=institution_instance)
 
@@ -105,6 +109,10 @@ class UpdateInstitution(graphene.Mutation):
                        "method": UPDATE_METHOD}
             NotifyInstitution.broadcast(
                 payload=payload)
+
+            institutions_modified() # Invalidating the cache for institutions
+
+
             return UpdateInstitution(ok=ok, institution=institution_instance)
         return UpdateInstitution(ok=ok, institution=None)
 
@@ -135,13 +143,16 @@ class DeleteInstitution(graphene.Mutation):
                        "method": DELETE_METHOD}
             NotifyInstitution.broadcast(
                 payload=payload)
+                
+            institutions_modified() # Invalidating the cache for institutions
+
             return DeleteInstitution(ok=ok, institution=institution_instance)
         return DeleteInstitution(ok=ok, institution=None)
 
 
 class VerifyInvitecode(graphene.Mutation):
     class Meta:
-        descriptioin = "Mutation to add the invitecode that the user used to register"
+        description = "Mutation to add the invitecode that the user used to register"
 
     class Arguments:
         invitecode = graphene.String(required=True)
@@ -159,6 +170,97 @@ class VerifyInvitecode(graphene.Mutation):
         else:
             return VerifyInvitecode(ok=ok)
 
+class GenerateEmailOTP(graphene.Mutation):
+    class Meta:
+        description = "Mutation to generate email OTP and save it to the database"
+
+    class Arguments:
+        email = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def check_email_verified(email=None):
+        email_verified = False # Variable to check whether the provided email is already verified        
+        try:
+            # Checking whether the email has been veriied previously, by searching or a record with the same email and 'True' in verified column
+            verified_email = EmailOTP.objects.get(email=email, verified=True).exists()
+            # if the record exists, we mark the verified_email field as true
+            if verified_email:
+                email_verified=True
+        except:
+            pass
+    
+        return email_verified
+
+    @staticmethod
+    def check_if_email_otp_exists(email=None):
+        email_otp = False
+        try:
+            email_otp = EmailOTP.objects.get(email=email)
+        except:
+            email_otp = EmailOTP(email=email)
+        return email_otp
+
+    @staticmethod
+    def send_email_otp(email):
+        email_otp = EmailOTP.objects.get(email=email)
+        send_mail(
+            'Your email verification code',
+            'Dear user,\n\nThe code for verifying your email ID is as follows\n\n' + email_otp.otp + '\n\nPlease do not reply to this email.',
+            settings.DEFAULT_FROM_EMAIL,
+            [email_otp.email],
+            fail_silently=False,
+        )
+
+    @staticmethod
+    def mutate(root, info, email=None):
+        ok = False
+        if email is None:
+            ok = False
+        else:
+            email_verified = GenerateEmailOTP.check_email_verified()
+
+            # If the email was previously verified, we simply mark ok as true and return the result to the user
+            if email_verified:
+                ok = True
+                
+            else:
+                email_otp = GenerateEmailOTP.check_if_email_otp_exists(email)
+                email_otp.otp = generate_otp()
+                email_otp.save()
+                # Once the record is saved, we send the OTP to the email ID
+                GenerateEmailOTP.send_email_otp(email)
+            
+                ok = True        
+
+        return GenerateEmailOTP(ok=ok)
+
+class VerifyEmailOTP(graphene.Mutation):
+    class Meta:
+        description = "Mutation to verify the OTP sent to their email"
+
+    class Arguments:
+        email = graphene.String(required=True)
+        otp = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, email=None, otp=None):
+        ok = False
+        record = None
+        if email and otp:
+            try:
+                record = EmailOTP.objects.get(email=email,
+                    otp=otp)
+            except:
+               pass
+            if record:
+                record.verified = True
+                record.save()
+                ok = True
+        return VerifyEmailOTP(ok=ok)                
 
 class AddInvitecode(graphene.Mutation):
     class Meta:
@@ -171,6 +273,10 @@ class AddInvitecode(graphene.Mutation):
     ok = graphene.Boolean()
 
     @staticmethod
+    def removeEmailOtpRecord(email=None):
+        EmailOTP.objects.filter(email=email).delete()
+
+    @staticmethod
     def mutate(root, info, invitecode, email, input=None):
         ok = False
         try:
@@ -179,7 +285,8 @@ class AddInvitecode(graphene.Mutation):
             if user and institution:
                 ok = True
                 user.institution_id = institution.id
-                user.save()            
+                user.save()
+                AddInvitecode.removeEmailOtpRecord();
         except:
             raise GraphQLError(
                 "There was an error in your registration. Please contact the admin.")
@@ -264,6 +371,8 @@ class UpdateUser(graphene.Mutation):
             user_instance.searchField = searchField.lower()
 
             user_instance.save()
+        
+            users_modified() # Invalidating users cache
 
             payload = {"user": user_instance,
                        "method": UPDATE_METHOD}
@@ -295,6 +404,9 @@ class DeleteUser(graphene.Mutation):
             user_instance.active = False
 
             user_instance.save()
+
+            users_modified() # Invalidating users cache
+
             payload = {"user": user_instance,
                        "method": DELETE_METHOD}
             NotifyUser.broadcast(
@@ -335,6 +447,9 @@ class ApproveUser(graphene.Mutation):
                 fail_silently=False,
             )
             user_instance.save()
+
+            users_modified() # Invalidating users cache
+
             payload = {"user": user_instance,
                        "method": DELETE_METHOD}
             NotifyUser.broadcast(
@@ -367,6 +482,10 @@ class SuspendUser(graphene.Mutation):
             user_instance.membership_status = 'SU'
 
             user_instance.save()
+
+            users_modified() # Invalidating users cache
+
+
             payload = {"user": user_instance,
                        "method": UPDATE_METHOD}
             NotifyUser.broadcast(
@@ -409,6 +528,8 @@ class CreateUserRole(graphene.Mutation):
                                       permissions=input.permissions, priority=input.priority, searchField=searchField)
         user_role_instance.save()
 
+        user_roles_modified() # Invalidating User roles cache
+
         payload = {"user_role": user_role_instance,
                    "method": CREATE_METHOD}
         NotifyUserRole.broadcast(
@@ -445,6 +566,9 @@ class UpdateUserRole(graphene.Mutation):
             searchField = searchField.lower()
 
             user_role_instance.save()
+
+            user_roles_modified() # Invalidating User roles cache
+
             payload = {"user_role": user_role_instance,
                        "method": UPDATE_METHOD}
             NotifyUserRole.broadcast(
@@ -474,6 +598,9 @@ class DeleteUserRole(graphene.Mutation):
             user_role_instance.active = False
 
             user_role_instance.save()
+
+            user_roles_modified() # Invalidating User roles cache
+
             payload = {"user_role": user_role_instance,
                        "method": DELETE_METHOD}
             NotifyUserRole.broadcast(
@@ -520,6 +647,8 @@ class CreateGroup(graphene.Mutation):
         group_instance = Group(name=input.name, avatar=input.avatar, description=input.description, group_type=input.group_type,
                                institution_id=input.institution_id, searchField=searchField)
         group_instance.save()
+
+        groups_modified() # Invalidating groups cache
 
         if input.member_ids:
             group_instance.members.add(*input.member_ids)
@@ -573,6 +702,8 @@ class UpdateGroup(graphene.Mutation):
 
             group_instance.save()
 
+            groups_modified() # Invalidating groups cache
+
             if input.member_ids:
                 group_instance.members.clear()
                 group_instance.members.add(*input.member_ids)
@@ -615,6 +746,8 @@ class DeleteGroup(graphene.Mutation):
                 chat_instance.save()
 
             group_instance.save()
+
+            groups_modified() # Invalidating groups cache
 
             payload = {"group": group_instance,
                        "method": DELETE_METHOD}
@@ -681,6 +814,10 @@ class CreateAnnouncement(graphene.Mutation):
                                              institution_id=input.institution_id, recipients_global=input.recipients_global, recipients_institution=input.recipients_institution, searchField=searchField)
         announcement_instance.save()
 
+        # Cache invalidation
+
+        announcements_modified(announcement_instance) # Invalidate announcements cache
+
         if input.group_ids:
             announcement_instance.groups.add(*input.group_ids)
 
@@ -743,6 +880,10 @@ class UpdateAnnouncement(graphene.Mutation):
 
             announcement_instance.save()
 
+            # Cache invalidation
+            
+            announcements_modified(announcement_instance) # Invalidate announcements cache
+
             if input.group_ids or input.group_ids == []:
                 announcement_instance.groups.clear()
                 announcement_instance.groups.add(*input.group_ids)
@@ -777,6 +918,11 @@ class DeleteAnnouncement(graphene.Mutation):
             announcement_instance.active = False
 
             announcement_instance.save()
+
+            # Cache invalidation
+            
+            announcements_modified(announcement_instance) # Invalidate announcements cache
+
             payload = {"announcement": announcement_instance,
                        "method": DELETE_METHOD}
             NotifyAnnouncement.broadcast(
@@ -808,6 +954,10 @@ class MarkAnnouncementsSeen(graphene.Mutation):
             ok = True
         except:
             ok = False
+
+        # Invalidating cache
+        
+        user_announcements_modified(current_user) # Invalidating user specific announcements
         
         return MarkAnnouncementsSeen(ok=ok, announcements=announcements)
 
@@ -857,6 +1007,9 @@ class CreateProject(graphene.Mutation):
         project_instance = Project(title=input.title, author_id=input.author_id, link =input.link, public=input.public, description=input.description, course_id=input.course_id,
                                               searchField=searchField)
         project_instance.save()
+        current_user.projects_clapped.add(project_instance.id)
+
+        projects_modified() # Invalidate projects cache
 
         payload = {"project": project_instance,
                    "method": CREATE_METHOD}
@@ -864,6 +1017,43 @@ class CreateProject(graphene.Mutation):
             payload=payload)
 
         return CreateProject(ok=ok, project=project_instance)
+
+class ClapProject(graphene.Mutation):
+    class Meta:
+        description = "Mutation that lets a user clap a project"
+    
+    class Arguments:
+        id = graphene.ID(required=True)
+    
+    ok = graphene.Boolean()
+    project = graphene.Field(ProjectType)
+
+    @staticmethod
+    def mutate(root, info, id):
+        ok = False
+        current_user = info.context.user
+        project = None
+        try:
+            project = Project.objects.get(pk=id, active=True)
+        except:
+            pass
+        if project:
+            if current_user.id:
+                user_already_clapped = ProjectClap.objects.filter(user_id=current_user.id, project_id=project.id).exists()
+                if not user_already_clapped:
+                    ok=True
+                    project.claps = project.claps + 1
+                    project.clapsBy.add(current_user)
+            else:
+                ok=True
+                project.claps = project.claps+1
+            project.save()
+        
+        # Invalidating project cache
+        project_clapped()
+        
+        return ClapProject(ok=ok,project=project)
+        
 
 
 class UpdateProject(graphene.Mutation):
@@ -903,6 +1093,7 @@ class UpdateProject(graphene.Mutation):
 
             project_instance.save()
 
+            projects_modified() # Invalidate projects cache
 
             payload = {"project": project_instance,
                        "method": UPDATE_METHOD}
@@ -936,6 +1127,9 @@ class DeleteProject(graphene.Mutation):
             project_instance.active = False
 
             project_instance.save()
+
+            projects_modified() # Invalidate projects cache
+
             payload = {"project": project_instance,
                        "method": DELETE_METHOD}
             NotifyProject.broadcast(
@@ -1176,15 +1370,30 @@ class CreateCourse(graphene.Mutation):
         searchField += input.description if input.description is not None else ""
         searchField = searchField.lower()
 
-        course_instance = Course(title=input.title, blurb=input.blurb, description=input.description,
-                                 instructor_id=input.instructor_id, start_date=input.start_date, end_date=input.end_date, credit_hours=input.credit_hours, pass_score_percentage = input.pass_score_percentage, pass_completion_percentage = input.pass_completion_percentage, searchField=searchField)
+        course_instance = Course(
+                                index=input.index, 
+                                blurb=input.blurb, 
+                                description=input.description, 
+                                video=input.video,
+                                instructor_id=input.instructor_id,
+                                start_date=input.start_date, 
+                                end_date=input.end_date, 
+                                credit_hours=input.credit_hours, 
+                                pass_score_percentage = input.pass_score_percentage, 
+                                pass_completion_percentage = input.pass_completion_percentage, 
+                                searchField=searchField)
         course_instance.save()
+
+        courses_modified() # Invalidating course cache
 
         if input.institution_ids:
             course_instance.institutions.add(*input.institution_ids)
 
         if input.participant_ids or input.participant_ids == []:
             course_instance.participants.add(*input.participant_ids)
+
+        if input.grader_ids or input.grader_ids == []:
+            course_instance.graders.add(*input.grader_ids)            
 
         if input.mandatory_prerequisite_ids:
             course_instance.mandatory_prerequisites.add(
@@ -1223,8 +1432,9 @@ class UpdateCourse(graphene.Mutation):
         if course_instance:
             ok = True
             course_instance.title = input.title if input.title is not None else course.title
+            course_instance.index = input.index if input.index is not None else course.index
+            course_instance.video = input.video if input.video is not None else course.video
             course_instance.blurb = input.blurb if input.blurb is not None else course.blurb
-            course_instance.description = input.description if input.description is not None else course.description
             course_instance.instructor_id = input.instructor_id if input.instructor_id is not None else course.instructor_id
             course_instance.start_date = input.start_date if input.start_date is not None else course.start_date
             course_instance.end_date = input.end_date if input.end_date is not None else course.end_date
@@ -1240,6 +1450,8 @@ class UpdateCourse(graphene.Mutation):
 
             course_instance.save()
 
+            courses_modified() # Invalidating course cache
+
             if input.institution_ids or input.institution_ids == []:
                 course_instance.institutions.clear()
                 course_instance.institutions.add(*input.institution_ids)
@@ -1247,6 +1459,10 @@ class UpdateCourse(graphene.Mutation):
             if input.participant_ids or input.participant_ids == []:
                 course_instance.participants.clear()
                 course_instance.participants.add(*input.participant_ids)
+
+            if input.grader_ids or input.grader_ids == []:
+                course_instance.graders.clear()
+                course_instance.graders.add(*input.grader_ids)                
 
             if input.mandatory_prerequisite_ids or input.mandatory_prerequisite_ids == []:
                 course_instance.mandatory_prerequisites.clear()
@@ -1301,6 +1517,8 @@ class DeleteCourse(graphene.Mutation):
                 
             course_instance.save()
 
+            courses_modified() # Invalidating course cache
+
             payload = {"course": course_instance,
                        "method": DELETE_METHOD}
             NotifyCourse.broadcast(
@@ -1340,6 +1558,8 @@ class PublishCourse(graphene.Mutation):
                 pass
 
             course_instance.save()
+
+            courses_modified() # Invalidating course cache
 
             payload = {"course": course_instance,
                        "method": UPDATE_METHOD}
@@ -1502,6 +1722,8 @@ class CreateChapter(graphene.Mutation):
                                    course_id=input.course_id, section_id=input.section_id, due_date=input.due_date, points=points, status= input.status, searchField=searchField)
         chapter_instance.save()
 
+        chapters_modified() # Invalidating chapter cache
+
         if input.prerequisite_ids is not None:
             chapter_instance.prerequisites.add(
                 *input.prerequisite_ids)
@@ -1549,6 +1771,8 @@ class UpdateChapter(graphene.Mutation):
 
             chapter_instance.save()
 
+            chapters_modified() # Invalidating chapter cache
+
             if input.prerequisite_ids or input.prerequisite_ids == []:
                 chapter_instance.prerequisites.clear()
                 chapter_instance.prerequisites.add(
@@ -1590,6 +1814,8 @@ class DeleteChapter(graphene.Mutation):
 
             chapter_instance.save()
 
+            chapters_modified() # Invalidating chapter cache
+
             payload = {"chapter": chapter_instance,
                        "method": DELETE_METHOD}
             NotifyChapter.broadcast(
@@ -1620,6 +1846,8 @@ class PublishChapter(graphene.Mutation):
             chapter_instance.status = Chapter.StatusChoices.PUBLISHED
 
             chapter_instance.save()
+
+            chapters_modified() # Invalidating chapter cache
 
             payload = {"chapter": chapter_instance,
                        "method": UPDATE_METHOD}
@@ -2444,7 +2672,23 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         exercise_submission_instance.flagged = submission.flagged if submission.flagged is not None else exercise_submission_instance.flagged
         exercise_submission_instance.grader_id = grader_id
         exercise_submission_instance.searchField = searchField    
-        return exercise_submission_instance    
+        return exercise_submission_instance
+
+    def notify_graders(root, info, exercise_submission_instance):
+        notification_text = exercise_submission_instance.participant.name + ' has submitted a new assignment for "' + exercise_submission_instance.chapter.title + '" in "' + exercise_submission_instance.course.title + '".\n\nPlease visit ' + settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.'
+        graders = CourseGrader.objects.filter(course_id=exercise_submission_instance.course.id).distinct()
+        print('Graders => ', graders)
+        for grader in graders:
+            recipient_list = [grader.grader.email]
+            print('recipients_list => ',recipient_list)
+            send_mail(
+                'There is a new assignment submission!',
+                notification_text,
+                settings.DEFAULT_FROM_EMAIL,
+                recipient_list,
+                fail_silently=False,
+            )
+        return
 
     """
         This method is a bit complicated as it handles two different scenarios.
@@ -2462,6 +2706,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         current_user = info.context.user
         CreateUpdateExerciseSubmissions.check_errors(exercise_submissions, grading) # validating the input
         finalSubmissions = []
+        manual_grading_required = False # This is used to track if we need to email the graders so that we only email when there is a non-autograded submission
 
         # If we're trying to do a bulk automatic grading of eligible submissions...
         if grading == True and bulkauto == True:
@@ -2484,6 +2729,9 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 processed_submission = CreateUpdateExerciseSubmissions.process_submission(submission, grading)
                 submission = processed_submission['submission']
                 autograded = processed_submission['autograded']
+                if not autograded:
+                    manual_grading_required = True # This is used to track if any autograded submission exists
+                    
                 searchField = '' # Initializing an empty searchField. This will be added before we save it.
 
                 # Checking if this is an update or a creation
@@ -2539,7 +2787,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 
                 # End of grading the submission
 
-        # Marking the chapter as submitted and updating scores
+        # Marking the chapter as submitted and updating scores if it is in "create" mode
         if not grading and finalSubmissions:
             chapter_id = finalSubmissions[0].chapter.id
             course_id = finalSubmissions[0].course_id
@@ -2548,9 +2796,18 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
             CreateUpdateExerciseSubmissions.markChapterCompleted(root, info, chapter_id, participant_id)
             # Updating completion % and score % in the report
             UpdateReport.mutate(root, info, course_id, participant_id)
+            # Sending email notification to graders
+            print('Manual grading required => ', manual_grading_required)
+            if manual_grading_required:
+                print('Sending notification emails to graders...')
+                CreateUpdateExerciseSubmissions.notify_graders(root, info, exercise_submission_instance)
+
+            exercise_submission_submitted() # Clearing cache if assignment is submitted
             ok = True
         else:
+            # If grading is done, i.e. it is in "update" mode, we recalculate the score
             UpdateReport.recalculate(root, info, finalSubmissions) # updating the reports
+            exercise_submission_graded() # Clearing cache if grading is done
 
         return CreateUpdateExerciseSubmissions(ok=ok, exercise_submissions=finalSubmissions)
 
@@ -3121,6 +3378,20 @@ class ReorderCourseSections(graphene.Mutation):
  
         return ReorderCourseSections(ok=ok, course_sections=course_sections)
 
+class ClearServerCache(graphene.Mutation):
+    class Meta:
+        description = "Clear serverside cache"
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: is_admin_user(user))
+    def mutate(root, info):
+        cache.clear()
+        ok = True
+        return ClearServerCache(ok=ok)
+
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
@@ -3128,6 +3399,8 @@ class Mutation(graphene.ObjectType):
 
     add_invitecode = AddInvitecode.Field()
     verify_invitecode = VerifyInvitecode.Field()
+    generate_email_otp = GenerateEmailOTP.Field()
+    verify_email_otp = VerifyEmailOTP.Field()
 
     # create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
@@ -3151,6 +3424,7 @@ class Mutation(graphene.ObjectType):
     create_project = CreateProject.Field()
     update_project = UpdateProject.Field()
     delete_project = DeleteProject.Field()
+    clap_project = ClapProject.Field()
 
     create_issue = CreateIssue.Field()
     update_issue = UpdateIssue.Field()
@@ -3198,3 +3472,5 @@ class Mutation(graphene.ObjectType):
     patch_completed_chapters = PatchCompletedChapters.Field()
     patch_criterion_responses = PatchCriterionResponses.Field()
 
+    # Admin mutations
+    clear_server_cache = ClearServerCache.Field()

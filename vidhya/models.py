@@ -1,6 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db.models.deletion import PROTECT
-from common.utils import random_number_with_N_digits
+from common.utils import random_number_with_N_digits, generate_otp
 from django.core.validators import MaxValueValidator, MinLengthValidator, MinValueValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -50,6 +50,7 @@ class User(AbstractUser):
     chapters = models.ManyToManyField('Chapter', through='CompletedChapters', through_fields=('participant', 'chapter'), blank=True)
     courses = models.ManyToManyField('Course', through='CompletedCourses', through_fields=('participant', 'course'), blank=True)
     announcements = models.ManyToManyField('Announcement', through='AnnouncementsSeen', through_fields=('user','announcement'), blank=True)
+    projects_clapped = models.ManyToManyField('Project', through="ProjectClap", through_fields=('user', 'project'),blank=True)
     searchField = models.CharField(max_length=600, blank=True, null=True)
     last_active = models.DateTimeField(
         blank=True, null=True, default=timezone.now)
@@ -62,6 +63,16 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.name}' 
+
+class EmailOTP(models.Model):
+    email = LowercaseEmailField(blank=False, max_length=255)
+    def generate_otp():
+        return generate_otp()
+    otp = models.CharField(max_length=10, validators=[
+                                  MinLengthValidator(10)], unique=True, default=generate_otp)
+    verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 class CompletedChapters(models.Model):
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -190,12 +201,21 @@ class Project(models.Model):
     description = models.CharField(max_length=2000)
     link = models.CharField(max_length=1000)
     course = models.ForeignKey('Course', null=True, blank=True, on_delete=models.PROTECT)
-    contributors = models.ManyToManyField('User', through="ProjectContributor", through_fields=('project', 'contributor'), blank=True)
-    public= models.BooleanField(default=True)
+    contributors = models.ManyToManyField(User, through="ProjectContributor", through_fields=('project', 'contributor'), blank=True)
+    public = models.BooleanField(default=True)
+    claps = models.IntegerField(default=1)
+    clapsBy = models.ManyToManyField(User, related_name='clappers', through='ProjectClap', through_fields=('project','user'),blank=True)
     searchField = models.CharField(max_length=5000, blank=True, null=True)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class ProjectClap(models.Model):
+    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    project=models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.project.claps}'        
 
 class ProjectContributor(models.Model):
     project=models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -236,14 +256,18 @@ class AnnouncementGroup(models.Model):
 
 
 class Course(models.Model):
+    index = models.CharField(max_length=5, default='0.0')
     title = models.CharField(max_length=80)
     blurb = models.CharField(max_length=150)
+    video = models.CharField(max_length=500, blank=True, null=True)
     description = models.CharField(max_length=1000)
     instructor = models.ForeignKey(User, on_delete=models.PROTECT)
     institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
         'course', 'institution'), blank=True)
     participants = models.ManyToManyField(
         User, through="CourseParticipant", related_name="participants", through_fields=('course', 'participant'), blank=True)
+    graders = models.ManyToManyField(
+        User, through="CourseGrader", related_name="graders", through_fields=('course', 'grader'), blank=True)
     mandatory_prerequisites = models.ManyToManyField(
         'Course', related_name="required_courses",through='MandatoryRequiredCourses', through_fields=('course', 'requirement'), blank=True)
     recommended_prerequisites = models.ManyToManyField(
@@ -264,7 +288,7 @@ class Course(models.Model):
     class StatusChoices(models.TextChoices):
         DRAFT = 'DR', _('DRAFT')
         PUBLISHED = "PU", _('PUBLISHED')
-        ARCHIVED = "AR", _('ARCHIVED')        
+        ARCHIVED = "AR", _('ARCHIVED')
     # End of status choices
 
     status = models.CharField(
@@ -305,6 +329,12 @@ class CourseParticipant(models.Model):
     def __str__(self):
         return f'Course {self.course.title}, Participant {self.participant.name}'
 
+class CourseGrader(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    grader = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Course {self.course.title}, Grader {self.grader.name}'
 
 class CourseSection(models.Model):
     title = models.CharField(max_length=80)

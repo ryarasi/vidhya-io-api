@@ -3,6 +3,7 @@ from graphql import GraphQLError
 from django.conf import settings
 from vidhya.models import CompletedChapters, CompletedCourses, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, Announcement, Chapter, Chat, ChatMessage, Course, CourseSection, Exercise, ExerciseKey, ExerciseSubmission, Group, Institution, Issue, Project, Report, UserRole
 
+SORT_BY_OPTIONS = {'NEW': 'NEW', 'TOP':'TOP'}
 
 UPDATE_METHOD = "UPDATE"
 DELETE_METHOD = "DELETE"
@@ -134,7 +135,7 @@ def is_chapter_locked(user, chapter):
     course_locked = is_course_locked(user, chapter.course) # Checking if this belongs to a course that is locked
     if course_locked:
         # If the course is locked, we immediately return locked is true
-        locked = 'This course is locked for you'
+        locked = 'This chapter is locked for you'
         return locked
 
     # If the course is unlocked we 
@@ -147,7 +148,7 @@ def is_chapter_locked(user, chapter):
         if id not in completed_chapter_ids:
             pending_chapter_ids.append(id)
     if pending_chapter_ids:
-        locked = 'To participate in this course, you must have completed '
+        locked = 'To view this chapter, you must have completed '
         pending_chapters_list = ''
         for id in pending_chapter_ids:
             try:
@@ -255,6 +256,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
             author_id = options["author_id"]
         except:
             pass
+
         if author_id is not None:
             qs = Project.objects.filter(author_id=author_id)
         if author_id is not user.id:
@@ -270,10 +272,10 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         PUBLISHED = Course.StatusChoices.PUBLISHED
         if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
             qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructor_id=user.id)).distinct().order_by("-id")
+                Q(participants__in=[user]) | Q(instructor_id=user.id)).distinct().order_by("index")
         else:
             qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("-id")
+                Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
         
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
