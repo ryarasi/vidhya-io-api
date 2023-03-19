@@ -1170,15 +1170,7 @@ class Query(ObjectType):
 
         cache_entity = CACHE_ENTITIES['SUBMISSION_GROUPS']
 
-        ###
-        # Here we set a cutoff date so that we don't try to sort through an expanding set of potentially infinite list of exercise submissions from the past
-        # We use this cut off date to fetch only the submissions from a specific number of days into the past
-        ###
-
-        today = datetime.today()
-        cutoff_date = today - timedelta(days=60) # Getting date 60 days prior to now     
-
-        cache_key = generate_submission_groups_cache_key(cache_entity, searchField, limit, offset, group_by, status, flagged, cutoff_date)
+        cache_key = generate_submission_groups_cache_key(cache_entity, searchField, limit, offset, group_by, status, flagged)
 
         cached_response = fetch_cache(cache_entity, cache_key)
 
@@ -1190,14 +1182,14 @@ class Query(ObjectType):
             if flagged == False:
                 flagged = 0
 
-        all_submissions = ExerciseSubmission.objects.filter(status=status, active=True)
+        all_submissions = ExerciseSubmission.objects.filter(status=status, active=True).order_by('-updated_at')
 
-        if status == ExerciseSubmission.StatusChoices['GRADED'] and not searchField:
-            all_submissions = ExerciseSubmission.objects.filter(status=status, active=True, created_at__gte = cutoff_date)
+        if status == ExerciseSubmission.StatusChoices['GRADED'] or status == ExerciseSubmission.StatusChoices['RETURNED'] and not searchField:
+            all_submissions = ExerciseSubmission.objects.filter(status=status, active=True).order_by('-updated_at')[:10]
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
 
-            unique_exercises = all_submissions.values_list('exercise', flat=True).distinct().order_by('-updated_at')
+            unique_exercises = all_submissions.values_list('exercise', flat=True)
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_exercises = unique_exercises.filter(filter)
@@ -1229,7 +1221,7 @@ class Query(ObjectType):
         
         if group_by == RESOURCES['CHAPTER']:
 
-            unique_chapters = all_submissions.values_list('chapter', flat=True).distinct().order_by('-updated_at')
+            unique_chapters = all_submissions.values_list('chapter', flat=True)
 
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
@@ -1262,7 +1254,7 @@ class Query(ObjectType):
 
         if group_by == RESOURCES['COURSE']:
 
-            unique_courses = all_submissions.values_list('course', flat=True).distinct().order_by('-updated_at')      
+            unique_courses = all_submissions.values_list('course', flat=True)
             if searchField is not None:
                 filter=Q(searchField__icontains=searchField.lower())
                 unique_courses = unique_courses.filter(filter)                                  
