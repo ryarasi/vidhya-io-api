@@ -207,6 +207,7 @@ def exercise_submission_submitted():
     invalidate_cache(CACHE_ENTITIES['REPORTS'])
 
 def exercise_submission_graded():
+    invalidate_cache(CACHE_ENTITIES['SUBMISSION_GROUPS'])
     invalidate_cache(CACHE_ENTITIES['EXERCISE_SUBMISSIONS'])
     invalidate_cache(CACHE_ENTITIES['ASSIGNMENTS'])
     invalidate_cache(CACHE_ENTITIES['PUBLIC_USERS'])
