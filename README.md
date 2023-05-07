@@ -167,6 +167,7 @@ APP_PORT=8001
    1. Stop docker and start it again with `docker-compose down && docker-compose up`
    2. If the above step doesn't help, try restarting postgresql. First stop it with `sudo service postgresql stop` and then start it up again with `sudo service postgresql start`
 4. If you remove the docker images and reset it all, the database should still be intact because we have static volumes of the database in ./data. If the build fails while rebuilding the database, change the permissions of the folder with this `sudo chmod -R a+rwx ./data`
+5. While creating migrations if the migration file is being created inside the container, as a temporary fix we can copy the file from the container onto the local machine using `sudo docker cp <docker_container_id>:/<path_to_file> <local_path>`. Example - `sudo docker cp 60939c395609:/app/vidhya/migrations ~/code/migrations`. For details see [here](https://www.geeksforgeeks.org/copying-files-to-and-from-docker-containers/)
 
 ## Useful PGAdmin commands:-
 
