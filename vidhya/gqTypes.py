@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
 from django.db import models
 from vidhya.authorization import is_chapter_locked, is_course_locked
 
@@ -17,6 +17,10 @@ class InstitutionType(DjangoObjectType):
     class Meta:
         model = Institution
 
+class EmailOTPType(DjangoObjectType):
+
+    class Meta:
+        model = EmailOTP
 
 class UserType(DjangoObjectType):
     class Meta:
@@ -289,7 +293,11 @@ class InstitutionInput(graphene.InputObjectType):
     logo = graphene.String()
     bio = graphene.String()
 
-
+class PasswordChange(graphene.InputObjectType):
+    oldPassword = graphene.String()
+    newPassword1 = graphene.String()
+    newPassword2 = graphene.String()
+    
 class UserInput(graphene.InputObjectType):
     id = graphene.ID()
     first_name = graphene.String()
@@ -301,7 +309,14 @@ class UserInput(graphene.InputObjectType):
     title = graphene.String()
     bio = graphene.String()
     role_id = graphene.ID(name="role")
-
+    dob = graphene.String()
+    address = graphene.String()
+    institutiontype = graphene.String()
+    year = graphene.String()
+    phoneno = graphene.Int()
+    mobileno = graphene.Int()
+    schoolorcollege = graphene.String()
+    courseorclass = graphene.String()
 
 class UserRoleInput(graphene.InputObjectType):
     name = graphene.String(required=True)

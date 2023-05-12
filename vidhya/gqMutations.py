@@ -4,6 +4,7 @@ from typing import final
 
 from django.db.models.query_utils import Q
 import graphene
+import graphql_social_auth
 from graphql import GraphQLError
 from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
@@ -326,6 +327,38 @@ class AddInvitecode(graphene.Mutation):
 #             payload=payload)
 #         return CreateUser(ok=ok, user=user_instance)
 
+class passwordChange(graphene.Mutation):
+    class Meta:
+        description = "Change Password"
+
+    class Arguments:
+        input = UserInput(required=True)
+    
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        ok = False
+        current_user = info.context.user
+        user = User.objects.get(pk=current_user.id, active=True)
+        user_instance = user
+        if user_instance:
+            ok = True
+            user_instance.password = input.password if input.password is not None else user.password
+            user_instance.save()
+        
+            users_modified() # Invalidating users cache
+
+            payload = {"user": user_instance,
+                        "method": UPDATE_METHOD}
+            NotifyUser.broadcast(
+                payload=payload)
+
+            return passwordChange(ok=ok, user=user_instance)
+        return passwordChange(ok=ok, user=None)
+
 
 class UpdateUser(graphene.Mutation):
     class Meta:
@@ -354,6 +387,14 @@ class UpdateUser(graphene.Mutation):
             user_instance.role_id = input.role_id if input.role_id is not None else user.role_id
             user_instance.title = input.title if input.title is not None else user.title
             user_instance.bio = input.bio if input.bio is not None else user.bio
+            user_instance.mobileno = input.mobileno if input.mobileno is not None else user.mobileno
+            user_instance.phoneno = input.phoneno if input.phoneno is not None else user.phoneno
+            user_instance.address = input.address if input.address is not None else user.address
+            user_instance.dob = input.dob if input.dob is not None else user.dob
+            user_instance.institutiontype = input.institutiontype if input.institutiontype is not None else user.institutiontype
+            user_instance.year = input.year if input.year is not None else user.year
+            user_instance.schoolorcollege = input.year if input.schoolorcollege is not None else user.schoolorcollege
+            user_instance.courseorclass = input.courseorclass if input.courseorclass is not None else user.courseorclass
 
             # Updatiing the membership status to Pending if the user is currently Uninitialized and
             # they provide first name, last name and institution to set up their profile
@@ -3401,6 +3442,7 @@ class Mutation(graphene.ObjectType):
     verify_invitecode = VerifyInvitecode.Field()
     generate_email_otp = GenerateEmailOTP.Field()
     verify_email_otp = VerifyEmailOTP.Field()
+    # passwordChange = passwordChange.Field()
 
     # create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
@@ -3474,3 +3516,8 @@ class Mutation(graphene.ObjectType):
 
     # Admin mutations
     clear_server_cache = ClearServerCache.Field()
+
+    #Social AUth
+    social_auth = graphql_social_auth.relay.SocialAuth.Field()
+    social_auth_JWT = graphql_social_auth.SocialAuthJWT.Field()
+

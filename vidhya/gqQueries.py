@@ -3,9 +3,9 @@ from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
+from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
 from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible, SORT_BY_OPTIONS
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
@@ -179,7 +179,11 @@ class Query(ObjectType):
     # Auth Queries
     institution_by_invitecode = graphene.Field(
         InstitutionType, invitecode=graphene.String())
-
+    
+    #EmailOTP Query
+    email_otp = graphene.Field(
+        EmailOTPType, email = graphene.String())
+    
     # Institution Queries
     institution = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
@@ -330,6 +334,16 @@ class Query(ObjectType):
         else:
             return None
 
+    @login_required
+    def resolve_email_otp(root, info, email, **kwargs):
+        otp_instance = EmailOTP.objects.get(
+            email = email
+        )
+        if otp_instance is not None:
+            return otp_instance
+        else:
+            return None
+        
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['GET']))
     def resolve_institution(root, info, id, **kwargs):

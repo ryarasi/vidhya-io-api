@@ -37,7 +37,16 @@ class User(AbstractUser):
         'UserRole', on_delete=models.PROTECT, blank=True, null=True)
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
-
+    dob = models.DateTimeField(default=timezone.now, blank = True)
+    mobileno = models.IntegerField(default="0000000", blank = True,null=True)
+    phoneno = models.IntegerField(default="00000000", blank = True,null=True)
+    address = models.CharField(max_length=300,blank=True,null=True)
+    year = models.CharField(max_length=300,blank=True,null=True)
+    institutiontype = models.CharField(max_length=300, blank = True,null=True)
+    schoolorcollege = models.CharField(max_length=250, blank = True, null=True)
+    courseorclass = models.CharField(max_length=250, blank = True, null=True)
+    
+    # invitecode = models.ForeignKey('Institution', on_delete = models.PROTECT, blank=True, null=True)
     class StatusChoices(models.TextChoices):
         UNINITIALIZED = 'UI', _('UNINITIALIZED')
         PENDINIG = "PE", _('PENDIING')
@@ -58,11 +67,11 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
-
+    REQUIRED_FIELDS = []
     def __str__(self):
-        return f'{self.name}' 
+        return f'{self.email}' 
 
 class EmailOTP(models.Model):
     email = LowercaseEmailField(blank=False, max_length=255)
