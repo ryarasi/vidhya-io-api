@@ -8,7 +8,7 @@ import graphql_social_auth
 from graphql import GraphQLError
 from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput, verifyEmailUser
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
 from django.core.mail import send_mail
@@ -17,6 +17,7 @@ from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
 from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
 from django.core.cache import cache
+from django.db import connection
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -261,6 +262,7 @@ class VerifyEmailOTP(graphene.Mutation):
                 record.verified = True
                 record.save()
                 ok = True
+                
         return VerifyEmailOTP(ok=ok)                
 
 class AddInvitecode(graphene.Mutation):
@@ -344,6 +346,7 @@ class passwordChange(graphene.Mutation):
         current_user = info.context.user
         user = User.objects.get(pk=current_user.id, active=True)
         user_instance = user
+
         if user_instance:
             ok = True
             user_instance.password = input.password if input.password is not None else user.password
@@ -359,6 +362,41 @@ class passwordChange(graphene.Mutation):
             return passwordChange(ok=ok, user=user_instance)
         return passwordChange(ok=ok, user=None)
 
+class verifyEmailUser(graphene.Mutation):
+    class Meta:
+        description = "Verify Email Account"
+
+        
+    class Arguments:
+        user_id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+    
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        ok = False
+        current_user = info.context.user
+        # user = User.objects.get(pk=current_user.id)
+        # user_instance = user
+        # if user_instance:
+        ok = True
+        with connection.cursor() as cursor:
+                cursor.execute("UPDATE graphql_auth_userstatus SET verified = true WHERE user_id = %s", [input.userId])
+                row = cursor.fetchone()
+
+        # users_modified() # Invalidating users cache
+   
+        payload = {"user": row,
+                        "method": UPDATE_METHOD}
+        NotifyUser.broadcast(
+                payload=payload)
+
+        return verifyEmailUser(ok=ok, user=None)
+    # return verifyEmailUser(ok=ok, user=None)
 
 class UpdateUser(graphene.Mutation):
     class Meta:
@@ -3442,6 +3480,7 @@ class Mutation(graphene.ObjectType):
     verify_invitecode = VerifyInvitecode.Field()
     generate_email_otp = GenerateEmailOTP.Field()
     verify_email_otp = VerifyEmailOTP.Field()
+    verify_email_user = verifyEmailUser.Field()
     # passwordChange = passwordChange.Field()
 
     # create_user = CreateUser.Field()

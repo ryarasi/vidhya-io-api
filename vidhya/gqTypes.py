@@ -297,6 +297,9 @@ class PasswordChange(graphene.InputObjectType):
     oldPassword = graphene.String()
     newPassword1 = graphene.String()
     newPassword2 = graphene.String()
+
+class verifyEmailUser(graphene.InputObjectType):
+    user_id = graphene.String()
     
 class UserInput(graphene.InputObjectType):
     id = graphene.ID()
