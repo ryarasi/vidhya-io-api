@@ -299,7 +299,7 @@ class AddInvitecode(graphene.Mutation):
         return AddInvitecode(ok=ok)
 
 
-# class CreateUser(graphene.Mutation):
+# class createUser(graphene.Mutation):
 #     class Meta:
 #         description = "Mutation to create a new User"
 
@@ -329,7 +329,7 @@ class AddInvitecode(graphene.Mutation):
 #                    "method": CREATE_METHOD}
 #         NotifyUser.broadcast(
 #             payload=payload)
-#         return CreateUser(ok=ok, user=user_instance)
+#         return createUser(ok=ok, user=user_instance)
 
 # class passwordChange(graphene.Mutation):
 #     class Meta:
@@ -3464,8 +3464,8 @@ class ClearServerCache(graphene.Mutation):
         ok = True
         return ClearServerCache(ok=ok)
 
-# CreateUser
-class CreateUser(graphene.Mutation):
+# createGoogleLoginToken
+class createGoogleLoginToken(graphene.Mutation):
     user = graphene.Field(UserType)
     token = graphene.String()
     refresh_token = graphene.String()
@@ -3492,7 +3492,7 @@ class CreateUser(graphene.Mutation):
         ok = True     
         token = get_token(user_instance)
         refresh_token = create_refresh_token(user_instance)
-        return CreateUser(ok=ok, token=token, refresh_token=refresh_token)
+        return createGoogleLoginToken(ok=ok, token=token, refresh_token=refresh_token)
    
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
@@ -3506,7 +3506,7 @@ class Mutation(graphene.ObjectType):
     verify_email_user = verifyEmailUser.Field()
     # passwordChange = passwordChange.Field()
 
-    create_user = CreateUser.Field()
+    # create_user = createUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     approve_user = ApproveUser.Field()
@@ -3582,4 +3582,5 @@ class Mutation(graphene.ObjectType):
     #Social AUth
     social_auth = graphql_social_auth.SocialAuthJWT.Field()
 
-
+    # Create Google login Token
+    create_google_token = createGoogleLoginToken.Field()
