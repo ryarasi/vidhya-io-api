@@ -17,7 +17,9 @@ from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
 from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
 from django.core.cache import cache
-from django.db import connection
+from django.db import connection,transaction
+from graphql_jwt.shortcuts import get_token,create_refresh_token
+from django.contrib.auth import get_user_model
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -329,38 +331,38 @@ class AddInvitecode(graphene.Mutation):
 #             payload=payload)
 #         return CreateUser(ok=ok, user=user_instance)
 
-class passwordChange(graphene.Mutation):
-    class Meta:
-        description = "Change Password"
+# class passwordChange(graphene.Mutation):
+#     class Meta:
+#         description = "Change Password"
 
-    class Arguments:
-        input = UserInput(required=True)
+#     class Arguments:
+#         input = UserInput(required=True)
     
-    ok = graphene.Boolean()
-    user = graphene.Field(UserType)
+#     ok = graphene.Boolean()
+#     user = graphene.Field(UserType)
 
-    @staticmethod
-    @login_required
-    def mutate(root, info, input=None):
-        ok = False
-        current_user = info.context.user
-        user = User.objects.get(pk=current_user.id, active=True)
-        user_instance = user
+#     @staticmethod
+#     @login_required
+#     def mutate(root, info, input=None):
+#         ok = False
+#         current_user = info.context.user
+#         user = User.objects.get(pk=current_user.id, active=True)
+#         user_instance = user
 
-        if user_instance:
-            ok = True
-            user_instance.password = input.password if input.password is not None else user.password
-            user_instance.save()
+#         if user_instance:
+#             ok = True
+#             user_instance.password = input.password if input.password is not None else user.password
+#             user_instance.save()
         
-            users_modified() # Invalidating users cache
+#             users_modified() # Invalidating users cache
 
-            payload = {"user": user_instance,
-                        "method": UPDATE_METHOD}
-            NotifyUser.broadcast(
-                payload=payload)
+#             payload = {"user": user_instance,
+#                         "method": UPDATE_METHOD}
+#             NotifyUser.broadcast(
+#                 payload=payload)
 
-            return passwordChange(ok=ok, user=user_instance)
-        return passwordChange(ok=ok, user=None)
+#             return passwordChange(ok=ok, user=user_instance)
+#         return passwordChange(ok=ok, user=None)
 
 class verifyEmailUser(graphene.Mutation):
     class Meta:
@@ -377,26 +379,17 @@ class verifyEmailUser(graphene.Mutation):
 
     @staticmethod
     @login_required
-    def mutate(root, info, input=None):
+    def mutate(root, info,user_id, input=None):
         ok = False
-        current_user = info.context.user
-        # user = User.objects.get(pk=current_user.id)
-        # user_instance = user
-        # if user_instance:
-        ok = True
-        with connection.cursor() as cursor:
-                cursor.execute("UPDATE graphql_auth_userstatus SET verified = true WHERE user_id = %s", [input.userId])
-                row = cursor.fetchone()
-
-        # users_modified() # Invalidating users cache
-   
-        payload = {"user": row,
-                        "method": UPDATE_METHOD}
-        NotifyUser.broadcast(
-                payload=payload)
-
+        user = get_user_model().objects.get(pk=user_id)
+        user_instance = user
+        if user_instance:
+            ok = True
+            if(user_instance.status.verified == False):
+                user_instance.status.verified = True
+                user_instance.status.save()
+                return verifyEmailUser(ok=ok, user=user_instance)
         return verifyEmailUser(ok=ok, user=None)
-    # return verifyEmailUser(ok=ok, user=None)
 
 class UpdateUser(graphene.Mutation):
     class Meta:
@@ -3471,6 +3464,36 @@ class ClearServerCache(graphene.Mutation):
         ok = True
         return ClearServerCache(ok=ok)
 
+# CreateUser
+class CreateUser(graphene.Mutation):
+    user = graphene.Field(UserType)
+    token = graphene.String()
+    refresh_token = graphene.String()
+    ok = graphene.Boolean()
+    class Arguments:
+        email = graphene.String(required=True)
+
+
+    def mutate(self, info, email):
+        ok = False
+        # verify_email_exists = User.objects.filter(email=email).exists()
+        # user = User.objects.get(email=email)
+        user = User.objects.get(email=email)
+        user_instance = user
+        if not (User.objects.filter(email=email).exists()):   
+                        
+                user_instance.email = email
+                user_instance.save()
+                    
+        payload = {"user": user_instance,
+                    "method": CREATE_METHOD}
+        NotifyUser.broadcast(
+                payload=payload)   
+        ok = True     
+        token = get_token(user_instance)
+        refresh_token = create_refresh_token(user_instance)
+        return CreateUser(ok=ok, token=token, refresh_token=refresh_token)
+   
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
@@ -3483,7 +3506,7 @@ class Mutation(graphene.ObjectType):
     verify_email_user = verifyEmailUser.Field()
     # passwordChange = passwordChange.Field()
 
-    # create_user = CreateUser.Field()
+    create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     approve_user = ApproveUser.Field()
@@ -3557,6 +3580,6 @@ class Mutation(graphene.ObjectType):
     clear_server_cache = ClearServerCache.Field()
 
     #Social AUth
-    social_auth = graphql_social_auth.relay.SocialAuth.Field()
-    social_auth_JWT = graphql_social_auth.SocialAuthJWT.Field()
+    social_auth = graphql_social_auth.SocialAuthJWT.Field()
+
 

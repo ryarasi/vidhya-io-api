@@ -137,11 +137,7 @@ MIDDLEWARE = [
 
 AUTHENTICATION_BACKENDS = [
     'graphql_auth.backends.GraphQLAuthBackend',
-    # 'social_core.backends.google.GoogleOpenId',
     'social_core.backends.google.GoogleOAuth2',
-    # 'social_core.backends.google.GoogleOAuth',
-    # 'social_core.backends.open_id.OpenIdAuth',
-    # 'social_core.backends.google.GoogleOpenId', 
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -156,7 +152,8 @@ SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = [FRONTEND_DOMAIN_URL,'localhost:8000']
 
 GRAPHQL_AUTH = {
     "ALLOW_LOGIN_NOT_VERIFIED": True,
-    "SEND_ACTIVATION_EMAIL": False
+    "SEND_ACTIVATION_EMAIL": False,
+    "ALLOW_PASSWORDLESS_REGISTRATION": True
 }
 
 GRAPHQL_JWT = {

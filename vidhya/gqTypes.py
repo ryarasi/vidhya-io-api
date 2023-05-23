@@ -276,6 +276,12 @@ class ChatSearchType(DjangoObjectType):
     class Meta:
         model = ChatSearchModel
 
+# class UserProfile(DjangoObjectType):
+#     class Meta:
+#         model = profile
+
+
+
 ##############
 # Mutation Types
 ##############
@@ -293,13 +299,13 @@ class InstitutionInput(graphene.InputObjectType):
     logo = graphene.String()
     bio = graphene.String()
 
-class PasswordChange(graphene.InputObjectType):
-    oldPassword = graphene.String()
-    newPassword1 = graphene.String()
-    newPassword2 = graphene.String()
+# class PasswordChange(graphene.InputObjectType):
+#     oldPassword = graphene.String()
+#     newPassword1 = graphene.String()
+#     newPassword2 = graphene.String()
 
 class verifyEmailUser(graphene.InputObjectType):
-    user_id = graphene.String()
+    user_id = graphene.Int()
     
 class UserInput(graphene.InputObjectType):
     id = graphene.ID()
