@@ -3464,36 +3464,43 @@ class ClearServerCache(graphene.Mutation):
         ok = True
         return ClearServerCache(ok=ok)
 
-# createGoogleLoginToken
-class createGoogleLoginToken(graphene.Mutation):
-    user = graphene.Field(UserType)
+# createGoogleToken
+class createGoogleToken(graphene.Mutation):
+    ok = graphene.Boolean()
     token = graphene.String()
     refresh_token = graphene.String()
-    ok = graphene.Boolean()
+    class Meta:
+        description = "Mutation to create Google login token"
     class Arguments:
-        email = graphene.String(required=True)
+        input = UserInput(required=True)
+    
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
 
-
-    def mutate(self, info, email):
-        ok = False
-        # verify_email_exists = User.objects.filter(email=email).exists()
-        # user = User.objects.get(email=email)
-        user = User.objects.get(email=email)
-        user_instance = user
-        if not (User.objects.filter(email=email).exists()):   
-                        
-                user_instance.email = email
-                user_instance.save()
-                    
+    @staticmethod
+    def mutate(self, info, input=None):
+        ok = True
+        error = ""
+        if input.email is None:
+            error += "Email is a required field<br />"
+        if error:
+            raise GraphQLError(error)
+        searchField = input.email
+        searchField = searchField.lower()
+        if (User.objects.filter(email=input.email).exists()==False):   
+            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name, searchField=searchField)
+            user_instance.save()
+        else:
+           user_instance= User.objects.get(email=input.email)
+        
         payload = {"user": user_instance,
                     "method": CREATE_METHOD}
         NotifyUser.broadcast(
-                payload=payload)   
-        ok = True     
+                payload=payload)        
         token = get_token(user_instance)
         refresh_token = create_refresh_token(user_instance)
-        return createGoogleLoginToken(ok=ok, token=token, refresh_token=refresh_token)
-   
+        return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token)
+
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
@@ -3583,4 +3590,4 @@ class Mutation(graphene.ObjectType):
     social_auth = graphql_social_auth.SocialAuthJWT.Field()
 
     # Create Google login Token
-    create_google_token = createGoogleLoginToken.Field()
+    create_google_token = createGoogleToken.Field()
