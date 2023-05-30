@@ -37,14 +37,17 @@ class User(AbstractUser):
         'UserRole', on_delete=models.PROTECT, blank=True, null=True)
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
-    dob = models.DateTimeField(default=timezone.now, blank = True)
-    mobileno = models.IntegerField(default="0000000", blank = True,null=True)
-    phoneno = models.IntegerField(default="00000000", blank = True,null=True)
     address = models.CharField(max_length=300,blank=True,null=True)
-    year = models.CharField(max_length=300,blank=True,null=True)
-    institutiontype = models.CharField(max_length=300, blank = True,null=True)
-    schoolorcollege = models.CharField(max_length=250, blank = True, null=True)
-    courseorclass = models.CharField(max_length=250, blank = True, null=True)
+    city = models.CharField(max_length=300,blank=True,null=True)
+    pincode = models.CharField(max_length=150,blank=True,null=True)
+    state = models.CharField(max_length=300,blank=True,null=True)
+    country = models.CharField(max_length=300,default="India",null=False)
+    dob = models.DateTimeField(default=timezone.now)
+    mobile = models.IntegerField(default="0000000000")
+    phone = models.IntegerField(default="0000000000", blank = True,null=True)
+    designation = models.CharField(max_length=300,default="NA")
+    manualLogin = models.BooleanField(default="False")
+    googleLogin = models.BooleanField(default="False")
     
     # invitecode = models.ForeignKey('Institution', on_delete = models.PROTECT, blank=True, null=True)
     class StatusChoices(models.TextChoices):
@@ -67,11 +70,11 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []
     def __str__(self):
-        return f'{self.email}' 
+        return f'{self.name}' 
 
 class EmailOTP(models.Model):
     email = LowercaseEmailField(blank=False, max_length=255)
@@ -143,6 +146,24 @@ class Institution(models.Model):
     logo = models.CharField(
         max_length=250, blank=True, null=True, default=settings.DEFAULT_AVATARS['INSTITUTION'])
     bio = models.CharField(max_length=300, blank=True, null=True)
+    verified = models.BooleanField(default=True)
+    
+    class InstitutionTypeChoices(models.TextChoices):
+        SCHOOL = "SC", _('School')
+        COLLEGE = "CL", _('College')
+        COMPANY = "CO", _('Company')
+        ORGANIZATION = "OR", _('Organization')
+
+    institution_type = models.CharField(max_length=2,
+        choices=InstitutionTypeChoices.choices,
+        default=InstitutionTypeChoices.SCHOOL,
+    ) 
+    designations = models.CharField(max_length=300,blank=True,null=True)
+    address = models.CharField(max_length=300,blank=True,null=True)
+    pincode = models.CharField(max_length=150,blank=True,null=True)
+    state = models.CharField(max_length=300,blank=True,null=True)
+    country = models.CharField(max_length=300,default="India",null=False)
+    dob = models.DateTimeField(default=timezone.now)
 
     def generate_invitecode():
         return random_number_with_N_digits(10)

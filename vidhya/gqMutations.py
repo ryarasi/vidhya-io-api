@@ -331,38 +331,6 @@ class AddInvitecode(graphene.Mutation):
 #             payload=payload)
 #         return createUser(ok=ok, user=user_instance)
 
-# class passwordChange(graphene.Mutation):
-#     class Meta:
-#         description = "Change Password"
-
-#     class Arguments:
-#         input = UserInput(required=True)
-    
-#     ok = graphene.Boolean()
-#     user = graphene.Field(UserType)
-
-#     @staticmethod
-#     @login_required
-#     def mutate(root, info, input=None):
-#         ok = False
-#         current_user = info.context.user
-#         user = User.objects.get(pk=current_user.id, active=True)
-#         user_instance = user
-
-#         if user_instance:
-#             ok = True
-#             user_instance.password = input.password if input.password is not None else user.password
-#             user_instance.save()
-        
-#             users_modified() # Invalidating users cache
-
-#             payload = {"user": user_instance,
-#                         "method": UPDATE_METHOD}
-#             NotifyUser.broadcast(
-#                 payload=payload)
-
-#             return passwordChange(ok=ok, user=user_instance)
-#         return passwordChange(ok=ok, user=None)
 
 class verifyEmailUser(graphene.Mutation):
     class Meta:
@@ -374,7 +342,6 @@ class verifyEmailUser(graphene.Mutation):
 
     ok = graphene.Boolean()
     
-    ok = graphene.Boolean()
     user = graphene.Field(UserType)
 
     @staticmethod
@@ -418,14 +385,19 @@ class UpdateUser(graphene.Mutation):
             user_instance.role_id = input.role_id if input.role_id is not None else user.role_id
             user_instance.title = input.title if input.title is not None else user.title
             user_instance.bio = input.bio if input.bio is not None else user.bio
-            user_instance.mobileno = input.mobileno if input.mobileno is not None else user.mobileno
-            user_instance.phoneno = input.phoneno if input.phoneno is not None else user.phoneno
-            user_instance.address = input.address if input.address is not None else user.address
+            user_instance.username = input.username if input.username is not None else user.username
             user_instance.dob = input.dob if input.dob is not None else user.dob
-            user_instance.institutiontype = input.institutiontype if input.institutiontype is not None else user.institutiontype
-            user_instance.year = input.year if input.year is not None else user.year
-            user_instance.schoolorcollege = input.year if input.schoolorcollege is not None else user.schoolorcollege
-            user_instance.courseorclass = input.courseorclass if input.courseorclass is not None else user.courseorclass
+            user_instance.phone = input.phone if input.phone is not None else user.phone
+            user_instance.mobile = input.mobile if input.mobile is not None else user.mobile
+            user_instance.address = input.address if input.address is not None else user.address
+            user_instance.city = input.city if input.city is not None else user.city
+            user_instance.pincode = input.pincode if input.pincode is not None else user.pincode
+            user_instance.state = input.state if input.state is not None else user.state
+            user_instance.country = input.state if input.country is not None else user.country
+            user_instance.manual_login = input.manual_login if input.manual_login is not None else user.manual_login
+            user_instance.google_login = input.google_login if input.google_login is not None else user.google_login
+            user_instance.verified = input.verified if input.verified is not None else user.verified
+            user_instance.institution_type = input.institution_type if input.institution_type is not None else user.institution_type
 
             # Updatiing the membership status to Pending if the user is currently Uninitialized and
             # they provide first name, last name and institution to set up their profile
@@ -435,6 +407,7 @@ class UpdateUser(graphene.Mutation):
 
             searchField = user_instance.first_name if user_instance.first_name is not None else ""
             searchField += user_instance.last_name if user_instance.last_name is not None else ""
+            searchField += user_instance.username if user_instance.username is not None else ""
             searchField += user_instance.title if user_instance.title is not None else ""
             searchField += user_instance.bio if user_instance.bio is not None else ""
             searchField += user_instance.membership_status if user_instance.membership_status is not None else ""
@@ -3488,7 +3461,7 @@ class createGoogleToken(graphene.Mutation):
         searchField = input.email
         searchField = searchField.lower()
         if (User.objects.filter(email=input.email).exists()==False):   
-            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name, searchField=searchField)
+            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,username=input.username ,searchField=searchField)
             user_instance.save()
         else:
            user_instance= User.objects.get(email=input.email)
