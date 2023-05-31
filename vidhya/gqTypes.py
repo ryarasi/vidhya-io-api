@@ -337,6 +337,8 @@ class UserInput(graphene.InputObjectType):
     designation = graphene.String()
     manualLogin = graphene.String()
     googleLogin = graphene.Boolean()
+    verified = graphene.String(name="institution")
+    institutionType = graphene.String(name="institution")
   
 class UserRoleInput(graphene.InputObjectType):
     name = graphene.String(required=True)
