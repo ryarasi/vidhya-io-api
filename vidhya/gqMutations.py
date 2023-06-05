@@ -45,6 +45,10 @@ class CreateInstitution(graphene.Mutation):
             error += "Location is a required field<br />"
         if input.city is None:
             error += "City is a required field<br />"
+        if input.designations is None:
+            error += "Designation is a required field<br />"
+        if input.institution_type is None:
+            error += "Institution Type is a required field<br />"
         if error:
             raise GraphQLError(error)
 
@@ -54,10 +58,18 @@ class CreateInstitution(graphene.Mutation):
         searchField += input.city if input.city is not None else ""
         searchField += input.website if input.website is not None else ""
         searchField += input.bio if input.bio is not None else ""
+        searchField += input.address if input.address is not None else ""
+        searchField += input.state if input.state is not None else ""
+        searchField += input.pincode if input.pincode is not None else ""
+        searchField += input.dob if input.dob is not None else ""
+        searchField += input.designations if input.designations is not None else ""
+        searchField += input.institution_type if input.institution_type is not None else ""
         searchField = searchField.lower()
 
         institution_instance = Institution(name=input.name, code=input.code, location=input.location, city=input.city,
-                                           website=input.website, phone=input.phone, logo=input.logo, bio=input.bio, searchField=searchField)
+                                           website=input.website, phone=input.phone, logo=input.logo, bio=input.bio, 
+                                           designations=input.designations, institution_type=input.institution_type,
+                                           address=input.address,pincode=input.pincode,state=input.state,dob=input.dob, searchField=searchField)
         institution_instance.save()
 
         payload = {"institution": institution_instance,
@@ -98,6 +110,11 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.phone = input.phone if input.phone is not None else institution.phone
             institution_instance.logo = input.logo if input.logo is not None else institution.logo
             institution_instance.bio = input.bio if input.bio is not None else institution.bio
+            institution_instance.designations = input.designations if input.designations is not None else institution.designations
+            institution_instance.institution_type = input.institution_type if input.institution_type is not None else institution.institution_type
+            institution_instance.dob = input.dob if input.dob is not None else institution.dob
+            institution_instance.pincode = input.pincode if input.pincode is not None else institution.pincode
+            institution_instance.state = input.state if input.state is not None else institution.state
 
             searchField = institution_instance.name if institution_instance.name is not None else ""
             searchField = institution_instance.code if institution_instance.code is not None else ""
@@ -105,7 +122,12 @@ class UpdateInstitution(graphene.Mutation):
             searchField += institution_instance.city if institution_instance.city is not None else ""
             searchField += institution_instance.website if institution_instance.website is not None else ""
             searchField += institution_instance.bio if institution_instance.bio is not None else ""
-
+            searchField += institution_instance.designations if institution_instance.designations is not None else ""
+            searchField += institution_instance.dob if institution_instance.dob is not None else ""
+            searchField += institution_instance.address if institution_instance.address is not None else ""
+            searchField += institution_instance.pincode if institution_instance.pincode is not None else ""
+            searchField += institution_instance.state if institution_instance.state is not None else ""
+       
             institution_instance.searchField = searchField.lower()
 
             institution_instance.save()
@@ -394,9 +416,9 @@ class UpdateUser(graphene.Mutation):
             user_instance.pincode = input.pincode if input.pincode is not None else user.pincode
             user_instance.state = input.state if input.state is not None else user.state
             user_instance.country = input.state if input.country is not None else user.country
-            user_instance.manual_login = input.manual_login if input.manual_login is not None else user.manual_login
-            user_instance.google_login = input.google_login if input.google_login is not None else user.google_login
-            user_instance.verified = input.verified if input.verified is not None else user.verified
+            user_instance.manualLogin = input.manualLogin if input.manualLogin is not None else user.manualLogin
+            user_instance.googleLogin = input.googleLogin if input.googleLogin is not None else user.googleLogin
+            # user_instance.verified = input.verified if input.verified is not None else user.verified
             user_instance.institution_type = input.institution_type if input.institution_type is not None else user.institution_type
 
             # Updatiing the membership status to Pending if the user is currently Uninitialized and
@@ -3461,11 +3483,10 @@ class createGoogleToken(graphene.Mutation):
         searchField = input.email
         searchField = searchField.lower()
         if (User.objects.filter(email=input.email).exists()==False):   
-            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,username=input.username ,searchField=searchField)
+            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,username=input.username ,searchField=searchField, googleLogin=input.googleLogin)
             user_instance.save()
         else:
            user_instance= User.objects.get(email=input.email)
-        
         payload = {"user": user_instance,
                     "method": CREATE_METHOD}
         NotifyUser.broadcast(

@@ -385,7 +385,7 @@ class Query(ObjectType):
         return institution_instance
 
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
+    # @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
     def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
         cache_entity = CACHE_ENTITIES['PUBLIC_INSTITUTIONS']
 
