@@ -377,6 +377,8 @@ class verifyEmailUser(graphene.Mutation):
             if(user_instance.status.verified == False):
                 user_instance.status.verified = True
                 user_instance.status.save()
+                user_instance.manualLogin = True
+                user_instance.save()
                 return verifyEmailUser(ok=ok, user=user_instance)
         return verifyEmailUser(ok=ok, user=None)
 
