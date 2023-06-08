@@ -60,6 +60,14 @@ FRONTEND_DOMAIN_URL = env('FRONTEND_DOMAIN_URL')
 SITE_ID = 1
 # This is the URL for the redis server
 REDIS_URL = env('REDIS_URL')
+# This is for the google auth SSO
+ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env('ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env('ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
+ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = env.list('ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE')
+ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = env.list('ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA')
+ENV_SOCIAL_AUTH_LOGIN_ERROR_URL = env('ENV_SOCIAL_AUTH_LOGIN_ERROR_URL')
+ENV_SOCIAL_AUTH_RAISE_EXCEPTIONS = env.bool('ENV_SOCIAL_AUTH_RAISE_EXCEPTIONS',default=False)
+ENV_SOCIAL_AUTH_LOGIN_REDIRECT_URL = env('ENV_SOCIAL_AUTH_LOGIN_REDIRECT_URL')
 
 DEFAULT_AVATARS = {
     'USER': 'https://i.imgur.com/KHtECqa.png',
@@ -100,6 +108,8 @@ INSTALLED_APPS = [
     'graphql_auth',
     'rest_framework',
     'django_filters',
+    'social_django',
+    # 'social.apps.django_app.default',
 ]
 
 GRAPHENE = {
@@ -111,6 +121,7 @@ GRAPHENE = {
 }
 
 MIDDLEWARE = [
+    'social_django.middleware.SocialAuthExceptionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',    
     'corsheaders.middleware.CorsMiddleware',
@@ -126,11 +137,23 @@ MIDDLEWARE = [
 
 AUTHENTICATION_BACKENDS = [
     'graphql_auth.backends.GraphQLAuthBackend',
+    'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE
+SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA
+SOCIAL_AUTH_LOGIN_ERROR_URL = ENV_SOCIAL_AUTH_LOGIN_ERROR_URL
+SOCIAL_AUTH_RAISE_EXCEPTIONS = ENV_SOCIAL_AUTH_RAISE_EXCEPTIONS
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = ENV_SOCIAL_AUTH_LOGIN_REDIRECT_URL
+SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = [FRONTEND_DOMAIN_URL,'localhost:8000']
+
 GRAPHQL_AUTH = {
-    "ALLOW_LOGIN_NOT_VERIFIED": False
+    "ALLOW_LOGIN_NOT_VERIFIED": True,
+    "SEND_ACTIVATION_EMAIL": False,
+    "ALLOW_PASSWORDLESS_REGISTRATION": False
 }
 
 GRAPHQL_JWT = {
@@ -166,6 +189,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -267,9 +292,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    # },
 ]
 
 
