@@ -417,11 +417,9 @@ class UpdateUser(graphene.Mutation):
             user_instance.city = input.city if input.city is not None else user.city
             user_instance.pincode = input.pincode if input.pincode is not None else user.pincode
             user_instance.state = input.state if input.state is not None else user.state
-            user_instance.country = input.state if input.country is not None else user.country
+            user_instance.country = input.country if input.country is not None else user.country
             user_instance.manualLogin = input.manualLogin if input.manualLogin is not None else user.manualLogin
             user_instance.googleLogin = input.googleLogin if input.googleLogin is not None else user.googleLogin
-            # user_instance.verified = input.verified if input.verified is not None else user.verified
-            user_instance.institution_type = input.institution_type if input.institution_type is not None else user.institution_type
 
             # Updatiing the membership status to Pending if the user is currently Uninitialized and
             # they provide first name, last name and institution to set up their profile

@@ -306,10 +306,6 @@ class InstitutionInput(graphene.InputObjectType):
     state = graphene.String()
     country = graphene.String()
     dob = graphene.String()
-# class PasswordChange(graphene.InputObjectType):
-#     oldPassword = graphene.String()
-#     newPassword1 = graphene.String()
-#     newPassword2 = graphene.String()
 
 class verifyEmailUser(graphene.InputObjectType):
     user_id = graphene.Int()
@@ -325,7 +321,7 @@ class UserInput(graphene.InputObjectType):
     title = graphene.String()
     bio = graphene.String()
     role_id = graphene.ID(name="role")
-    dob = graphene.String()
+    dob = graphene.DateTime()
     address = graphene.String()  
     username = graphene.String()
     city = graphene.String()
@@ -337,7 +333,6 @@ class UserInput(graphene.InputObjectType):
     designation = graphene.String()
     manualLogin = graphene.String()
     googleLogin = graphene.Boolean()
-    institution_type = graphene.String(name="institutionType")
   
 class UserRoleInput(graphene.InputObjectType):
     name = graphene.String(required=True)
