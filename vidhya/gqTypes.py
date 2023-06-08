@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
 from django.db import models
 from vidhya.authorization import is_chapter_locked, is_course_locked
 
@@ -17,6 +17,10 @@ class InstitutionType(DjangoObjectType):
     class Meta:
         model = Institution
 
+class EmailOTPType(DjangoObjectType):
+
+    class Meta:
+        model = EmailOTP
 
 class UserType(DjangoObjectType):
     class Meta:
@@ -272,6 +276,12 @@ class ChatSearchType(DjangoObjectType):
     class Meta:
         model = ChatSearchModel
 
+# class UserProfile(DjangoObjectType):
+#     class Meta:
+#         model = profile
+
+
+
 ##############
 # Mutation Types
 ##############
@@ -288,8 +298,18 @@ class InstitutionInput(graphene.InputObjectType):
     phone = graphene.String()
     logo = graphene.String()
     bio = graphene.String()
+    verified = graphene.Boolean()
+    institution_type = graphene.String()
+    designations = graphene.String()
+    address = graphene.String()
+    pincode = graphene.String()
+    state = graphene.String()
+    country = graphene.String()
+    dob = graphene.String()
 
-
+class verifyEmailUser(graphene.InputObjectType):
+    user_id = graphene.Int()
+    
 class UserInput(graphene.InputObjectType):
     id = graphene.ID()
     first_name = graphene.String()
@@ -301,8 +321,19 @@ class UserInput(graphene.InputObjectType):
     title = graphene.String()
     bio = graphene.String()
     role_id = graphene.ID(name="role")
-
-
+    dob = graphene.DateTime()
+    address = graphene.String()  
+    username = graphene.String()
+    city = graphene.String()
+    pincode = graphene.String()
+    state = graphene.String()
+    country = graphene.String()
+    mobile = graphene.Int()
+    phone = graphene.Int()
+    designation = graphene.String()
+    manualLogin = graphene.String()
+    googleLogin = graphene.Boolean()
+  
 class UserRoleInput(graphene.InputObjectType):
     name = graphene.String(required=True)
     description = graphene.String(required=True)

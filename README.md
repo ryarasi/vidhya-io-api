@@ -132,6 +132,13 @@ APP_PORT=8001
 3.  For initial data load, us this `docker-compose run web python manage.py loaddata ./vidhya/fixtures/initial_data.json`
 4.  Run this to update fixtures - `docker-compose run web python manage.py dumpdata vidhya.UserRole > ./vidhya/fixtures/roles.json && docker-compose run web python manage.py dumpdata vidhya.User > ./vidhya/fixtures/users.json && docker-compose run web python manage.py dumpdata vidhya.Institution > ./vidhya/fixtures/institutions.json && docker-compose run web python manage.py dumpdata vidhya.Course > ./vidhya/fixtures/courses.json && docker-compose run web python manage.py dumpdata vidhya.CourseSection > ./vidhya/fixtures/courseSections.json && docker-compose run web python manage.py dumpdata vidhya.Chapter > ./vidhya/fixtures/chapters.json && docker-compose run web python manage.py dumpdata vidhya.Exercise > ./vidhya/fixtures/exercises.json && docker-compose run web python manage.py dumpdata vidhya.ExerciseKey > ./vidhya/fixtures/exerciseKeys.json && docker-compose run web python manage.py dumpdata vidhya.Criterion > ./vidhya/fixtures/criteria.json && docker-compose run web python manage.py dumpdata vidhya.MandatoryChapters > ./vidhya/fixtures/mandatoryChapters.json && docker-compose run web python manage.py dumpdata vidhya.MandatoryRequiredCourses > ./vidhya/fixtures/mandatoryRequiredCourses.json &&`
 
+## Rolling back migrations:-
+
+1. Use this command to show a list of migrations that have been applied to the database - `docker compose run web python manage.py showmigrations`
+2. Use this command to rollback to a certain migration - `docker compose run web python manage.py migrate <migration_name>`
+
+[More information on migrations](https://docs.djangoproject.com/en/4.2/topics/migrations/)
+
 ## Deployment:-
 
 1. Heroku deployment requires the `heroku.yml` file and some modifications in the `Dockerfile`, `docker-compose.yml` and `settings.py`, all of which are already taken care of in this repo.
@@ -167,6 +174,7 @@ APP_PORT=8001
    1. Stop docker and start it again with `docker-compose down && docker-compose up`
    2. If the above step doesn't help, try restarting postgresql. First stop it with `sudo service postgresql stop` and then start it up again with `sudo service postgresql start`
 4. If you remove the docker images and reset it all, the database should still be intact because we have static volumes of the database in ./data. If the build fails while rebuilding the database, change the permissions of the folder with this `sudo chmod -R a+rwx ./data`
+5. While creating migrations if the migration file is being created inside the container, as a temporary fix we can copy the file from the container onto the local machine using `sudo docker cp <docker_container_id>:/<path_to_file> <local_path>`. Example - `sudo docker cp 60939c395609:/app/vidhya/migrations ~/code/migrations`. For details see [here](https://www.geeksforgeeks.org/copying-files-to-and-from-docker-containers/)
 
 ## Useful PGAdmin commands:-
 

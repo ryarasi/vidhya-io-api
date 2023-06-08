@@ -351,7 +351,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         else:
             report_list = has_access(user, RESOURCES["REPORT"], ACTIONS["LIST"])
             if report_list == True:
-                qs = Report.objects.all(institution_id=user.institution.id).order_by("-completed")
+                qs = Report.objects.all().filter(institution_id=user.institution.id).order_by("-completed")
             else:
                 qs = []
 

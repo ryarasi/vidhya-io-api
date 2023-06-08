@@ -4,10 +4,11 @@ from typing import final
 
 from django.db.models.query_utils import Q
 import graphene
+import graphql_social_auth
 from graphql import GraphQLError
 from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput, verifyEmailUser
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
 from django.core.mail import send_mail
@@ -16,6 +17,9 @@ from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
 from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
 from django.core.cache import cache
+from django.db import connection,transaction
+from graphql_jwt.shortcuts import get_token,create_refresh_token
+from django.contrib.auth import get_user_model
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -41,6 +45,10 @@ class CreateInstitution(graphene.Mutation):
             error += "Location is a required field<br />"
         if input.city is None:
             error += "City is a required field<br />"
+        if input.designations is None:
+            error += "Designation is a required field<br />"
+        if input.institution_type is None:
+            error += "Institution Type is a required field<br />"
         if error:
             raise GraphQLError(error)
 
@@ -50,10 +58,18 @@ class CreateInstitution(graphene.Mutation):
         searchField += input.city if input.city is not None else ""
         searchField += input.website if input.website is not None else ""
         searchField += input.bio if input.bio is not None else ""
+        searchField += input.address if input.address is not None else ""
+        searchField += input.state if input.state is not None else ""
+        searchField += input.pincode if input.pincode is not None else ""
+        searchField += input.dob if input.dob is not None else ""
+        searchField += input.designations if input.designations is not None else ""
+        searchField += input.institution_type if input.institution_type is not None else ""
         searchField = searchField.lower()
 
         institution_instance = Institution(name=input.name, code=input.code, location=input.location, city=input.city,
-                                           website=input.website, phone=input.phone, logo=input.logo, bio=input.bio, searchField=searchField)
+                                           website=input.website, phone=input.phone, logo=input.logo, bio=input.bio, 
+                                           designations=input.designations, institution_type=input.institution_type,
+                                           address=input.address,pincode=input.pincode,state=input.state,dob=input.dob, searchField=searchField)
         institution_instance.save()
 
         payload = {"institution": institution_instance,
@@ -94,6 +110,11 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.phone = input.phone if input.phone is not None else institution.phone
             institution_instance.logo = input.logo if input.logo is not None else institution.logo
             institution_instance.bio = input.bio if input.bio is not None else institution.bio
+            institution_instance.designations = input.designations if input.designations is not None else institution.designations
+            institution_instance.institution_type = input.institution_type if input.institution_type is not None else institution.institution_type
+            institution_instance.dob = input.dob if input.dob is not None else institution.dob
+            institution_instance.pincode = input.pincode if input.pincode is not None else institution.pincode
+            institution_instance.state = input.state if input.state is not None else institution.state
 
             searchField = institution_instance.name if institution_instance.name is not None else ""
             searchField = institution_instance.code if institution_instance.code is not None else ""
@@ -101,7 +122,12 @@ class UpdateInstitution(graphene.Mutation):
             searchField += institution_instance.city if institution_instance.city is not None else ""
             searchField += institution_instance.website if institution_instance.website is not None else ""
             searchField += institution_instance.bio if institution_instance.bio is not None else ""
-
+            searchField += institution_instance.designations if institution_instance.designations is not None else ""
+            searchField += institution_instance.dob if institution_instance.dob is not None else ""
+            searchField += institution_instance.address if institution_instance.address is not None else ""
+            searchField += institution_instance.pincode if institution_instance.pincode is not None else ""
+            searchField += institution_instance.state if institution_instance.state is not None else ""
+       
             institution_instance.searchField = searchField.lower()
 
             institution_instance.save()
@@ -260,6 +286,7 @@ class VerifyEmailOTP(graphene.Mutation):
                 record.verified = True
                 record.save()
                 ok = True
+                
         return VerifyEmailOTP(ok=ok)                
 
 class AddInvitecode(graphene.Mutation):
@@ -294,7 +321,7 @@ class AddInvitecode(graphene.Mutation):
         return AddInvitecode(ok=ok)
 
 
-# class CreateUser(graphene.Mutation):
+# class createUser(graphene.Mutation):
 #     class Meta:
 #         description = "Mutation to create a new User"
 
@@ -324,8 +351,36 @@ class AddInvitecode(graphene.Mutation):
 #                    "method": CREATE_METHOD}
 #         NotifyUser.broadcast(
 #             payload=payload)
-#         return CreateUser(ok=ok, user=user_instance)
+#         return createUser(ok=ok, user=user_instance)
 
+
+class verifyEmailUser(graphene.Mutation):
+    class Meta:
+        description = "Verify Email Account"
+
+        
+    class Arguments:
+        user_id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+    
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info,user_id, input=None):
+        ok = False
+        user = get_user_model().objects.get(pk=user_id)
+        user_instance = user
+        if user_instance:
+            ok = True
+            if(user_instance.status.verified == False):
+                user_instance.status.verified = True
+                user_instance.status.save()
+                user_instance.manualLogin = True
+                user_instance.save()
+                return verifyEmailUser(ok=ok, user=user_instance)
+        return verifyEmailUser(ok=ok, user=None)
 
 class UpdateUser(graphene.Mutation):
     class Meta:
@@ -354,6 +409,17 @@ class UpdateUser(graphene.Mutation):
             user_instance.role_id = input.role_id if input.role_id is not None else user.role_id
             user_instance.title = input.title if input.title is not None else user.title
             user_instance.bio = input.bio if input.bio is not None else user.bio
+            user_instance.username = input.username if input.username is not None else user.username
+            user_instance.dob = input.dob if input.dob is not None else user.dob
+            user_instance.phone = input.phone if input.phone is not None else user.phone
+            user_instance.mobile = input.mobile if input.mobile is not None else user.mobile
+            user_instance.address = input.address if input.address is not None else user.address
+            user_instance.city = input.city if input.city is not None else user.city
+            user_instance.pincode = input.pincode if input.pincode is not None else user.pincode
+            user_instance.state = input.state if input.state is not None else user.state
+            user_instance.country = input.country if input.country is not None else user.country
+            user_instance.manualLogin = input.manualLogin if input.manualLogin is not None else user.manualLogin
+            user_instance.googleLogin = input.googleLogin if input.googleLogin is not None else user.googleLogin
 
             # Updatiing the membership status to Pending if the user is currently Uninitialized and
             # they provide first name, last name and institution to set up their profile
@@ -363,6 +429,7 @@ class UpdateUser(graphene.Mutation):
 
             searchField = user_instance.first_name if user_instance.first_name is not None else ""
             searchField += user_instance.last_name if user_instance.last_name is not None else ""
+            searchField += user_instance.username if user_instance.username is not None else ""
             searchField += user_instance.title if user_instance.title is not None else ""
             searchField += user_instance.bio if user_instance.bio is not None else ""
             searchField += user_instance.membership_status if user_instance.membership_status is not None else ""
@@ -3392,6 +3459,42 @@ class ClearServerCache(graphene.Mutation):
         ok = True
         return ClearServerCache(ok=ok)
 
+# createGoogleToken
+class createGoogleToken(graphene.Mutation):
+    ok = graphene.Boolean()
+    token = graphene.String()
+    refresh_token = graphene.String()
+    class Meta:
+        description = "Mutation to create Google login token"
+    class Arguments:
+        input = UserInput(required=True)
+    
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    def mutate(self, info, input=None):
+        ok = True
+        error = ""
+        if input.email is None:
+            error += "Email is a required field<br />"
+        if error:
+            raise GraphQLError(error)
+        searchField = input.email
+        searchField = searchField.lower()
+        if (User.objects.filter(email=input.email).exists()==False):   
+            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,username=input.username ,searchField=searchField, googleLogin=input.googleLogin)
+            user_instance.save()
+        else:
+           user_instance= User.objects.get(email=input.email)
+        payload = {"user": user_instance,
+                    "method": CREATE_METHOD}
+        NotifyUser.broadcast(
+                payload=payload)        
+        token = get_token(user_instance)
+        refresh_token = create_refresh_token(user_instance)
+        return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token)
+
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
@@ -3401,8 +3504,10 @@ class Mutation(graphene.ObjectType):
     verify_invitecode = VerifyInvitecode.Field()
     generate_email_otp = GenerateEmailOTP.Field()
     verify_email_otp = VerifyEmailOTP.Field()
+    verify_email_user = verifyEmailUser.Field()
+    # passwordChange = passwordChange.Field()
 
-    # create_user = CreateUser.Field()
+    # create_user = createUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     approve_user = ApproveUser.Field()
@@ -3474,3 +3579,9 @@ class Mutation(graphene.ObjectType):
 
     # Admin mutations
     clear_server_cache = ClearServerCache.Field()
+
+    #Social AUth
+    social_auth = graphql_social_auth.SocialAuthJWT.Field()
+
+    # Create Google login Token
+    create_google_token = createGoogleToken.Field()
