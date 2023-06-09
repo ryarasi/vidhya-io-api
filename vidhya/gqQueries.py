@@ -210,7 +210,7 @@ class Query(ObjectType):
     institution = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
         Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-
+    search_institutions = graphene.Field(Institutions,name=graphene.String())
     # User Queries
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
@@ -402,7 +402,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(searchField__icontains=searchField.lower())
+                Q(name__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
         total = len(qs)
@@ -453,6 +453,23 @@ class Query(ObjectType):
     #     set_cache(cache_entity, cache_key, results)
 
     #     return results
+
+
+    @login_required
+    def resolve_search_institutions(root, info, name=None, **kwargs):
+        current_user = info.context.user
+        qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
+
+        if name is not None:
+            filter = (
+                Q(name__icontains=name.lower())
+            )
+            qs = qs.filter(filter)
+        total = len(qs)
+
+        results = Institutions(records=qs, total=total)
+
+        return results
 
 
     @login_required
