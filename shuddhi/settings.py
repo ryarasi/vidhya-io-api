@@ -235,7 +235,7 @@ if not REDIS_URL:
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f'{CACHE_HOST}://{CACHE_HOST}:{CACHE_PORT}/1',
+        "LOCATION": REDIS_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         },
