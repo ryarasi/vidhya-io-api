@@ -153,6 +153,7 @@ class PublicInstitutionType(graphene.ObjectType):
     institutionType = graphene.String()
 
 
+
 class PublicInstitutions(graphene.ObjectType):
     records = graphene.List(PublicInstitutionType)
     total = graphene.Int()
@@ -465,25 +466,7 @@ class Query(ObjectType):
     @login_required
     def resolve_search_institutions(root, info, name=None, **kwargs):
         current_user = info.context.user
-        qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
-
-        if name is not None:
-            filter = (
-                Q(name__icontains=name.lower())
-            )
-            qs = qs.filter(filter)
-        total = len(qs)
-
-        results = Institutions(records=qs, total=total)
-
-        return results
-
-
-    @login_required
-    def resolve_search_institutions(root, info, name=None, **kwargs):
-        current_user = info.context.user
-        qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
-
+        qs =  Institution.objects.all()
         if name is not None:
             filter = (
                 Q(name__icontains=name.lower())
