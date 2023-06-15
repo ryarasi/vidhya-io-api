@@ -33,7 +33,7 @@ class CreateInstitution(graphene.Mutation):
 
     @staticmethod
     @login_required
-    @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['CREATE']))
+    # @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['CREATE']))
     def mutate(root, info, input=None):
         ok = True
         error = ""
