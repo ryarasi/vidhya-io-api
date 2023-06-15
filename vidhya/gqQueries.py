@@ -152,6 +152,7 @@ class PublicInstitutionType(graphene.ObjectType):
     dob = graphene.DateTime()
     institutionType = graphene.String()
 
+
 class PublicInstitutions(graphene.ObjectType):
     records = graphene.List(PublicInstitutionType)
     total = graphene.Int()
@@ -424,6 +425,59 @@ class Query(ObjectType):
         set_cache(cache_entity, cache_key, results)
 
         return results
+
+    # @login_required
+    # @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
+    # def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
+    #     cache_entity = CACHE_ENTITIES['PUBLIC_INSTITUTIONS']
+
+    #     cache_key = generate_institutions_cache_key(
+    #         cache_entity, searchField, limit, offset)
+
+    #     cached_response = fetch_cache(cache_entity, cache_key)
+
+    #     if cached_response:
+    #         return cached_response
+
+    #     current_user = info.context.user
+    #     qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
+
+    #     if searchField is not None:
+    #         filter = (
+    #             Q(searchField__icontains=searchField.lower())
+    #         )
+    #         qs = qs.filter(filter)
+    #     total = len(qs)
+
+    #     if offset is not None:
+    #         qs = qs[offset:]
+
+    #     if limit is not None:
+    #         qs = qs[:limit]
+
+    #     results = Institutions(records=qs, total=total)
+
+    #     set_cache(cache_entity, cache_key, results)
+
+    #     return results
+
+
+    @login_required
+    def resolve_search_institutions(root, info, name=None, **kwargs):
+        current_user = info.context.user
+        qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
+
+        if name is not None:
+            filter = (
+                Q(name__icontains=name.lower())
+            )
+            qs = qs.filter(filter)
+        total = len(qs)
+
+        results = Institutions(records=qs, total=total)
+
+        return results
+
 
     @login_required
     def resolve_search_institutions(root, info, name=None, **kwargs):
