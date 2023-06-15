@@ -144,13 +144,7 @@ class PublicInstitutionType(graphene.ObjectType):
     score = graphene.Int()
     completed = graphene.Int()
     percentage = graphene.Int()
-    designations = graphene.String()
-    address = graphene.String()
-    pincode = graphene.String()
-    state = graphene.String()
-    country = graphene.String()
-    dob = graphene.DateTime()
-    institutionType = graphene.String()
+
 
 
 class PublicInstitutions(graphene.ObjectType):
