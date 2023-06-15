@@ -403,7 +403,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(name__icontains=searchField.lower())
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
         total = len(qs)
