@@ -144,6 +144,13 @@ class PublicInstitutionType(graphene.ObjectType):
     score = graphene.Int()
     completed = graphene.Int()
     percentage = graphene.Int()
+    designations = graphene.String()
+    address = graphene.String()
+    pincode = graphene.String()
+    state = graphene.String()
+    country = graphene.String()
+    dob = graphene.DateTime()
+    institutionType = graphene.String()
 
 
 
@@ -403,7 +410,7 @@ class Query(ObjectType):
 
         if searchField is not None:
             filter = (
-                Q(name__icontains=searchField.lower())
+                Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
         total = len(qs)
@@ -459,25 +466,7 @@ class Query(ObjectType):
     @login_required
     def resolve_search_institutions(root, info, name=None, **kwargs):
         current_user = info.context.user
-        qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
-
-        if name is not None:
-            filter = (
-                Q(name__icontains=name.lower())
-            )
-            qs = qs.filter(filter)
-        total = len(qs)
-
-        results = Institutions(records=qs, total=total)
-
-        return results
-
-
-    @login_required
-    def resolve_search_institutions(root, info, name=None, **kwargs):
-        current_user = info.context.user
-        qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
-
+        qs =  Institution.objects.all()
         if name is not None:
             filter = (
                 Q(name__icontains=name.lower())
