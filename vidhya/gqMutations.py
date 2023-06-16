@@ -361,6 +361,8 @@ class verifyEmailUser(graphene.Mutation):
         
     class Arguments:
         user_id = graphene.Int(required=True)
+        googleLogin = graphene.Boolean()
+        manualLogin = graphene.Boolean()
 
     ok = graphene.Boolean()
     
@@ -368,7 +370,7 @@ class verifyEmailUser(graphene.Mutation):
 
     @staticmethod
     @login_required
-    def mutate(root, info,user_id, input=None):
+    def mutate(root, info,user_id=None,googleLogin=False,manualLogin=False):
         ok = False
         user = get_user_model().objects.get(pk=user_id)
         user_instance = user
@@ -377,10 +379,11 @@ class verifyEmailUser(graphene.Mutation):
             if(user_instance.status.verified == False):
                 user_instance.status.verified = True
                 user_instance.status.save()
-                user_instance.manualLogin = True
-                user_instance.save()
-                return verifyEmailUser(ok=ok, user=user_instance)
-        return verifyEmailUser(ok=ok, user=None)
+            user_instance.manualLogin = manualLogin
+            user_instance.googleLogin = googleLogin
+            user_instance.save()
+            return verifyEmailUser(ok=ok, user=user_instance)
+        return verifyEmailUser(ok=ok, user=user_instance)
 
 class UpdateUser(graphene.Mutation):
     class Meta:
@@ -418,8 +421,7 @@ class UpdateUser(graphene.Mutation):
             user_instance.pincode = input.pincode if input.pincode is not None else user.pincode
             user_instance.state = input.state if input.state is not None else user.state
             user_instance.country = input.country if input.country is not None else user.country
-            user_instance.manualLogin = input.manualLogin if input.manualLogin is not None else user.manualLogin
-            user_instance.googleLogin = input.googleLogin if input.googleLogin is not None else user.googleLogin
+            user_instance.designation = input.designation if input.designation is not None else user.designation
 
             # Updatiing the membership status to Pending if the user is currently Uninitialized and
             # they provide first name, last name and institution to set up their profile
@@ -3483,7 +3485,7 @@ class createGoogleToken(graphene.Mutation):
         searchField = input.email
         searchField = searchField.lower()
         if (User.objects.filter(email=input.email).exists()==False):   
-            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,username=input.username ,searchField=searchField, googleLogin=input.googleLogin)
+            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,username=input.username ,searchField=searchField)
             user_instance.save()
         else:
            user_instance= User.objects.get(email=input.email)
