@@ -4,6 +4,7 @@ from typing import final
 
 from django.db.models.query_utils import Q
 import graphene
+import datetime
 import graphql_social_auth
 from graphql import GraphQLError
 from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
@@ -20,6 +21,8 @@ from django.core.cache import cache
 from django.db import connection,transaction
 from graphql_jwt.shortcuts import get_token,create_refresh_token
 from django.contrib.auth import get_user_model
+from datetime import datetime, timezone
+
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -61,7 +64,7 @@ class CreateInstitution(graphene.Mutation):
         searchField += input.address if input.address is not None else ""
         searchField += input.state if input.state is not None else ""
         searchField += input.pincode if input.pincode is not None else ""
-        searchField += input.dob if input.dob is not None else ""
+        searchField += input.dob if input.dob is not None else timezone.now()
         searchField += input.designations if input.designations is not None else ""
         searchField += input.institution_type if input.institution_type is not None else ""
         searchField = searchField.lower()
@@ -123,7 +126,7 @@ class UpdateInstitution(graphene.Mutation):
             searchField += institution_instance.website if institution_instance.website is not None else ""
             searchField += institution_instance.bio if institution_instance.bio is not None else ""
             searchField += institution_instance.designations if institution_instance.designations is not None else ""
-            searchField += institution_instance.dob if institution_instance.dob is not None else ""
+            searchField += institution_instance.dob if institution_instance.dob is not None else timezone.now()
             searchField += institution_instance.address if institution_instance.address is not None else ""
             searchField += institution_instance.pincode if institution_instance.pincode is not None else ""
             searchField += institution_instance.state if institution_instance.state is not None else ""
@@ -3485,7 +3488,7 @@ class createGoogleToken(graphene.Mutation):
         searchField = input.email
         searchField = searchField.lower()
         if (User.objects.filter(email=input.email).exists()==False):   
-            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,username=input.username ,searchField=searchField)
+            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,name=input.first_name + ' ' + input.last_name,username=input.username ,searchField=searchField)
             user_instance.save()
         else:
            user_instance= User.objects.get(email=input.email)
