@@ -382,9 +382,12 @@ class verifyEmailUser(graphene.Mutation):
             if(user_instance.status.verified == False):
                 user_instance.status.verified = True
                 user_instance.status.save()
-            user_instance.manualLogin = manualLogin
-            user_instance.googleLogin = googleLogin
-            user_instance.save()
+            if(user_instance.googleLogin!=googleLogin or user_instance.manualLogin!=manualLogin):                    
+                if(manualLogin == True):
+                    user_instance.manualLogin = manualLogin
+                if(googleLogin == True):
+                    user_instance.googleLogin = googleLogin
+                user_instance.save()
             return verifyEmailUser(ok=ok, user=user_instance)
         return verifyEmailUser(ok=ok, user=user_instance)
 
@@ -3476,6 +3479,7 @@ class createGoogleToken(graphene.Mutation):
     
     ok = graphene.Boolean()
     user = graphene.Field(UserType)
+    isverified = graphene.Boolean()
 
     @staticmethod
     def mutate(self, info, input=None):
@@ -3491,14 +3495,20 @@ class createGoogleToken(graphene.Mutation):
             user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,name=input.first_name + ' ' + input.last_name,username=input.username ,searchField=searchField)
             user_instance.save()
         else:
-           user_instance= User.objects.get(email=input.email)
-        payload = {"user": user_instance,
-                    "method": CREATE_METHOD}
-        NotifyUser.broadcast(
-                payload=payload)        
+            user_instance= User.objects.get(email=input.email)
+            isverified = user_instance.status.verified
+            if(isverified==False):
+                user_instance.first_name = input.first_name if input.first_name is not None else user_instance.first_name
+                user_instance.last_name = input.last_name if input.last_name is not None else user_instance.last_name
+                user_instance.name = user_instance.first_name + ' ' + user_instance.last_name if user_instance.first_name is not None and user_instance.last_name is not None else ""
+                user_instance.username = input.email if input.email is not None else user_instance.username
+                user_instance.searchField = searchField            
+                if user_instance.googleLogin != True:
+                    user_instance.googleLogin = True
+                user_instance.save()
         token = get_token(user_instance)
         refresh_token = create_refresh_token(user_instance)
-        return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token)
+        return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token, isverified=isverified)
 
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
