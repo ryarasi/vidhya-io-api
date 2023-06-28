@@ -146,7 +146,7 @@ class Institution(models.Model):
     logo = models.CharField(
         max_length=250, blank=True, null=True, default=settings.DEFAULT_AVATARS['INSTITUTION'])
     bio = models.CharField(max_length=300, blank=True, null=True)
-    verified = models.BooleanField(default=True)
+    verified = models.BooleanField(default=False)
     
     class InstitutionTypeChoices(models.TextChoices):
         SCHOOL = "SC", _('School')
