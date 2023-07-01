@@ -135,7 +135,7 @@ APP_PORT=8001
 ## Rolling back migrations:-
 
 1. Use this command to show a list of migrations that have been applied to the database - `docker compose run web python manage.py showmigrations`
-2. Use this command to rollback to a certain migration - `docker compose run web python manage.py migrate <migration_name>`
+2. Use this command to rollback to a certain migration - `docker compose run web python manage.py migrate vidhya <migration_name>`
 
 [More information on migrations](https://docs.djangoproject.com/en/4.2/topics/migrations/)
 

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "docker compose up",
+    "devstart": "docker compose -f docker-compose-dev.yml up",
     "stop": "docker compose down --remove-orphans && docker-compose stop",
     "build": "docker compose build",
     "makemigrations": "docker compose run web python manage.py makemigrations",

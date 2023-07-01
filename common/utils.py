@@ -56,4 +56,4 @@ def random_number_with_N_digits(n):
     return randint(range_start, range_end)
 
 def generate_otp():
-    return random_number_with_N_digits(4)
+    return random_number_with_N_digits(8)

@@ -3,10 +3,10 @@ from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage
+from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType
-from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user, is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible, SORT_BY_OPTIONS
+from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
+from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible, SORT_BY_OPTIONS
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
@@ -144,6 +144,14 @@ class PublicInstitutionType(graphene.ObjectType):
     score = graphene.Int()
     completed = graphene.Int()
     percentage = graphene.Int()
+    designations = graphene.String()
+    address = graphene.String()
+    pincode = graphene.String()
+    state = graphene.String()
+    country = graphene.String()
+    dob = graphene.DateTime()
+    institutionType = graphene.String()
+
 
 
 class PublicInstitutions(graphene.ObjectType):
@@ -201,12 +209,16 @@ class Query(ObjectType):
     # Auth Queries
     institution_by_invitecode = graphene.Field(
         InstitutionType, invitecode=graphene.String())
-
+    
+    #EmailOTP Query
+    email_otp = graphene.Field(
+        EmailOTPType, email = graphene.String())
+    
     # Institution Queries
     institution = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
         Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-
+    search_institutions = graphene.Field(Institutions,name=graphene.String())
     # User Queries
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
@@ -359,6 +371,16 @@ class Query(ObjectType):
             return None
 
     @login_required
+    def resolve_email_otp(root, info, email, **kwargs):
+        otp_instance = EmailOTP.objects.get(
+            email = email
+        )
+        if otp_instance is not None:
+            return otp_instance
+        else:
+            return None
+        
+    @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['GET']))
     def resolve_institution(root, info, id, **kwargs):
         current_user = info.context.user
@@ -404,6 +426,58 @@ class Query(ObjectType):
         set_cache(cache_entity, cache_key, results)
 
         return results
+
+    # @login_required
+    # @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
+    # def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
+    #     cache_entity = CACHE_ENTITIES['PUBLIC_INSTITUTIONS']
+
+    #     cache_key = generate_institutions_cache_key(
+    #         cache_entity, searchField, limit, offset)
+
+    #     cached_response = fetch_cache(cache_entity, cache_key)
+
+    #     if cached_response:
+    #         return cached_response
+
+    #     current_user = info.context.user
+    #     qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
+
+    #     if searchField is not None:
+    #         filter = (
+    #             Q(searchField__icontains=searchField.lower())
+    #         )
+    #         qs = qs.filter(filter)
+    #     total = len(qs)
+
+    #     if offset is not None:
+    #         qs = qs[offset:]
+
+    #     if limit is not None:
+    #         qs = qs[:limit]
+
+    #     results = Institutions(records=qs, total=total)
+
+    #     set_cache(cache_entity, cache_key, results)
+
+    #     return results
+
+
+    @login_required
+    def resolve_search_institutions(root, info, name=None, **kwargs):
+        current_user = info.context.user
+        qs =  Institution.objects.all()
+        if name is not None:
+            filter = (
+                Q(name__icontains=name.lower())
+            )
+            qs = qs.filter(filter)
+        total = len(qs)
+
+        results = Institutions(records=qs, total=total)
+
+        return results
+
 
     @login_required
     def resolve_user(root, info, id, **kwargs):
