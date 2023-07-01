@@ -400,14 +400,21 @@ class UpdateUser(graphene.Mutation):
 
     ok = graphene.Boolean()
     user = graphene.Field(UserType)
+    usernameExist = graphene.Boolean()
 
     @staticmethod
     @login_required
     def mutate(root, info, input=None):
         ok = False
+        error = ""
         current_user = info.context.user
         user = User.objects.get(pk=current_user.id, active=True)
         user_instance = user
+        usernameExist = User.objects.filter(username=input.username).exists()
+        if(usernameExist == True):
+            error += input.username+" Username already exist<br />"    
+        if error:
+            raise GraphQLError(error)        
         if user_instance:
             ok = True
             user_instance.first_name = input.first_name if input.first_name is not None else user.first_name
