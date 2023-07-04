@@ -3479,18 +3479,19 @@ class createGoogleToken(graphene.Mutation):
     ok = graphene.Boolean()
     token = graphene.String()
     refresh_token = graphene.String()
+    isverified = graphene.Boolean()
+
     class Meta:
         description = "Mutation to create Google login token"
     class Arguments:
         input = UserInput(required=True)
     
-    ok = graphene.Boolean()
     user = graphene.Field(UserType)
-    isverified = graphene.Boolean()
 
     @staticmethod
     def mutate(self, info, input=None):
         ok = True
+        isverified = False
         error = ""
         if input.email is None:
             error += "Email is a required field<br />"
@@ -3504,18 +3505,20 @@ class createGoogleToken(graphene.Mutation):
         else:
             user_instance= User.objects.get(email=input.email)
             isverified = user_instance.status.verified
-            if(isverified==False):
+            if(isverified==False):                
+                user_instance.status.verified = True
+                user_instance.status.save()
                 user_instance.first_name = input.first_name if input.first_name is not None else user_instance.first_name
                 user_instance.last_name = input.last_name if input.last_name is not None else user_instance.last_name
                 user_instance.name = user_instance.first_name + ' ' + user_instance.last_name if user_instance.first_name is not None and user_instance.last_name is not None else ""
-                user_instance.username = input.email if input.email is not None else user_instance.username
+                user_instance.username = input.email
                 user_instance.searchField = searchField            
                 if user_instance.googleLogin != True:
                     user_instance.googleLogin = True
                 user_instance.save()
         token = get_token(user_instance)
         refresh_token = create_refresh_token(user_instance)
-        return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token, isverified=isverified)
+        return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token, verified=isverified)
 
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
