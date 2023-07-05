@@ -72,7 +72,7 @@ class CreateInstitution(graphene.Mutation):
         institution_instance = Institution(name=input.name, code=input.code, location=input.location, city=input.city,
                                            website=input.website, phone=input.phone, logo=input.logo, bio=input.bio, 
                                            designations=input.designations, institution_type=input.institution_type,
-                                           address=input.address,pincode=input.pincode,state=input.state,dob=input.dob, searchField=searchField)
+                                           address=input.address,pincode=input.pincode,state=input.state,dob=input.dob, searchField=searchField,coordinator_id =input.coordinator_id,verified=input.verified)
         institution_instance.save()
 
         payload = {"institution": institution_instance,
@@ -109,6 +109,7 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.code = input.code if input.code is not None else institution.code
             institution_instance.location = input.location if input.location is not None else institution.location
             institution_instance.city = input.city if input.city is not None else institution.city
+            institution_instance.address = input.address if input.address is not None else institution.address
             institution_instance.website = input.website if input.website is not None else institution.website
             institution_instance.phone = input.phone if input.phone is not None else institution.phone
             institution_instance.logo = input.logo if input.logo is not None else institution.logo
@@ -118,6 +119,8 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.dob = input.dob if input.dob is not None else institution.dob
             institution_instance.pincode = input.pincode if input.pincode is not None else institution.pincode
             institution_instance.state = input.state if input.state is not None else institution.state
+            institution_instance.coordinator_id = input.coordinator_id if input.coordinator_id is not None else institution.coordinator_id
+            institution_instance.verified = input.verified if input.verified is not None else institution.verified
 
             searchField = institution_instance.name if institution_instance.name is not None else ""
             searchField = institution_instance.code if institution_instance.code is not None else ""
