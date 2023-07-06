@@ -151,6 +151,8 @@ class PublicInstitutionType(graphene.ObjectType):
     country = graphene.String()
     dob = graphene.DateTime()
     institutionType = graphene.String()
+    coordinator=graphene.Field(UserType)
+    verified=graphene.Boolean()
 
 
 
