@@ -147,6 +147,7 @@ class Institution(models.Model):
         max_length=250, blank=True, null=True, default=settings.DEFAULT_AVATARS['INSTITUTION'])
     bio = models.CharField(max_length=300, blank=True, null=True)
     verified = models.BooleanField(default=False)
+    coordinator = models.ForeignKey(User,related_name="institutionCoordinators",on_delete=models.PROTECT, blank=True, null=True)
     
     class InstitutionTypeChoices(models.TextChoices):
         SCHOOL = "SC", _('School')
