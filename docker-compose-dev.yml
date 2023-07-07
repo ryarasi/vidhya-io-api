@@ -1,16 +1,6 @@
-version: "2.4"
+version: "3.9"
 
 services:
-  nginx:
-    build: ./nginx
-    ports:
-      - ${PORT}:80
-    volumes:
-      - static-data:/vol/static
-    depends_on:
-      - web
-    restart: "on-failure"
-
   redis:
     image: redis:latest
     ports:
@@ -23,6 +13,7 @@ services:
   web:
     build: .
     container_name: vidhya_io_api
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/shuddhi
     ports:
@@ -34,4 +25,4 @@ services:
     restart: "on-failure"
 
 volumes:
-  static-data:
+  database-data: # named volumes can be managed easier using docker-compose
