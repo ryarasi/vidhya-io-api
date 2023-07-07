@@ -9,7 +9,7 @@ import graphql_social_auth
 from graphql import GraphQLError
 from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput, verifyEmailUser
+from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
 from django.core.mail import send_mail
@@ -357,39 +357,67 @@ class AddInvitecode(graphene.Mutation):
 #         return createUser(ok=ok, user=user_instance)
 
 
-class verifyEmailUser(graphene.Mutation):
-    class Meta:
-        description = "Verify Email Account"
+# class verifyEmailUser(graphene.Mutation):
+#     class Meta:
+#         description = "Verify Email Account"
 
         
-    class Arguments:
-        user_id = graphene.Int(required=True)
-        googleLogin = graphene.Boolean()
-        manualLogin = graphene.Boolean()
+#     class Arguments:
+#         user_id = graphene.Int(required=True)
+#         googleLogin = graphene.Boolean()
+#         manualLogin = graphene.Boolean()
 
-    ok = graphene.Boolean()
+#     ok = graphene.Boolean()
     
-    user = graphene.Field(UserType)
+#     user = graphene.Field(UserType)
 
+#     @staticmethod
+#     @login_required
+#     def mutate(root, info,user_id=None,googleLogin=False,manualLogin=False):
+#         ok = False
+#         user = get_user_model().objects.get(pk=user_id)
+#         user_instance = user
+#         if user_instance:
+#             ok = True
+#             if(user_instance.status.verified == False):
+#                 user_instance.status.verified = True
+#                 user_instance.status.save()
+#             if(user_instance.googleLogin!=googleLogin or user_instance.manualLogin!=manualLogin):                    
+#                 if(manualLogin == True):
+#                     user_instance.manualLogin = manualLogin
+#                 if(googleLogin == True):
+#                     user_instance.googleLogin = googleLogin
+#                 user_instance.save()
+#             return verifyEmailUser(ok=ok, user=user_instance)
+#         return verifyEmailUser(ok=ok, user=user_instance)
+
+class verifyUserLoginGetEmailOtp(graphene.Mutation):
+    class Meta:
+        description = "Verify Email Account Get OTP"        
+    class Arguments:
+        email = graphene.String(required=True)
+        user_id = graphene.Int(required=True)
+    ok = graphene.Boolean()    
+    user = graphene.Field(UserType)
+    email_otp = graphene.Field(EmailOTPType)
     @staticmethod
     @login_required
-    def mutate(root, info,user_id=None,googleLogin=False,manualLogin=False):
+    def mutate(root, info,email=None,user_id = None):
         ok = False
         user = get_user_model().objects.get(pk=user_id)
+        email_otp = EmailOTP.objects.get(
+            email = email
+        )
         user_instance = user
         if user_instance:
             ok = True
             if(user_instance.status.verified == False):
                 user_instance.status.verified = True
                 user_instance.status.save()
-            if(user_instance.googleLogin!=googleLogin or user_instance.manualLogin!=manualLogin):                    
-                if(manualLogin == True):
-                    user_instance.manualLogin = manualLogin
-                if(googleLogin == True):
-                    user_instance.googleLogin = googleLogin
-                user_instance.save()
-            return verifyEmailUser(ok=ok, user=user_instance)
-        return verifyEmailUser(ok=ok, user=user_instance)
+            user_instance.manualLogin = True
+            user_instance.save()
+            return verifyUserLoginGetEmailOtp(ok=ok, user=user_instance,email_otp=email_otp)
+        return verifyUserLoginGetEmailOtp(ok=ok, user=user_instance,email_otp=email_otp)
 
 class UpdateUser(graphene.Mutation):
     class Meta:
@@ -410,9 +438,12 @@ class UpdateUser(graphene.Mutation):
         current_user = info.context.user
         user = User.objects.get(pk=current_user.id, active=True)
         user_instance = user
-        usernameExist = User.objects.filter(username=input.username).exists()
-        if(usernameExist == True):
-            error += input.username+" Username already exist<br />"    
+        usernameExistStatus = User.objects.filter(username=input.username).exists()
+        if(usernameExistStatus == True):
+            userExist = User.objects.get(username=input.username)
+            if(userExist.id != current_user.id):
+                print(userExist.id)
+                error += "Username already exist<br />"    
         if error:
             raise GraphQLError(error)        
         if user_instance:
@@ -3479,7 +3510,7 @@ class createGoogleToken(graphene.Mutation):
     ok = graphene.Boolean()
     token = graphene.String()
     refresh_token = graphene.String()
-    isverified = graphene.Boolean()
+    is_verified = graphene.Boolean()
 
     class Meta:
         description = "Mutation to create Google login token"
@@ -3500,25 +3531,36 @@ class createGoogleToken(graphene.Mutation):
         searchField = input.email
         searchField = searchField.lower()
         if (User.objects.filter(email=input.email).exists()==False):   
-            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,name=input.first_name + ' ' + input.last_name,username=input.username ,searchField=searchField)
-            user_instance.save()
+            user_instance = User(email=input.email,first_name=input.first_name,last_name=input.last_name,name=input.first_name + ' ' + input.last_name,username=input.email ,searchField=searchField,googleLogin=True)
+            user_instance.save()                   
+            user_instance.status.verified = True
+            user_instance.status.save()
+            isverified = True
+
         else:
             user_instance= User.objects.get(email=input.email)
             isverified = user_instance.status.verified
             if(isverified==False):                
                 user_instance.status.verified = True
                 user_instance.status.save()
-                user_instance.first_name = input.first_name if input.first_name is not None else user_instance.first_name
-                user_instance.last_name = input.last_name if input.last_name is not None else user_instance.last_name
-                user_instance.name = user_instance.first_name + ' ' + user_instance.last_name if user_instance.first_name is not None and user_instance.last_name is not None else ""
-                user_instance.username = input.email
-                user_instance.searchField = searchField            
-                if user_instance.googleLogin != True:
-                    user_instance.googleLogin = True
-                user_instance.save()
+                isverified = True
+            if user_instance.membership_status == 'UI':
+                user_instance.username =  input.email 
+                user_instance.first_name = user_instance.first_name if user_instance.first_name is not None else input.first_name #if input.first_name is not None else user_instance.first_name#
+                user_instance.last_name = user_instance.last_name if user_instance.last_name is not None else input.last_name
+            else:
+                 user_instance.username = user_instance.username
+                 user_instance.first_name = user_instance.first_name
+                 user_instance.last_name = user_instance.last_name 
+            user_instance.name = user_instance.first_name + ' ' + user_instance.last_name if user_instance.first_name is not None and user_instance.last_name is not None else ""
+
+            user_instance.searchField = searchField            
+            if user_instance.googleLogin != True:
+                user_instance.googleLogin = True
+            user_instance.save()
         token = get_token(user_instance)
         refresh_token = create_refresh_token(user_instance)
-        return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token, verified=isverified)
+        return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token, is_verified=isverified)
 
 class Mutation(graphene.ObjectType):
     create_institution = CreateInstitution.Field()
@@ -3529,7 +3571,8 @@ class Mutation(graphene.ObjectType):
     verify_invitecode = VerifyInvitecode.Field()
     generate_email_otp = GenerateEmailOTP.Field()
     verify_email_otp = VerifyEmailOTP.Field()
-    verify_email_user = verifyEmailUser.Field()
+    # verify_email_user = verifyEmailUser.Field()
+    verifyUserLoginGetEmailOtp = verifyUserLoginGetEmailOtp.Field()
     # passwordChange = passwordChange.Field()
 
     # create_user = createUser.Field()

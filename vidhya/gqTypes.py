@@ -305,10 +305,10 @@ class InstitutionInput(graphene.InputObjectType):
     pincode = graphene.String()
     state = graphene.String()
     country = graphene.String()
-    dob = graphene.String()
+    dob = graphene.DateTime()
 
-class verifyEmailUser(graphene.InputObjectType):
-    user_id = graphene.Int()
+# class verifyEmailUser(graphene.InputObjectType):
+#     user_id = graphene.Int()
     
 class UserInput(graphene.InputObjectType):
     id = graphene.ID()
