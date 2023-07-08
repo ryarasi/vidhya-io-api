@@ -73,7 +73,7 @@ class CreateInstitution(graphene.Mutation):
         institution_instance = Institution(name=input.name, code=input.code, location=input.location, city=input.city,
                                            website=input.website, phone=input.phone, logo=input.logo, bio=input.bio,
                                            designations=input.designations, institution_type=input.institution_type,
-                                           address=input.address, pincode=input.pincode, state=input.state, dob=str(input.dob), searchField=searchField)
+                                           address=input.address, pincode=input.pincode, state=input.state, dob=input.dob, searchField=searchField)
         institution_instance.save()
 
         payload = {"institution": institution_instance,
@@ -117,8 +117,7 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.bio = input.bio if input.bio is not None else institution.bio
             institution_instance.designations = input.designations if input.designations is not None else institution.designations
             institution_instance.institution_type = input.institution_type if input.institution_type is not None else institution.institution_type
-            institution_instance.dob = str(
-                input.dob) if input.dob is not None else str(institution.dob)
+            institution_instance.dob = input.dob if input.dob is not None else institution.dob
             institution_instance.pincode = input.pincode if input.pincode is not None else institution.pincode
             institution_instance.state = input.state if input.state is not None else institution.state
             institution_instance.coordinator_id = input.coordinator_id if input.coordinator_id is not None else institution.coordinator_id
@@ -470,8 +469,7 @@ class UpdateUser(graphene.Mutation):
             user_instance.title = input.title if input.title is not None else user.title
             user_instance.bio = input.bio if input.bio is not None else user.bio
             user_instance.username = input.username if input.username is not None else user.username
-            user_instance.dob = str(input.dob) if input.dob is not None else str(
-                user.dob)
+            user_instance.dob = input.dob if input.dob is not None else user.dob
             user_instance.phone = input.phone if input.phone is not None else user.phone
             user_instance.mobile = input.mobile if input.mobile is not None else user.mobile
             user_instance.address = input.address if input.address is not None else user.address
