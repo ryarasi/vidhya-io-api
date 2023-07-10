@@ -220,7 +220,7 @@ class Query(ObjectType):
     institution = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
         Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-    search_institutions = graphene.Field(Institutions,name=graphene.String())
+    fetch_institution_designations = graphene.Field(Institutions,name=graphene.String())
     # User Queries
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
@@ -466,7 +466,7 @@ class Query(ObjectType):
 
 
     @login_required
-    def resolve_search_institutions(root, info, name=None, **kwargs):
+    def resolve_fetch_institution_designations(root, info, name=None, **kwargs):
         current_user = info.context.user
         qs =  Institution.objects.all()
         if name is not None:
