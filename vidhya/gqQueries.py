@@ -10,7 +10,7 @@ from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_ad
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
-from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key, set_cache
+from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key,generate_users_by_institution_cache_key, set_cache
 from datetime import date, datetime, timedelta
 
 
@@ -229,7 +229,8 @@ class Query(ObjectType):
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
-
+    users_by_institution = graphene.Field(
+        Users,institution_id=graphene.Int(), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
     # User Role Queries
     user_role = graphene.Field(UserRoleType, role_name=graphene.String())
     user_roles = graphene.Field(
@@ -602,6 +603,36 @@ class Query(ObjectType):
         set_cache(cache_entity, cache_key, qs)
 
         return qs
+    
+    @login_required
+    def resolve_users_by_institution(root, info, institution_id=None, roles=[], limit=None, offset=None, **kwargs):
+        cache_entity = CACHE_ENTITIES['USERS']
+
+        cache_key = generate_users_by_institution_cache_key(cache_entity, institution_id, roles, limit, offset)
+
+        cached_response = fetch_cache(cache_entity, cache_key)
+
+        if cached_response:
+            return cached_response
+
+        qs = User.objects.all().filter(institution_id=institution_id).order_by("-id")
+
+        if roles:
+            qs = qs.filter(role__in=roles)
+
+        total = len(qs)
+
+        if offset is not None:
+                    qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        results = Users(records=qs, total=total)        
+
+        set_cache(cache_entity, cache_key, results)
+
+        return results
 
     def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
 
