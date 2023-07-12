@@ -59,6 +59,9 @@ class Institutions(graphene.ObjectType):
     records = graphene.List(InstitutionType)
     total = graphene.Int()
 
+# class searchInstitution(graphene.ObjectType):
+#     records = graphene.List(InstitutionType)
+#     total = graphene.Int()
 
 class Reports(graphene.ObjectType):
     records = graphene.List(ReportType)
@@ -220,7 +223,8 @@ class Query(ObjectType):
     institution = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
         Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-    fetch_institution_designations = graphene.Field(Institutions,name=graphene.String())
+    search_institution = graphene.Field(Institutions,name=graphene.String())
+    fetch_designation_by_institution = graphene.Field(InstitutionType, id=graphene.ID())
     # User Queries
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
@@ -466,7 +470,7 @@ class Query(ObjectType):
 
 
     @login_required
-    def resolve_fetch_institution_designations(root, info, name=None, **kwargs):
+    def resolve_search_institution(root, info, name=None, **kwargs):
         current_user = info.context.user
         qs =  Institution.objects.all()
         if name is not None:
@@ -479,6 +483,14 @@ class Query(ObjectType):
         results = Institutions(records=qs, total=total)
 
         return results
+
+    @login_required
+    def resolve_fetch_designation_by_institution(root, info, id, **kwargs):
+        institution_instance = Institution.objects.get(pk=id, active=True)
+        if institution_instance is not None:
+            return institution_instance
+        else:
+            return None
 
 
     @login_required
