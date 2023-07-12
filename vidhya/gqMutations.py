@@ -73,7 +73,7 @@ class CreateInstitution(graphene.Mutation):
         institution_instance = Institution(name=input.name, code=input.code, location=input.location, city=input.city,
                                            website=input.website, phone=input.phone, logo=input.logo, bio=input.bio,
                                            designations=input.designations, institution_type=input.institution_type,
-                                           address=input.address, pincode=input.pincode, state=input.state, dob=input.dob, searchField=searchField)
+                                           address=input.address,pincode=input.pincode,state=input.state,dob=input.dob, searchField=searchField,coordinator_id =input.coordinator_id,verified=input.verified)
         institution_instance.save()
 
         payload = {"institution": institution_instance,
