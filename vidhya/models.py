@@ -42,7 +42,7 @@ class User(AbstractUser):
     pincode = models.CharField(max_length=150,blank=True,null=True)
     state = models.CharField(max_length=300,default='NA',null=False)
     country = models.CharField(max_length=300,default="India",null=False)
-    dob = models.DateTimeField(null=True)
+    dob = models.DateTimeField(null=True,blank=True)
     mobile = models.CharField(default="0000000000",max_length=20,null=True)
     phone = models.CharField(default="0000000000",max_length=20, blank = True,null=True)
     designation = models.CharField(max_length=300,default="NA")
