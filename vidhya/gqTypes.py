@@ -330,6 +330,7 @@ class InstitutionInput(graphene.InputObjectType):
     country = graphene.String()
     dob = graphene.DateTime()
     coordinator_id=graphene.Int(name="coordinator")
+    public = graphene.Boolean()
 
 # class verifyEmailUser(graphene.InputObjectType):
 #     user_id = graphene.Int()

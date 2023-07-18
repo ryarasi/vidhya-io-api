@@ -138,7 +138,7 @@ class UserRole(models.Model):
 class Institution(models.Model):
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20,unique=True)
-    public = models.BooleanField(default=True)
+    public = models.BooleanField(default=False)
     location = models.CharField(max_length=50)
     city = models.CharField(max_length=50, blank=True, null=True)
     website = models.CharField(max_length=100, blank=True, null=True)
