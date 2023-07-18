@@ -73,7 +73,7 @@ class CreateInstitution(graphene.Mutation):
         institution_instance = Institution(name=input.name, code=input.code, location=input.location, city=input.city,
                                            website=input.website, phone=input.phone, logo=input.logo, bio=input.bio,
                                            designations=input.designations, institution_type=input.institution_type,
-                                           address=input.address,pincode=input.pincode,state=input.state,dob=input.dob, searchField=searchField,coordinator_id =input.coordinator_id,verified=input.verified)
+                                           address=input.address,pincode=input.pincode,state=input.state,dob=input.dob, searchField=searchField,coordinator_id =input.coordinator_id,verified=input.verified,public=input.public)
         institution_instance.save()
 
         payload = {"institution": institution_instance,
@@ -122,7 +122,7 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.state = input.state if input.state is not None else institution.state
             institution_instance.coordinator_id = input.coordinator_id if input.coordinator_id is not None else institution.coordinator_id
             institution_instance.verified = input.verified if input.verified is not None else institution.verified
-
+            institution_instance.public = input.public if input.public is not None else institution.public
             searchField = institution_instance.name if institution_instance.name is not None else ""
             searchField = institution_instance.code if institution_instance.code is not None else ""
             searchField += institution_instance.location if institution_instance.location is not None else ""
