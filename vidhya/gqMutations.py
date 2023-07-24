@@ -74,6 +74,11 @@ class CreateInstitution(graphene.Mutation):
                                            website=input.website, phone=input.phone, logo=input.logo, bio=input.bio,
                                            designations=input.designations, institution_type=input.institution_type,
                                            address=input.address,pincode=input.pincode,state=input.state,dob=input.dob, searchField=searchField,coordinator_id =input.coordinator_id,verified=input.verified,public=input.public)
+        if institution_instance.coordinator is None:
+            shuddhi_vidhya = Institution.objects.get(id=settings.ENV_SHUDDHI_VIDHYA_INSTITUTION_ID)
+            institution_instance.coordinator = shuddhi_vidhya.coordinator
+            
+            
         institution_instance.save()
 
         payload = {"institution": institution_instance,

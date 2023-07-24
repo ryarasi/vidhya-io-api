@@ -59,9 +59,9 @@ def generate_users_cache_key(entity=None, searchField=None, all_institutions=Non
         str(limit) + offset_label + str(offset)
     return sanitize_cache_key(cache_key)
 
-def generate_users_by_institution_cache_key(entity=None, institution_id=None, roles=None, limit=None, offset=None):
+def generate_coordinator_options_cache_key(entity=None, query=None, roles=None, limit=None, offset=None):
     roles_str = ''.join(map(str, roles))
-    cache_key = str(entity) + separator + searchField_label  + 'institution' + str(institution_id) + 'roles' + str(roles_str) + limit_label + str(limit) + offset_label + str(offset)
+    cache_key = str(entity) + separator + searchField_label + str(query) + 'roles' + str(roles_str) + limit_label + str(limit) + offset_label + str(offset)
     return sanitize_cache_key(cache_key)
 
 
