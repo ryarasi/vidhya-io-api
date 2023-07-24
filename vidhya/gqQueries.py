@@ -10,7 +10,7 @@ from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_ad
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
-from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key,generate_users_by_institution_cache_key, set_cache
+from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key,generate_coordinator_options_cache_key, set_cache
 from datetime import date, datetime, timedelta
 
 
@@ -221,6 +221,7 @@ class Query(ObjectType):
     
     # Institution Queries
     institution = graphene.Field(InstitutionType, id=graphene.ID())
+    institution_admin = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
         Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     search_institution = graphene.Field(Institutions,name=graphene.String())
@@ -229,8 +230,8 @@ class Query(ObjectType):
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
-    users_by_institution = graphene.Field(
-        Users,institution_id=graphene.Int(), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
+    coordinator_options = graphene.Field(
+        Users,query=graphene.String(), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
     # User Role Queries
     user_role = graphene.Field(UserRoleType, role_name=graphene.String())
     user_roles = graphene.Field(
@@ -397,6 +398,12 @@ class Query(ObjectType):
         if allow_access != True:
             institution_instance = None
 
+        return institution_instance
+    
+    @login_required
+    def resolve_institution_admin(root, info, id, **kwargs):
+        current_user = info.context.user
+        institution_instance = Institution.objects.get(pk=id, active=True)
         return institution_instance
 
     @login_required
@@ -605,21 +612,19 @@ class Query(ObjectType):
         return qs
     
     @login_required
-    def resolve_users_by_institution(root, info, institution_id=None, roles=[], limit=None, offset=None, **kwargs):
+    def resolve_coordinator_options(root, info, query=None, roles=[], limit=None, offset=None, **kwargs):
         cache_entity = CACHE_ENTITIES['USERS']
-
-        cache_key = generate_users_by_institution_cache_key(cache_entity, institution_id, roles, limit, offset)
+        cache_key = generate_coordinator_options_cache_key(cache_entity, query, roles, limit, offset)
 
         cached_response = fetch_cache(cache_entity, cache_key)
 
         if cached_response:
             return cached_response
-
-        qs = User.objects.all().filter(institution_id=institution_id).order_by("-id")
-
-        if roles:
-            qs = qs.filter(role__in=roles)
-
+        qs = User.objects.all().filter(role__in=roles,active=True).order_by("id")
+        if query is not None:
+            filter = (Q(searchField__contains=query.lower()))
+            qs = qs.filter(filter)
+            # print('qs=>',qs)
         total = len(qs)
 
         if offset is not None:
