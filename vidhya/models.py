@@ -165,7 +165,6 @@ class Institution(models.Model):
     state = models.CharField(max_length=300,blank=True,null=True)
     country = models.CharField(max_length=300,default="India",null=False)
     dob = models.DateTimeField(default=timezone.now)
-
     def generate_invitecode():
         return random_number_with_N_digits(10)
 
@@ -175,6 +174,8 @@ class Institution(models.Model):
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(
+        User, related_name="institutionAuthor", on_delete=models.PROTECT, blank=True, null=True)
 
     def __str__(self):
         return f'{self.name}' 
