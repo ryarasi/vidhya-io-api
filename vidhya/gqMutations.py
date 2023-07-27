@@ -73,7 +73,7 @@ class CreateInstitution(graphene.Mutation):
         institution_instance = Institution(name=input.name, code=input.code, location=input.location, city=input.city,
                                            website=input.website, phone=input.phone, logo=input.logo, bio=input.bio,
                                            designations=input.designations, institution_type=input.institution_type,
-                                           address=input.address,pincode=input.pincode,state=input.state,dob=input.dob, searchField=searchField,coordinator_id =input.coordinator_id,verified=input.verified,public=input.public)
+                                           address=input.address,pincode=input.pincode,state=input.state,dob=input.dob, searchField=searchField,coordinator_id =input.coordinator_id,verified=input.verified,public=input.public,author_id=input.author_id)
         if institution_instance.coordinator is None:
             shuddhi_vidhya = Institution.objects.get(id=settings.ENV_SHUDDHI_VIDHYA_INSTITUTION_ID)
             institution_instance.coordinator = shuddhi_vidhya.coordinator
@@ -128,6 +128,7 @@ class UpdateInstitution(graphene.Mutation):
             institution_instance.coordinator_id = input.coordinator_id if input.coordinator_id is not None else institution.coordinator_id
             institution_instance.verified = input.verified if input.verified is not None else institution.verified
             institution_instance.public = input.public if input.public is not None else institution.public
+            institution_instance.author_id = input.author_id if input.author_id is not None else institution.author_id
             searchField = institution_instance.name if institution_instance.name is not None else ""
             searchField = institution_instance.code if institution_instance.code is not None else ""
             searchField += institution_instance.location if institution_instance.location is not None else ""

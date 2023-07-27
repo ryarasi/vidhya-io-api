@@ -331,6 +331,7 @@ class InstitutionInput(graphene.InputObjectType):
     dob = graphene.DateTime()
     coordinator_id=graphene.Int(name="coordinator")
     public = graphene.Boolean()
+    author_id = graphene.ID(name="author")
 
 # class verifyEmailUser(graphene.InputObjectType):
 #     user_id = graphene.Int()
