@@ -77,9 +77,12 @@ class CreateInstitution(graphene.Mutation):
         if institution_instance.coordinator is None:
             shuddhi_vidhya = Institution.objects.get(id=settings.ENV_SHUDDHI_VIDHYA_INSTITUTION_ID)
             institution_instance.coordinator = shuddhi_vidhya.coordinator
-            
-            
         institution_instance.save()
+
+        user = User.objects.get(pk=input.author_id)
+        if institution_instance.verified is False and user.membership_status == 'AP':
+            user.membership_status = 'PE' 
+            user.save()
 
         payload = {"institution": institution_instance,
                    "method": CREATE_METHOD}
