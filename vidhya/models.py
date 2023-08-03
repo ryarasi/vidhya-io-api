@@ -47,8 +47,14 @@ class User(AbstractUser):
     phone = models.CharField(default="0000000000",max_length=20, blank = True,null=True)
     designation = models.CharField(max_length=300,default="NA")
     manualLogin = models.BooleanField(default="False")
-    googleLogin = models.BooleanField(default="False")
-    
+    googleLogin = models.BooleanField(default="False")    
+    class GenderChoices(models.TextChoices):
+        MALE = "M", _('Male')
+        FEMALE = "F", _('Female')
+        OTHER = "O", _('Other')
+        PREFER_NOT_TO_SAY = "N", _('Prefer Not To Say')
+
+    gender = models.CharField(max_length=1,choices=GenderChoices.choices,null=True,blank=True)
     # invitecode = models.ForeignKey('Institution', on_delete = models.PROTECT, blank=True, null=True)
     class StatusChoices(models.TextChoices):
         UNINITIALIZED = 'UI', _('UNINITIALIZED')
