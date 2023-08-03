@@ -348,6 +348,7 @@ class UserInput(graphene.InputObjectType):
     bio = graphene.String()
     role_id = graphene.ID(name="role")
     dob = graphene.DateTime(required=False)
+    gender = graphene.String()
     address = graphene.String()
     username = graphene.String()
     city = graphene.String()

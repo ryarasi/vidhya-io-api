@@ -476,6 +476,7 @@ class UpdateUser(graphene.Mutation):
             user_instance.bio = input.bio if input.bio is not None else user.bio
             user_instance.username = input.username if input.username is not None else user.username
             user_instance.dob = input.dob if input.dob is not None else user.dob
+            user_instance.gender = input.gender if input.gender is not None else user.gender
             user_instance.phone = input.phone if input.phone is not None else user.phone
             user_instance.mobile = input.mobile if input.mobile is not None else user.mobile
             user_instance.address = input.address if input.address is not None else user.address
@@ -496,6 +497,7 @@ class UpdateUser(graphene.Mutation):
             searchField += user_instance.username if user_instance.username is not None else ""
             searchField += user_instance.title if user_instance.title is not None else ""
             searchField += user_instance.bio if user_instance.bio is not None else ""
+            searchField += user_instance.gender if user_instance.gender is not None else ""
             searchField += user_instance.membership_status if user_instance.membership_status is not None else ""
             if user_instance.institution:
                 searchField += user_instance.institution.name if user_instance.institution.name is not None else ""
