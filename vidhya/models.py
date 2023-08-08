@@ -487,7 +487,7 @@ class ExerciseSubmission(models.Model):
     option = models.CharField(
         max_length=200, blank=True, null=True)
     answer = models.CharField(max_length=5000, blank=True, null=True)
-    link = models.CharField(max_length=5000, blank=True, null=True)
+    link = models.URLField(max_length=5000, blank=True, null=True)
     images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
     points = models.DecimalField(
