@@ -595,6 +595,45 @@ class ApproveUser(graphene.Mutation):
             return ApproveUser(ok=ok, user=user_instance)
         return ApproveUser(ok=ok, user=None)
 
+class ModifyUserInstitution(graphene.Mutation):
+    class Meta:
+        description = "Mutation to modify user institution"
+
+    class Arguments:
+        user_id = graphene.ID(required=True)
+        institution_id = graphene.ID(required = True)
+        designation = graphene.String(required = True)
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    
+    @staticmethod
+    @login_required
+    # @user_passes_test(lambda user: has_access(user, RESOURCES['MODERATION'], ACTIONS['UPDATE']))
+    def mutate(root, info, user_id, institution_id, designation):
+        ok = False
+        user = User.objects.get(pk=user_id, active=True)
+        user_instance = user
+        if user_instance:
+            ok = True
+            user_id = graphene.ID(required=True)
+            # print(user_instance.institution)
+            user_instance.institution_id = institution_id
+            user_instance.designation = designation
+
+            user_instance.save()
+
+            users_modified()  # Invalidating users cache
+
+            payload = {"user": user_instance,
+                       "method": UPDATE_METHOD}
+            NotifyUser.broadcast(
+                payload=payload)
+            return ModifyUserInstitution(ok=ok, user=user_instance)
+        return ModifyUserInstitution(ok=ok, user=None)
+
+
 
 class SuspendUser(graphene.Mutation):
     class Meta:
@@ -3696,6 +3735,7 @@ class Mutation(graphene.ObjectType):
     delete_user = DeleteUser.Field()
     approve_user = ApproveUser.Field()
     suspend_user = SuspendUser.Field()
+    modify_user_institution = ModifyUserInstitution.Field()
 
     create_user_role = CreateUserRole.Field()
     update_user_role = UpdateUserRole.Field()
