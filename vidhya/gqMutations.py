@@ -11,7 +11,7 @@ from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionR
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
-from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
+from vidhya.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
@@ -252,7 +252,7 @@ class GenerateEmailOTP(graphene.Mutation):
         send_mail(
             'Your email verification code',
             'Dear user,\n\nThe code for verifying your email ID is as follows\n\n' +
-            email_otp.otp + '\n\nPlease do not reply to this email.',
+            email_otp.otp + '\n\nThis email was sent automatically. Please do not reply to this.',
             settings.DEFAULT_FROM_EMAIL,
             [email_otp.email],
             fail_silently=False,
@@ -494,7 +494,16 @@ class UpdateUser(graphene.Mutation):
             if user_instance.membership_status == 'UI':
                 if user_instance.name and user_instance.institution_id is not None:
                     user_instance.membership_status = 'PE'
-
+                    UserRole =  User.objects.filter(role=USER_ROLES_NAMES['SUPER_ADMIN'], active=True)
+                    for superUser in UserRole:
+                        notification_text = 'Dear '+superUser.name+',\n\nThere is a new user with the username '+user_instance.name+' and email ID '+user_instance.email+' awaiting approval. There maybe more such users awaiting your approval.\nPlease click here to respond - '+settings.FRONTEND_DOMAIN_URL + '/dashboard?adminSection=MODERATION&membershipStatusIs=PE.\n\nThis email was sent automatically. Please do not reply to this.'
+                        send_mail( 
+                        'New member is added, and waiting for your approval!',
+                        notification_text,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [superUser.email],
+                        fail_silently=False,
+                    )
             searchField = user_instance.first_name if user_instance.first_name is not None else ""
             searchField += user_instance.last_name if user_instance.last_name is not None else ""
             searchField += user_instance.username if user_instance.username is not None else ""
@@ -579,7 +588,7 @@ class ApproveUser(graphene.Mutation):
                 'Your Vidhya.io account is approved!',
                 'Dear '+user_instance.username+',\n\nYour account is now approved!\n\nPlease login with your credentials - '+settings.FRONTEND_DOMAIN_URL +
                 '.\n\nThis approval action was undertaken by ' +
-                current_user.name + '.\n\nPlease do not reply to this email.',
+                current_user.name + '.\n\nThis email was sent automatically. Please do not reply to this.',
                 settings.DEFAULT_FROM_EMAIL,
                 [user_instance.email],
                 fail_silently=False,
@@ -594,6 +603,45 @@ class ApproveUser(graphene.Mutation):
                 payload=payload)
             return ApproveUser(ok=ok, user=user_instance)
         return ApproveUser(ok=ok, user=None)
+
+class ModifyUserInstitution(graphene.Mutation):
+    class Meta:
+        description = "Mutation to modify user institution"
+
+    class Arguments:
+        user_id = graphene.ID(required=True)
+        institution_id = graphene.ID(required = True)
+        designation = graphene.String(required = True)
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    
+    @staticmethod
+    @login_required
+    # @user_passes_test(lambda user: has_access(user, RESOURCES['MODERATION'], ACTIONS['UPDATE']))
+    def mutate(root, info, user_id, institution_id, designation):
+        ok = False
+        user = User.objects.get(pk=user_id, active=True)
+        user_instance = user
+        if user_instance:
+            ok = True
+            user_id = graphene.ID(required=True)
+            # print(user_instance.institution)
+            user_instance.institution_id = institution_id
+            user_instance.designation = designation
+
+            user_instance.save()
+
+            users_modified()  # Invalidating users cache
+
+            payload = {"user": user_instance,
+                       "method": UPDATE_METHOD}
+            NotifyUser.broadcast(
+                payload=payload)
+            return ModifyUserInstitution(ok=ok, user=user_instance)
+        return ModifyUserInstitution(ok=ok, user=None)
+
 
 
 class SuspendUser(graphene.Mutation):
@@ -2865,7 +2913,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
     def notify_graders(root, info, exercise_submission_instance):
         notification_text = exercise_submission_instance.participant.name + ' has submitted a new assignment for "' + exercise_submission_instance.chapter.title + \
             '" in "' + exercise_submission_instance.course.title + '".\n\nPlease visit ' + \
-            settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.'
+            settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.\n\nThis email was sent automatically. Please do not reply to this.'
         graders = CourseGrader.objects.filter(
             course_id=exercise_submission_instance.course.id).distinct()
         print('Graders => ', graders)
@@ -3696,6 +3744,7 @@ class Mutation(graphene.ObjectType):
     delete_user = DeleteUser.Field()
     approve_user = ApproveUser.Field()
     suspend_user = SuspendUser.Field()
+    modify_user_institution = ModifyUserInstitution.Field()
 
     create_user_role = CreateUserRole.Field()
     update_user_role = UpdateUserRole.Field()
