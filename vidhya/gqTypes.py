@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
 from django.db import models
 from vidhya.authorization import is_chapter_locked, is_course_locked
 
@@ -162,6 +162,11 @@ class ReportType(DjangoObjectType):
 
     class Meta:
         model = Report
+
+class CourseParticipantType(DjangoObjectType):
+
+    class Meta:
+        model = CourseParticipant
 
 
 class CourseType(DjangoObjectType):
@@ -415,6 +420,7 @@ class CourseInput(graphene.InputObjectType):
     institution_ids = graphene.List(
         graphene.ID, name="institutions")
     participant_ids = graphene.List(graphene.ID, name="participants")
+     
     grader_ids = graphene.List(graphene.ID, name="graders")
     mandatory_prerequisite_ids = graphene.List(
         graphene.ID, name="mandatoryPrerequisites")
@@ -426,6 +432,7 @@ class CourseInput(graphene.InputObjectType):
     pass_score_percentage = graphene.Int()
     pass_completion_percentage = graphene.Int()
     status = graphene.String()
+    audit = graphene.Boolean()
 
 
 class CourseSectionInput(graphene.InputObjectType):
