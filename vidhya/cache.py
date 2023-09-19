@@ -20,6 +20,7 @@ CACHE_ENTITIES = {
     'PUBLIC_ANNOUNCEMENTS': 'PUBLIC_ANNOUNCEMENTS',
     'PROJECTS': 'PROJECTS',
     'COURSES': 'COURSES',
+    "MEMBER_COURSES": "MEMBER_COURSES",
     'PUBLIC_COURSES': 'PUBLIC_COURSES',
     'CHAPTERS': 'CHAPTERS',
     'EXERCISES': 'EXERCISES',
@@ -121,6 +122,13 @@ def generate_public_courses_cache_key(entity, searchField, limit, offset):
 
 
 def generate_courses_cache_key(entity, searchField=None, limit=None, offset=None, user=None):
+    cache_key = str(user.id) + str(entity) + separator + searchField_label + \
+        str(searchField) + limit_label + \
+        str(limit) + offset_label + str(offset)
+    return sanitize_cache_key(cache_key)
+
+
+def generate_member_courses_cache_key(entity, searchField=None, limit=None, offset=None, user=None):
     cache_key = str(user.id) + str(entity) + separator + searchField_label + \
         str(searchField) + limit_label + \
         str(limit) + offset_label + str(offset)

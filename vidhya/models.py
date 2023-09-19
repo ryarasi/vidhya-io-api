@@ -48,6 +48,7 @@ class User(AbstractUser):
     designation = models.CharField(max_length=300,default="NA")
     manualLogin = models.BooleanField(default="False")
     googleLogin = models.BooleanField(default="False")    
+    credit_hours = models.CharField(default="5",max_length=2,null=False)
     class GenderChoices(models.TextChoices):
         MALE = "M", _('Male')
         FEMALE = "F", _('Female')
@@ -302,6 +303,7 @@ class Course(models.Model):
     instructor = models.ForeignKey(User, on_delete=models.PROTECT)
     institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
         'course', 'institution'), blank=True)
+    duration = models.CharField(default="0",max_length=50)
     participants = models.ManyToManyField(
         User, through="CourseParticipant", related_name="participants", through_fields=('course', 'participant'), blank=True)
     graders = models.ManyToManyField(
@@ -363,7 +365,7 @@ class CourseInstitution(models.Model):
 class CourseParticipant(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
-
+    audit = models.BooleanField(User,default=False)
     def __str__(self):
         return f'Course {self.course.title}, Participant {self.participant.name}'
 

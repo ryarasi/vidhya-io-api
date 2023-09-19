@@ -7,9 +7,9 @@ import graphene
 import datetime
 import graphql_social_auth
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from vidhya.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
 from django.core.mail import send_mail
@@ -439,6 +439,30 @@ class verifyUserLoginGetEmailOtp(graphene.Mutation):
         return verifyUserLoginGetEmailOtp(ok=ok, user=user_instance,email_otp=email_otp)
 
 
+class usernameValidation(graphene.Mutation):
+    class Meta:
+        description = "Mutation to validate  Username"
+
+    class Arguments:
+        username = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+    usernameExistStatus = graphene.Boolean()
+    message = graphene.String()
+    @staticmethod
+    @login_required
+    def mutate(root, info, username=None):
+        user = None
+        usernameExistStatus = False
+        # try:
+        print('nn',user)
+        usernameExistStatus = User.objects.filter(username=username).exists()
+        if(usernameExistStatus == True):
+            return usernameValidation(ok=True,message='Username exists') 
+        else:
+            return usernameValidation(ok=False,message='Username not exists')
+        
 class UpdateUser(graphene.Mutation):
     class Meta:
         description = "Mutation to update a User"
@@ -1577,10 +1601,12 @@ class CreateCourse(graphene.Mutation):
         course_instance.save()
 
         courses_modified()  # Invalidating course cache
+        # print(input)
+        print('course_instance ',course_instance)
 
         if input.institution_ids:
             course_instance.institutions.add(*input.institution_ids)
-
+        
         if input.participant_ids or input.participant_ids == []:
             course_instance.participants.add(*input.participant_ids)
 
@@ -1641,7 +1667,6 @@ class UpdateCourse(graphene.Mutation):
             searchField = searchField.lower()
 
             course_instance.save()
-
             courses_modified()  # Invalidating course cache
 
             if input.institution_ids or input.institution_ids == []:
@@ -1665,6 +1690,8 @@ class UpdateCourse(graphene.Mutation):
                 course_instance.recommended_prerequisites.clear()
                 course_instance.recommended_prerequisites.add(
                     *input.recommended_prerequisite_ids)
+            print('course_instance',course_instance.participants.all())
+            print('input',input)
 
             payload = {"course": course_instance,
                        "method": UPDATE_METHOD}
@@ -1674,6 +1701,121 @@ class UpdateCourse(graphene.Mutation):
             return UpdateCourse(ok=ok, course=course_instance)
         return UpdateCourse(ok=ok, course=None)
 
+class UpdateCourseParticipant(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Course Participant"
+    class Arguments:
+        id = graphene.ID(required=True)
+        user_id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+    course = graphene.Field(CourseType)
+    participant_record = graphene.List(CourseParticipantType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id,user_id=[]):
+        ok = False
+        course = Course.objects.get(pk=id, active=True)
+        course_instance = course
+        if course_instance:
+            if user_id or user_id == []:
+                course_instance.participants.add(user_id)
+                PUBLISHED = Course.StatusChoices.PUBLISHED
+                
+                participant_record =  CourseParticipant.objects.filter(
+                 participant=user_id,course=course_instance.id)
+                print('participant_record',participant_record)
+                # participant_record = CourseParticipant.objects.filter(participant__in=[user_id],course__status=PUBLISHED)
+                # course_instance.participants.filter(participant__im)
+                return UpdateCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
+            return UpdateCourseParticipant(ok=ok, course=None, participant_record=None)
+
+class DeleteCourseParticipant(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a Course Participant"
+    class Arguments:
+        id = graphene.ID(required=True)
+        user_id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+    course = graphene.Field(CourseType)
+    participant_record = graphene.List(CourseParticipantType)
+
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id,user_id=[]):
+        ok = False
+        course = Course.objects.get(pk=id, active=True)
+        course_instance = course
+        if course_instance:
+            if user_id or user_id == []:
+                course_instance.participants.remove(user_id)                
+                participant_record = CourseParticipant.objects.filter(
+                 participant=user_id,course=course_instance.id)
+                return DeleteCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
+        return DeleteCourseParticipant(ok=ok, course=None,participant_record=None)
+
+class AuditCourseParticipant(graphene.Mutation):
+    class Meta:
+        description = "Mutation to audit a Course Participant"
+    class Arguments:
+        id = graphene.ID(required=True)
+        user_id = graphene.Int(required=True)
+        audit = graphene.Boolean(required = True)
+
+    ok = graphene.Boolean()
+    course = graphene.Field(CourseType)
+    participant_record = graphene.List(CourseParticipantType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, id,user_id,audit):
+        ok = False
+        course = Course.objects.get(pk=id, active=True)
+        course_instance = course
+        if course_instance:
+            if user_id or user_id == []:
+                participant_record={}
+                if audit==False:
+                    course_instance.participants.remove(user_id)
+                else:
+                    course_instance.participants.add(user_id)
+                    course_part = CourseParticipant.objects.all().get(participant_id=user_id,course_id=id)
+                    print('course_part',course_part.audit)
+                    course_part.audit= audit
+                    course_part.save()
+                    participant_record = CourseParticipant.objects.filter(participant=user_id,course=course_instance.id)
+                
+                return AuditCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
+            return AuditCourseParticipant(ok=ok, course=None,participant_record=None)
+    
+# class StopAuditCourseParticipant(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to stop audit a Course Participant"
+#     class Arguments:
+#         id = graphene.ID(required=True)
+#         user_id = graphene.Int(required=True)
+#         audit = graphene.Boolean(required = True)
+
+#     ok = graphene.Boolean()
+#     course = graphene.Field(CourseType)
+#     participant_record = graphene.List(CourseParticipantType)
+
+#     @staticmethod
+#     @login_required
+#     def mutate(root, info, id,user_id,audit):
+#         ok = False
+#         course = Course.objects.get(pk=id, active=True)
+#         course_instance = course
+#         if course_instance:
+#             if user_id or user_id == []:
+#                 course_instance.participants.remove(user_id)                
+#                 participant_record =  CourseParticipant.objects.filter(
+#                     participant=user_id,course=course_instance.id)
+#                 return StopAuditCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
+#         return StopAuditCourseParticipant(ok=ok, course=None,participant_record=participant_record)
 
 class DeleteCourse(graphene.Mutation):
     class Meta:
@@ -1794,7 +1936,6 @@ class CreateCourseSection(graphene.Mutation):
         NotifyCourseSection.broadcast(
             payload=payload)
         return CreateCourseSection(ok=ok, course_section=course_section_instance)
-
 
 class UpdateCourseSection(graphene.Mutation):
     class Meta:
@@ -3738,7 +3879,7 @@ class Mutation(graphene.ObjectType):
     # verify_email_user = verifyEmailUser.Field()
     verifyUserLoginGetEmailOtp = verifyUserLoginGetEmailOtp.Field()
     # passwordChange = passwordChange.Field()
-
+    username_validation = usernameValidation.Field()
     # create_user = createUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
@@ -3777,6 +3918,12 @@ class Mutation(graphene.ObjectType):
     create_course_section = CreateCourseSection.Field()
     update_course_section = UpdateCourseSection.Field()
     delete_course_section = DeleteCourseSection.Field()
+
+    update_course_participant =  UpdateCourseParticipant.Field()
+    delete_course_participant = DeleteCourseParticipant.Field()
+
+    audit_course_participant = AuditCourseParticipant.Field()
+    # stop_audit_course_participant = StopAuditCourseParticipant.Field()
 
     create_chapter = CreateChapter.Field()
     update_chapter = UpdateChapter.Field()
