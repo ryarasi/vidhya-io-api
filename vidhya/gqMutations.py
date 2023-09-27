@@ -22,6 +22,7 @@ from django.db import connection, transaction
 from graphql_jwt.shortcuts import get_token, create_refresh_token
 from django.contrib.auth import get_user_model
 from datetime import datetime, timezone
+import re
 
 
 class CreateInstitution(graphene.Mutation):
@@ -446,22 +447,31 @@ class usernameValidation(graphene.Mutation):
     class Arguments:
         username = graphene.String(required=True)
 
-    ok = graphene.Boolean()
+    usernameNotExist = graphene.Boolean()
     user = graphene.Field(UserType)
     usernameExistStatus = graphene.Boolean()
     message = graphene.String()
+    usernamePatternMatch = graphene.Boolean()
     @staticmethod
     @login_required
     def mutate(root, info, username=None):
         user = None
+        current_user = info.context.user
         usernameExistStatus = False
         # try:
         print('nn',user)
-        usernameExistStatus = User.objects.filter(username=username).exists()
+        usernameExistStatus = User.objects.exclude(id=current_user.id).filter(username=username).exists()
+        usernamePatternMatch = False
+
+        if re.match("^[A-Za-z0-9_.]*$", username):
+            print('match')
+            usernamePatternMatch = True
+        
+
         if(usernameExistStatus == True):
-            return usernameValidation(ok=True,message='Username exists') 
+            return usernameValidation(usernameNotExist=False,message='Username exists',usernamePatternMatch =usernamePatternMatch) 
         else:
-            return usernameValidation(ok=False,message='Username not exists')
+            return usernameValidation(usernameNotExist=True,message='Username not exists',usernamePatternMatch=usernamePatternMatch)
         
 class UpdateUser(graphene.Mutation):
     class Meta:
