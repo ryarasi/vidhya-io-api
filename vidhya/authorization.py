@@ -275,10 +275,10 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
             print('all course1',Course.objects.all())
             qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructor_id=user.id)).distinct().order_by("index")
+                Q(participants__in=[user]) | Q(instructor_id=user.id)).distinct().order_by("-created_at")
         else:
             print('all course2',Course.objects.all())
-            qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("index")
+            qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
             # qs = Course.objects.all().filter(
                 # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
         
