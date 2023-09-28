@@ -421,15 +421,21 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
     def resolve_institutions(root, info, searchField=None,verified=[], limit=None, offset=None, **kwargs):
+        print('institution_status',verified)
         cache_entity = CACHE_ENTITIES['PUBLIC_INSTITUTIONS']
+
 
         cache_key = generate_institutions_cache_key(
             cache_entity, searchField, limit, offset)
 
         cached_response = fetch_cache(cache_entity, cache_key)
-
+        
         if cached_response:
-            return cached_response
+            if 'true' in verified and cached_response.records[0].verified == True:
+                return cached_response
+
+            elif 'false' in verified and cached_response.records[0].verified == False:
+                return cached_response
 
         current_user = info.context.user
         qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
