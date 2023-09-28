@@ -1597,7 +1597,8 @@ class CreateCourse(graphene.Mutation):
         searchField = searchField.lower()
 
         course_instance = Course(
-            index=input.index,
+            # index=input.index,
+            title=input.title,
             blurb=input.blurb,
             description=input.description,
             video=input.video,
@@ -1660,7 +1661,7 @@ class UpdateCourse(graphene.Mutation):
         if course_instance:
             ok = True
             course_instance.title = input.title if input.title is not None else course.title
-            course_instance.index = input.index if input.index is not None else course.index
+            # course_instance.index = input.index if input.index is not None else course.index
             course_instance.video = input.video if input.video is not None else course.video
             course_instance.blurb = input.blurb if input.blurb is not None else course.blurb
             course_instance.instructor_id = input.instructor_id if input.instructor_id is not None else course.instructor_id
