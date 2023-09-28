@@ -228,7 +228,7 @@ class Query(ObjectType):
     institution = graphene.Field(InstitutionType, id=graphene.ID())
     institution_admin = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
-        Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+        Institutions, searchField=graphene.String(),verified = graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
     search_institution = graphene.Field(Institutions,name=graphene.String())
     fetch_designation_by_institution = graphene.Field(InstitutionType, id=graphene.ID())
     # User Queries
@@ -420,7 +420,7 @@ class Query(ObjectType):
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
-    def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
+    def resolve_institutions(root, info, searchField=None,verified=[], limit=None, offset=None, **kwargs):
         cache_entity = CACHE_ENTITIES['PUBLIC_INSTITUTIONS']
 
         cache_key = generate_institutions_cache_key(
@@ -439,6 +439,12 @@ class Query(ObjectType):
                 Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
+    
+        if 'true' in verified:
+            qs = qs.filter(verified=True)
+        elif 'false' in verified:
+            qs = qs.filter(verified=False)
+
         total = len(qs)
 
         if offset is not None:
@@ -446,7 +452,8 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
-
+        
+       
         results = Institutions(records=qs, total=total)
 
         set_cache(cache_entity, cache_key, results)
