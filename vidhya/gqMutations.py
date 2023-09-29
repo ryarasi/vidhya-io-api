@@ -16,7 +16,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
-from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
+from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified, exercises_modified
 from django.core.cache import cache
 from django.db import connection, transaction
 from graphql_jwt.shortcuts import get_token, create_refresh_token
@@ -2277,6 +2277,7 @@ class CreateExercise(graphene.Mutation):
                                             valid_answers=input.valid_answers, reference_link=input.reference_link, reference_images=input.reference_images, remarks=input.remarks)
 
         exercise_key_instance.save()
+        exercises_modified()  # Invalidating the cache for exercise
 
         # Notifying creation of Exercise
         payload = {"exercise": exercise_instance,
