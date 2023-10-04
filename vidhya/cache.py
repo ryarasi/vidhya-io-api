@@ -7,6 +7,7 @@ limit_label = 'limit'
 offset_label = 'offset'
 searchField_label = 'searchField'
 status_label = 'status'
+verified_label = 'verified'
 
 CACHE_ENTITIES = {
     'INSTITUTIONS': 'INSTITUTION',
@@ -43,8 +44,9 @@ def generate_public_institutions_cache_key(entity, searchField, limit, offset):
     return sanitize_cache_key(cache_key)
 
 
-def generate_institutions_cache_key(entity, searchField, limit, offset):
+def generate_institutions_cache_key(entity, searchField,verified, limit, offset):
     cache_key = str(entity) + separator + searchField_label + str(searchField) + \
+        separator + verified_label + str(verified) + \
         separator + limit_label + \
         str(limit) + separator + offset_label + str(offset)
     return sanitize_cache_key(cache_key)
