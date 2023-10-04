@@ -228,7 +228,7 @@ class Query(ObjectType):
     institution = graphene.Field(InstitutionType, id=graphene.ID())
     institution_admin = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
-        Institutions, searchField=graphene.String(),verified = graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
+        Institutions, searchField=graphene.String(),verified = graphene.List(graphene.Boolean), limit=graphene.Int(), offset=graphene.Int())
     search_institution = graphene.Field(Institutions,name=graphene.String())
     fetch_designation_by_institution = graphene.Field(InstitutionType, id=graphene.ID())
     # User Queries
@@ -421,21 +421,22 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
     def resolve_institutions(root, info, searchField=None,verified=[], limit=None, offset=None, **kwargs):
-        print('institution_status',verified)
+        # print('institution_status',verified)
         cache_entity = CACHE_ENTITIES['PUBLIC_INSTITUTIONS']
 
 
         cache_key = generate_institutions_cache_key(
-            cache_entity, searchField, limit, offset)
+            cache_entity, searchField, verified, limit, offset)
 
         cached_response = fetch_cache(cache_entity, cache_key)
         
         if cached_response:
-            if 'true' in verified and cached_response.records[0].verified == True:
-                return cached_response
-
-            elif 'false' in verified and cached_response.records[0].verified == False:
-                return cached_response
+            if(len(cached_response.records)>0):
+                if True in verified and cached_response.records[0].verified == True:
+                    return cached_response
+                elif False in verified and cached_response.records[0].verified == False:
+                    print('1hhhhh1',cached_response)
+                    return cached_response
 
         current_user = info.context.user
         qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
@@ -446,9 +447,9 @@ class Query(ObjectType):
             )
             qs = qs.filter(filter)
     
-        if 'true' in verified:
+        if True in verified:
             qs = qs.filter(verified=True)
-        elif 'false' in verified:
+        elif False in verified:
             qs = qs.filter(verified=False)
 
         total = len(qs)
