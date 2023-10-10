@@ -264,6 +264,8 @@ class Query(ObjectType):
     courses = graphene.Field(
         MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     course_participant= graphene.List(CourseParticipantType, id=graphene.ID(), user_id = graphene.Int())
+    # course_participants= graphene.List(CourseParticipantType, id=graphene.ID())
+
     total_course_participant = graphene.Field(TotalCourseParticipant, id = graphene.ID())
     member_courses = graphene.Field(
         MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
@@ -1072,6 +1074,15 @@ class Query(ObjectType):
         # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         course_instance=CourseParticipant.objects.filter(participant=current_user,course=id)
         return course_instance
+
+    #      @login_required
+    # def resolve_course_participants(root, info, id, **kwargs):
+    #     current_user = info.context.user
+    #     print('dddddd',current_user)
+    #     PUBLISHED = Course.StatusChoices.PUBLISHED
+    #     # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+    #     course_instance=CourseParticipant.objects.filter(course=id)
+    #     return course_instance
     
     @login_required
     def resolve_total_course_participant(root, info, id, **kwargs):
