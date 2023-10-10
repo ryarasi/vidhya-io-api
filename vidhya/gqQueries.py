@@ -1,16 +1,15 @@
-from typing import List
 from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import AnnouncementsSeen, CompletedChapters, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
+from .gqTypes import AnnouncementType, ChapterType, CourseParticipantType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
 from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible, SORT_BY_OPTIONS
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
-from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key, set_cache
+from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_member_courses_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key,generate_coordinator_options_cache_key, set_cache
 from datetime import date, datetime, timedelta
 
 
@@ -59,6 +58,9 @@ class Institutions(graphene.ObjectType):
     records = graphene.List(InstitutionType)
     total = graphene.Int()
 
+# class searchInstitution(graphene.ObjectType):
+#     records = graphene.List(InstitutionType)
+#     total = graphene.Int()
 
 class Reports(graphene.ObjectType):
     records = graphene.List(ReportType)
@@ -96,7 +98,6 @@ class IssueGroup(graphene.ObjectType):
     subtitle = graphene.String()
     count = graphene.Int()
 
-
 class AssignmentType(graphene.ObjectType):
     id = graphene.ID()
     index = graphene.String()
@@ -124,6 +125,13 @@ class PublicUserType(graphene.ObjectType):
     courses = graphene.List(ReportType)
     score = graphene.Int()
 
+class MemberCourses(graphene.ObjectType):
+    records = graphene.List(CourseType)
+    participant_record = graphene.List(CourseParticipantType)
+
+class TotalCourseParticipant(graphene.ObjectType):
+    total_current_participant = graphene.Int()
+    total_completed_participant = graphene.Int()
 
 class PublicUsers(graphene.ObjectType):
     records = graphene.List(PublicUserType)
@@ -151,6 +159,8 @@ class PublicInstitutionType(graphene.ObjectType):
     country = graphene.String()
     dob = graphene.DateTime()
     institutionType = graphene.String()
+    coordinator=graphene.Field(UserType)
+    verified=graphene.Boolean()
 
 
 
@@ -216,14 +226,17 @@ class Query(ObjectType):
     
     # Institution Queries
     institution = graphene.Field(InstitutionType, id=graphene.ID())
+    institution_admin = graphene.Field(InstitutionType, id=graphene.ID())
     institutions = graphene.Field(
-        Institutions, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-    search_institutions = graphene.Field(Institutions,name=graphene.String())
+        Institutions, searchField=graphene.String(),verified = graphene.List(graphene.Boolean), limit=graphene.Int(), offset=graphene.Int())
+    search_institution = graphene.Field(Institutions,name=graphene.String())
+    fetch_designation_by_institution = graphene.Field(InstitutionType, id=graphene.ID())
     # User Queries
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
-
+    coordinator_options = graphene.Field(
+        Users,query=graphene.String(), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
     # User Role Queries
     user_role = graphene.Field(UserRoleType, role_name=graphene.String())
     user_roles = graphene.Field(
@@ -248,9 +261,13 @@ class Query(ObjectType):
 
     # Course Queries
     course = graphene.Field(CourseType, id=graphene.ID())
-    courses = graphene.List(
-        CourseType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-
+    courses = graphene.Field(
+        MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    course_participant= graphene.List(CourseParticipantType, id=graphene.ID(), user_id = graphene.Int())
+    total_course_participant = graphene.Field(TotalCourseParticipant, id = graphene.ID())
+    member_courses = graphene.Field(
+        MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    
     # Course Section Queries
     # course_section = graphene.Field(CourseSectionType, id=graphene.ID()) # No use for this one
     course_sections = graphene.List(CourseSectionType, course_id=graphene.ID(required=True), searchField=graphene.String(
@@ -356,7 +373,6 @@ class Query(ObjectType):
         public_institutions.sort(key=lambda x: x.score, reverse=True)
 
         results = PublicInstitutions(records=public_institutions, total=total)
-
         set_cache(cache_entity, cache_key, results)
 
         return results
@@ -391,19 +407,27 @@ class Query(ObjectType):
             institution_instance = None
 
         return institution_instance
+    
+    @login_required
+    def resolve_institution_admin(root, info, id, **kwargs):
+        current_user = info.context.user
+        institution_instance = Institution.objects.get(pk=id, active=True)
+        return institution_instance
 
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['INSTITUTION'], ACTIONS['LIST']))
-    def resolve_institutions(root, info, searchField=None, limit=None, offset=None, **kwargs):
+    def resolve_institutions(root, info, searchField=None,verified=[], limit=None, offset=None, **kwargs):
         cache_entity = CACHE_ENTITIES['PUBLIC_INSTITUTIONS']
-
         cache_key = generate_institutions_cache_key(
-            cache_entity, searchField, limit, offset)
-
+            cache_entity, searchField, verified, limit, offset)
         cached_response = fetch_cache(cache_entity, cache_key)
-
+        
         if cached_response:
-            return cached_response
+            if(len(cached_response.records)>0):
+                if True in verified and cached_response.records[0].verified == True:
+                    return cached_response
+                elif False in verified and cached_response.records[0].verified == False:
+                    return cached_response
 
         current_user = info.context.user
         qs = rows_accessible(current_user, RESOURCES['INSTITUTION'])
@@ -413,6 +437,12 @@ class Query(ObjectType):
                 Q(searchField__icontains=searchField.lower())
             )
             qs = qs.filter(filter)
+    
+        if True in verified:
+            qs = qs.filter(verified=True)
+        elif False in verified:
+            qs = qs.filter(verified=False)
+
         total = len(qs)
 
         if offset is not None:
@@ -420,7 +450,8 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
-
+        
+       
         results = Institutions(records=qs, total=total)
 
         set_cache(cache_entity, cache_key, results)
@@ -464,7 +495,7 @@ class Query(ObjectType):
 
 
     @login_required
-    def resolve_search_institutions(root, info, name=None, **kwargs):
+    def resolve_search_institution(root, info, name=None, **kwargs):
         current_user = info.context.user
         qs =  Institution.objects.all()
         if name is not None:
@@ -478,6 +509,14 @@ class Query(ObjectType):
 
         return results
 
+    @login_required
+    def resolve_fetch_designation_by_institution(root, info, id, **kwargs):
+        institution_instance = Institution.objects.get(pk=id, active=True)
+        if institution_instance is not None:
+            return institution_instance
+        else:
+            return None
+
 
     @login_required
     def resolve_user(root, info, id, **kwargs):
@@ -487,6 +526,7 @@ class Query(ObjectType):
             return user_instance
         else:
             return None
+
 
     def resolve_user_by_username(root, info, username, **kwargs):
         user = None
@@ -588,6 +628,33 @@ class Query(ObjectType):
         set_cache(cache_entity, cache_key, qs)
 
         return qs
+    
+    @login_required
+    def resolve_coordinator_options(root, info, query=None, roles=[], limit=None, offset=None, **kwargs):
+        cache_entity = CACHE_ENTITIES['USERS']
+        cache_key = generate_coordinator_options_cache_key(cache_entity, query, roles, limit, offset)
+
+        cached_response = fetch_cache(cache_entity, cache_key)
+
+        if cached_response:
+            return cached_response
+        qs = User.objects.all().filter(role__in=roles,active=True).order_by("id")
+        if query is not None:
+            filter = (Q(searchField__contains=query.lower()))
+            qs = qs.filter(filter)
+        total = len(qs)
+
+        if offset is not None:
+                    qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        results = Users(records=qs, total=total)        
+
+        set_cache(cache_entity, cache_key, results)
+
+        return results
 
     def resolve_public_users(root, info, searchField=None, membership_status_not=[], membership_status_is=[], roles=[], limit=None, offset=None, **kwargs):
 
@@ -643,7 +710,6 @@ class Query(ObjectType):
         if limit is not None:
             public_users = public_users[:limit]
         results = PublicUsers(records=public_users, total=total)
-
         set_cache(cache_entity, cache_key, results)
 
         return results
@@ -878,7 +944,7 @@ class Query(ObjectType):
             return cached_response
 
         qs = Course.objects.all().filter(status=Course.StatusChoices.PUBLISHED,
-                                         active=True).order_by("index")
+                                         active=True).order_by("-created_at")
 
         if searchField is not None:
             filter = (
@@ -989,20 +1055,36 @@ class Query(ObjectType):
             return course_instance
 
     @login_required
+    def resolve_course_participant(root, info, id, **kwargs):
+        current_user = info.context.user
+        PUBLISHED = Course.StatusChoices.PUBLISHED
+        # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        course_instance=CourseParticipant.objects.filter(participant=current_user,course=id)
+        return course_instance
+    
+    @login_required
+    def resolve_total_course_participant(root, info, id, **kwargs):
+        current_user = info.context.user
+        # PUBLISHED = Course.StatusChoices.PUBLISHED
+        # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        total_current_participant=CourseParticipant.objects.filter(course=id).count()
+        total_completed_participant = CompletedCourses.objects.filter(course=id).count()
+        return TotalCourseParticipant(total_current_participant = total_current_participant,total_completed_participant = total_completed_participant)
+    
+    @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
         current_user = info.context.user
+        # cache_entity = CACHE_ENTITIES['COURSES']
 
-        cache_entity = CACHE_ENTITIES['COURSES']
+        # cache_key = generate_courses_cache_key(
+        #     cache_entity, searchField, limit, offset, current_user)
 
-        cache_key = generate_courses_cache_key(
-            cache_entity, searchField, limit, offset, current_user)
+        # cached_response = fetch_cache(cache_entity, cache_key)
 
-        cached_response = fetch_cache(cache_entity, cache_key)
-
-        if cached_response:
-            return cached_response
+        # if cached_response:
+        #     return cached_response
 
         qs = rows_accessible(current_user, RESOURCES['COURSE'])
         if searchField is not None:
@@ -1016,10 +1098,35 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
+        PUBLISHED = Course.StatusChoices.PUBLISHED
 
-        set_cache(cache_entity, cache_key, qs)
+        participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        results = MemberCourses(records=qs,participant_record=participant_record)
+        # set_cache(cache_entity, cache_key, results)
+        return results
+    
+    @login_required
+    def resolve_member_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
-        return qs
+        current_user = info.context.user.id
+        PUBLISHED = Course.StatusChoices.PUBLISHED
+        qs = Course.objects.filter(
+                 status=PUBLISHED,courseparticipant__participant=current_user).distinct().order_by("created_at")
+        participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField.lower())
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+        results = MemberCourses(records=qs,participant_record=participant_record)
+
+        return results
 
     # @login_required
     # @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['GET']))

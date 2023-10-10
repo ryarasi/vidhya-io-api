@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
 from django.db import models
 from vidhya.authorization import is_chapter_locked, is_course_locked
 
@@ -17,10 +17,12 @@ class InstitutionType(DjangoObjectType):
     class Meta:
         model = Institution
 
+
 class EmailOTPType(DjangoObjectType):
 
     class Meta:
         model = EmailOTP
+
 
 class UserType(DjangoObjectType):
     class Meta:
@@ -33,8 +35,8 @@ class UserRoleType(DjangoObjectType):
 
 
 class GroupType(DjangoObjectType):
-    adminCount=graphene.Int()
-    memberCount=graphene.Int()
+    adminCount = graphene.Int()
+    memberCount = graphene.Int()
 
     def resolve_adminCount(self, info):
         return self.admins.count()
@@ -51,9 +53,10 @@ class AnnouncementType(DjangoObjectType):
 
     def resolve_seen(self, info):
         seen = False
-        user = info.context.user  
+        user = info.context.user
         announcements_seen = AnnouncementsSeen.objects.all().filter(user_id=user.id)
-        announcements_seen_ids = announcements_seen.values_list('announcement_id',flat=True)
+        announcements_seen_ids = announcements_seen.values_list(
+            'announcement_id', flat=True)
 
         if self.id in announcements_seen_ids:
             seen = True
@@ -62,49 +65,57 @@ class AnnouncementType(DjangoObjectType):
     class Meta:
         model = Announcement
 
+
 class ProjectType(DjangoObjectType):
 
     class Meta:
-        model = Project    
+        model = Project
+
 
 class IssueType(DjangoObjectType):
     title = graphene.String()
     subtitle = graphene.String()
 
     def get_issue_resource(input):
-        resource=None
+        resource = None
         if input.resource_type == Issue.ResourceTypeChoices.CHAPTER:
             try:
-                resource=Chapter.objects.get(pk=input.resource_id,active=True)
+                resource = Chapter.objects.get(
+                    pk=input.resource_id, active=True)
             except:
                 pass
         elif input.resource_type == Issue.ResourceTypeChoices.COURSE:
             try:
-                resource=Course.objects.get(pk=input.resource_id,active=True)
+                resource = Course.objects.get(
+                    pk=input.resource_id, active=True)
             except:
                 pass
         elif input.resource_type == Issue.ResourceTypeChoices.INSTITUTION:
             try:
-                resource=Institution.objects.get(code=input.resource_id,active=True)
+                resource = Institution.objects.get(
+                    code=input.resource_id, active=True)
             except:
                 pass
         elif input.resource_type == Issue.ResourceTypeChoices.PROJECT:
             try:
-                resource=Project.objects.get(pk=input.resource_id,active=True)
+                resource = Project.objects.get(
+                    pk=input.resource_id, active=True)
             except:
                 pass
         elif input.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
             try:
-                resource=Project.objects.get(pk=input.resource_id,active=True)
+                resource = Project.objects.get(
+                    pk=input.resource_id, active=True)
             except:
                 pass
-        
+
         elif input.resource_type == Issue.ResourceTypeChoices.USER:
             try:
-                resource=User.objects.get(username=input.resource_id,active=True)
+                resource = User.objects.get(
+                    username=input.resource_id, active=True)
             except:
                 pass
-        return resource     
+        return resource
 
     def resolve_title(self, info):
         title = None
@@ -121,7 +132,7 @@ class IssueType(DjangoObjectType):
             elif self.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
                 title = resource.participant.name + "'s exercise submission"
             elif self.resource_type == Issue.ResourceTypeChoices.USER:
-                title = resource.name     
+                title = resource.name
         return title
 
     def resolve_subtitle(self, info):
@@ -138,7 +149,7 @@ class IssueType(DjangoObjectType):
             elif self.resource_type == Issue.ResourceTypeChoices.PROJECT:
                 subtitle = "Project by " + resource.author.name
             elif self.resource_type == Issue.ResourceTypeChoices.SUBMISSION:
-                subtitle = "For "+ resource.chapter.title+' in ' + resource.course.title
+                subtitle = "For " + resource.chapter.title+' in ' + resource.course.title
             elif self.resource_type == Issue.ResourceTypeChoices.USER:
                 subtitle = resource.role.name + ', ' + resource.institution.name
         return subtitle
@@ -146,10 +157,17 @@ class IssueType(DjangoObjectType):
     class Meta:
         model = Issue
 
+
 class ReportType(DjangoObjectType):
 
     class Meta:
         model = Report
+
+class CourseParticipantType(DjangoObjectType):
+
+    class Meta:
+        model = CourseParticipant
+
 
 class CourseType(DjangoObjectType):
     completed = graphene.Boolean()
@@ -158,13 +176,15 @@ class CourseType(DjangoObjectType):
 
     def resolve_completed(self, info):
         user = info.context.user
-        completed = CompletedCourses.objects.filter(participant_id=user.id, course_id=self.id).exists()
+        completed = CompletedCourses.objects.filter(
+            participant_id=user.id, course_id=self.id).exists()
         return completed
 
     def resolve_report(self, info):
         report = None
         try:
-            report = Report.objects.get(participant_id=info.context.user.id, course_id=self.id, active=True)
+            report = Report.objects.get(
+                participant_id=info.context.user.id, course_id=self.id, active=True)
         except:
             pass
         return report
@@ -191,44 +211,49 @@ class ChapterType(DjangoObjectType):
 
     def resolve_completed(self, info):
         user = info.context.user
-        completed = CompletedChapters.objects.filter(participant_id=user.id, chapter_id=self.id).exists()
+        completed = CompletedChapters.objects.filter(
+            participant_id=user.id, chapter_id=self.id).exists()
         return completed
-
 
     def resolve_completion_status(self, info):
         user = info.context.user
         status = ExerciseSubmission.StatusChoices.PENDING
         try:
-            completed = CompletedChapters.objects.get(participant_id=user.id, chapter_id=self.id)
+            completed = CompletedChapters.objects.get(
+                participant_id=user.id, chapter_id=self.id)
             status = completed.status
         except:
             pass
-        return status      
+        return status
 
     def resolve_locked(self, info):
-        user = info.context.user        
+        user = info.context.user
         locked = is_chapter_locked(user, self)
         return locked
 
     class Meta:
         model = Chapter
 
+
 class CriterionType(DjangoObjectType):
 
     class Meta:
         model = Criterion
+
 
 class CriterionResponseType(DjangoObjectType):
 
     class Meta:
         model = CriterionResponse
 
+
 class ExerciseType(DjangoObjectType):
     rubric = graphene.List(CriterionType)
 
     def resolve_rubric(self, info):
-        rubric = Criterion.objects.filter(exercise_id=self.id, active=True).order_by('id')
-        return rubric        
+        rubric = Criterion.objects.filter(
+            exercise_id=self.id, active=True).order_by('id')
+        return rubric
 
     class Meta:
         model = Exercise
@@ -239,19 +264,24 @@ class ExerciseKeyType(DjangoObjectType):
     class Meta:
         model = ExerciseKey
 
+
 class ExerciseSubmissionType(DjangoObjectType):
     rubric = graphene.List(CriterionResponseType)
 
     def resolve_rubric(self, info):
-        rubric = CriterionResponse.objects.filter(exercise_id=self.exercise.id, participant_id=self.participant.id, active=True).order_by('id')
-        return rubric        
+        rubric = CriterionResponse.objects.filter(
+            exercise_id=self.exercise.id, participant_id=self.participant.id, active=True).order_by('id')
+        return rubric
+
     class Meta:
         model = ExerciseSubmission
+
 
 class SubmissionHistoryType(DjangoObjectType):
 
     class Meta:
         model = SubmissionHistory
+
 
 class ChatType(DjangoObjectType):
 
@@ -281,11 +311,9 @@ class ChatSearchType(DjangoObjectType):
 #         model = profile
 
 
-
 ##############
 # Mutation Types
 ##############
-
 
 
 class InstitutionInput(graphene.InputObjectType):
@@ -305,10 +333,13 @@ class InstitutionInput(graphene.InputObjectType):
     pincode = graphene.String()
     state = graphene.String()
     country = graphene.String()
-    dob = graphene.String()
+    dob = graphene.DateTime()
+    coordinator_id=graphene.Int(name="coordinator")
+    public = graphene.Boolean()
+    author_id = graphene.ID(name="author")
 
-class verifyEmailUser(graphene.InputObjectType):
-    user_id = graphene.Int()
+# class verifyEmailUser(graphene.InputObjectType):
+#     user_id = graphene.Int()
     
 class UserInput(graphene.InputObjectType):
     id = graphene.ID()
@@ -321,8 +352,9 @@ class UserInput(graphene.InputObjectType):
     title = graphene.String()
     bio = graphene.String()
     role_id = graphene.ID(name="role")
-    dob = graphene.DateTime()
-    address = graphene.String()  
+    dob = graphene.DateTime(required=False)
+    gender = graphene.String()
+    address = graphene.String()
     username = graphene.String()
     city = graphene.String()
     pincode = graphene.String()
@@ -333,7 +365,8 @@ class UserInput(graphene.InputObjectType):
     designation = graphene.String()
     manualLogin = graphene.String()
     googleLogin = graphene.Boolean()
-  
+
+
 class UserRoleInput(graphene.InputObjectType):
     name = graphene.String(required=True)
     description = graphene.String(required=True)
@@ -365,11 +398,12 @@ class AnnouncementInput(graphene.InputObjectType):
     recipients_institution = graphene.Boolean()
     group_ids = graphene.List(graphene.Int, name="groups", required=True)
 
+
 class ProjectInput(graphene.InputObjectType):
     id = graphene.ID()
     title = graphene.String(required=True)
-    author_id=graphene.ID(name="author", required=True)
-    course_id=graphene.ID(name="course")
+    author_id = graphene.ID(name="author", required=True)
+    course_id = graphene.ID(name="course")
     description = graphene.String(required=True)
     link = graphene.String()
     public = graphene.Boolean(required=True)
@@ -386,6 +420,7 @@ class CourseInput(graphene.InputObjectType):
     institution_ids = graphene.List(
         graphene.ID, name="institutions")
     participant_ids = graphene.List(graphene.ID, name="participants")
+     
     grader_ids = graphene.List(graphene.ID, name="graders")
     mandatory_prerequisite_ids = graphene.List(
         graphene.ID, name="mandatoryPrerequisites")
@@ -397,6 +432,7 @@ class CourseInput(graphene.InputObjectType):
     pass_score_percentage = graphene.Int()
     pass_completion_percentage = graphene.Int()
     status = graphene.String()
+    audit = graphene.Boolean()
 
 
 class CourseSectionInput(graphene.InputObjectType):
@@ -409,7 +445,7 @@ class CourseSectionInput(graphene.InputObjectType):
 class ChapterInput(graphene.InputObjectType):
     id = graphene.ID()
     title = graphene.String(required=True)
-    index = graphene.Int()    
+    index = graphene.Int()
     instructions = graphene.String(required=True)
     course_id = graphene.ID(name="course", required=True)
     section_id = graphene.ID(name="section")
@@ -418,12 +454,14 @@ class ChapterInput(graphene.InputObjectType):
     points = graphene.Int()
     status = graphene.String()
 
+
 class CriterionInput(graphene.InputObjectType):
     id = graphene.ID()
     exercise_id = graphene.ID(name="exercise")
     description = graphene.String(required=True)
     points = graphene.Int(required=True)
     active = graphene.Boolean()
+
 
 class ExerciseInput(graphene.InputObjectType):
     id = graphene.ID()
@@ -439,14 +477,15 @@ class ExerciseInput(graphene.InputObjectType):
     valid_answers = graphene.List(graphene.String)
     reference_link = graphene.String()
     reference_images = graphene.List(graphene.String)
-    remarks= graphene.String()
-    rubric= graphene.List(CriterionInput)
+    remarks = graphene.String()
+    rubric = graphene.List(CriterionInput)
 
 
 class CriterionResponseInput(graphene.InputObjectType):
     id = graphene.ID()
     criterion_id = graphene.ID(name="criterion", required=True)
-    exercise_submission_id = graphene.ID(name="exerciseSubmission", required=True)
+    exercise_submission_id = graphene.ID(
+        name="exerciseSubmission", required=True)
     exercise_id = graphene.ID(name="exercise", required=True)
     participant_id = graphene.ID(name="participant", required=True)
     remarker_id = graphene.ID(name="remarker")
@@ -456,20 +495,21 @@ class CriterionResponseInput(graphene.InputObjectType):
 
 class ExerciseKeyInput(graphene.InputObjectType):
     id = graphene.ID()
-    exercise_id = graphene.ID(name="exercise", required=True) 
+    exercise_id = graphene.ID(name="exercise", required=True)
     chapter_id = graphene.ID(name="chapter", required=True)
-    course_id = graphene.ID(name="course", required=True)       
+    course_id = graphene.ID(name="course", required=True)
     valid_option = graphene.String()
     valid_answers = graphene.List(graphene.String)
     reference_link = graphene.String()
-    reference_images = graphene.List(graphene.String)    
+    reference_images = graphene.List(graphene.String)
     remarks = graphene.String()
+
 
 class ExerciseSubmissionInput(graphene.InputObjectType):
     id = graphene.ID()
     exercise_id = graphene.ID(name="exercise", required=True)
     chapter_id = graphene.ID(name="chapter", required=True)
-    course_id = graphene.ID(name="course", required=True) 
+    course_id = graphene.ID(name="course", required=True)
     participant_id = graphene.ID(name="participant", required=True)
     option = graphene.String()
     answer = graphene.String()
@@ -485,6 +525,7 @@ class ExerciseSubmissionInput(graphene.InputObjectType):
     createdAt = graphene.String()
     updatedAt = graphene.String()
 
+
 class ReportInput(graphene.InputObjectType):
     id = graphene.ID()
     participant_id = graphene.ID(name="participant", required=True)
@@ -493,24 +534,27 @@ class ReportInput(graphene.InputObjectType):
     completed = graphene.Int(required=True)
     score = graphene.Int(required=True)
 
+
 class IssueInput(graphene.InputObjectType):
     id = graphene.ID()
     link = graphene.String(required=True)
-    description= graphene.String(required=True)
+    description = graphene.String(required=True)
     resource_id = graphene.String(required=True)
     resource_type = graphene.String(required=True)
     reporter_id = graphene.ID(name="reporter")
-    guest_name=graphene.String()
-    guest_email=graphene.String()
-    screenshot=graphene.String()
-    status=graphene.String()
-    remarks=graphene.String()
+    guest_name = graphene.String()
+    guest_email = graphene.String()
+    screenshot = graphene.String()
+    status = graphene.String()
+    remarks = graphene.String()
+
 
 class ChatMessageInput(graphene.InputObjectType):
     id = graphene.ID()
     chat_id = graphene.ID(name="chat")
     message = graphene.String(required=True)
     author_id = graphene.ID(name="author", required=True)
+
 
 class IndexListInputType(graphene.InputObjectType):
     id = graphene.ID()

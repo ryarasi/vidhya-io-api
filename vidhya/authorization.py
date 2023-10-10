@@ -32,6 +32,7 @@ RESOURCES = {
     "ANNOUNCEMENT": "ANNOUNCEMENT",
     "CHAPTER": "CHAPTER", # Also handles permissions for Exercise, Criterion
     "COURSE": "COURSE",  # Also handles permissions for Course Sections
+    "MEMBER_COURSE": "MEMBER_COURSE",
     "GROUP": "GROUP",
     "EXERCISE_KEY": "EXERCISE_KEY",
     "EXERCISE_SUBMISSION": "EXERCISE_SUBMISSION",
@@ -246,7 +247,6 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
             qs = qs.filter(active=False)
         else:
             qs = qs.filter(active=True)
-        print('groups accessible => ', qs)
         return qs
 
     if RESOURCE_TYPE == RESOURCES["PROJECT"]:
@@ -272,10 +272,11 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         PUBLISHED = Course.StatusChoices.PUBLISHED
         if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
             qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructor_id=user.id)).distinct().order_by("index")
+                Q(participants__in=[user]) | Q(instructor_id=user.id)).distinct().order_by("-created_at")
         else:
-            qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
+            qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
+            # qs = Course.objects.all().filter(
+                # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
         
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)

@@ -40,15 +40,22 @@ class User(AbstractUser):
     address = models.CharField(max_length=300,blank=True,null=True)
     city = models.CharField(max_length=300,blank=True,null=True)
     pincode = models.CharField(max_length=150,blank=True,null=True)
-    state = models.CharField(max_length=300,blank=True,null=True)
+    state = models.CharField(max_length=300,default='NA',null=False)
     country = models.CharField(max_length=300,default="India",null=False)
-    dob = models.DateTimeField(default=timezone.now)
-    mobile = models.CharField(default="0000000000",max_length=20)
+    dob = models.DateTimeField(null=True,blank=True)
+    mobile = models.CharField(default="0000000000",max_length=20,null=True)
     phone = models.CharField(default="0000000000",max_length=20, blank = True,null=True)
     designation = models.CharField(max_length=300,default="NA")
     manualLogin = models.BooleanField(default="False")
-    googleLogin = models.BooleanField(default="False")
-    
+    googleLogin = models.BooleanField(default="False")    
+    credit_hours = models.CharField(default="5",max_length=2,null=False)
+    class GenderChoices(models.TextChoices):
+        MALE = "M", _('Male')
+        FEMALE = "F", _('Female')
+        OTHER = "O", _('Other')
+        PREFER_NOT_TO_SAY = "N", _('Prefer Not To Say')
+
+    gender = models.CharField(max_length=1,choices=GenderChoices.choices,null=True,blank=True)
     # invitecode = models.ForeignKey('Institution', on_delete = models.PROTECT, blank=True, null=True)
     class StatusChoices(models.TextChoices):
         UNINITIALIZED = 'UI', _('UNINITIALIZED')
@@ -138,7 +145,7 @@ class UserRole(models.Model):
 class Institution(models.Model):
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20,unique=True)
-    public = models.BooleanField(default=True)
+    public = models.BooleanField(default=False)
     location = models.CharField(max_length=50)
     city = models.CharField(max_length=50, blank=True, null=True)
     website = models.CharField(max_length=100, blank=True, null=True)
@@ -147,6 +154,7 @@ class Institution(models.Model):
         max_length=250, blank=True, null=True, default=settings.DEFAULT_AVATARS['INSTITUTION'])
     bio = models.CharField(max_length=300, blank=True, null=True)
     verified = models.BooleanField(default=False)
+    coordinator = models.ForeignKey(User,related_name="institutionCoordinators",on_delete=models.PROTECT, blank=True, null=True)
     
     class InstitutionTypeChoices(models.TextChoices):
         SCHOOL = "SC", _('School')
@@ -164,7 +172,6 @@ class Institution(models.Model):
     state = models.CharField(max_length=300,blank=True,null=True)
     country = models.CharField(max_length=300,default="India",null=False)
     dob = models.DateTimeField(default=timezone.now)
-
     def generate_invitecode():
         return random_number_with_N_digits(10)
 
@@ -174,6 +181,8 @@ class Institution(models.Model):
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(
+        User, related_name="institutionAuthor", on_delete=models.PROTECT, blank=True, null=True)
 
     def __str__(self):
         return f'{self.name}' 
@@ -286,7 +295,6 @@ class AnnouncementGroup(models.Model):
 
 
 class Course(models.Model):
-    index = models.CharField(max_length=5, default='0.0')
     title = models.CharField(max_length=80)
     blurb = models.CharField(max_length=150)
     video = models.CharField(max_length=500, blank=True, null=True)
@@ -294,6 +302,7 @@ class Course(models.Model):
     instructor = models.ForeignKey(User, on_delete=models.PROTECT)
     institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
         'course', 'institution'), blank=True)
+    duration = models.CharField(default="0",max_length=50)
     participants = models.ManyToManyField(
         User, through="CourseParticipant", related_name="participants", through_fields=('course', 'participant'), blank=True)
     graders = models.ManyToManyField(
@@ -355,7 +364,7 @@ class CourseInstitution(models.Model):
 class CourseParticipant(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
-
+    audit = models.BooleanField(User,default=False)
     def __str__(self):
         return f'Course {self.course.title}, Participant {self.participant.name}'
 
@@ -479,7 +488,7 @@ class ExerciseSubmission(models.Model):
     option = models.CharField(
         max_length=200, blank=True, null=True)
     answer = models.CharField(max_length=5000, blank=True, null=True)
-    link = models.CharField(max_length=5000, blank=True, null=True)
+    link = models.URLField(max_length=5000, blank=True, null=True)
     images = ArrayField(models.CharField(
         max_length=200, blank=True), blank=True, null=True)
     points = models.DecimalField(
