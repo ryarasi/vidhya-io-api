@@ -7,7 +7,7 @@ import graphene
 import datetime
 import graphql_social_auth
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, CourseGrader, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
@@ -1623,6 +1623,9 @@ class CreateCourse(graphene.Mutation):
 
         if input.grader_ids or input.grader_ids == []:
             course_instance.graders.add(*input.grader_ids)
+        
+        if input.instructor_ids or input.instructor_ids == []:
+            course_instance.instructors.add(*input.instructor_ids)
 
         if input.mandatory_prerequisite_ids:
             course_instance.mandatory_prerequisites.add(
@@ -1691,6 +1694,10 @@ class UpdateCourse(graphene.Mutation):
             if input.grader_ids or input.grader_ids == []:
                 course_instance.graders.clear()
                 course_instance.graders.add(*input.grader_ids)
+            
+            if input.instructor_ids or input.instructor_ids == []:
+                course_instance.instructors.clear()
+                course_instance.instructors.add(*input.instructor_ids)
 
             if input.mandatory_prerequisite_ids or input.mandatory_prerequisite_ids == []:
                 course_instance.mandatory_prerequisites.clear()

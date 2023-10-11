@@ -307,6 +307,8 @@ class Course(models.Model):
         User, through="CourseParticipant", related_name="participants", through_fields=('course', 'participant'), blank=True)
     graders = models.ManyToManyField(
         User, through="CourseGrader", related_name="graders", through_fields=('course', 'grader'), blank=True)
+    instructors = models.ManyToManyField(
+        User, through="CourseInstructor", related_name="instructors", through_fields=('course', 'instructor'), blank=True)   
     mandatory_prerequisites = models.ManyToManyField(
         'Course', related_name="required_courses",through='MandatoryRequiredCourses', through_fields=('course', 'requirement'), blank=True)
     recommended_prerequisites = models.ManyToManyField(
@@ -374,6 +376,13 @@ class CourseGrader(models.Model):
 
     def __str__(self):
         return f'Course {self.course.title}, Grader {self.grader.name}'
+
+class CourseInstructor(models.Model):
+    course     = models.ForeignKey(Course, on_delete=models.CASCADE)
+    instructor = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Course {self.course.title}, Instructor {self.instuctor.name}'
 
 class CourseSection(models.Model):
     title = models.CharField(max_length=80)
