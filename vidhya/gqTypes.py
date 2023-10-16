@@ -168,6 +168,9 @@ class CourseParticipantType(DjangoObjectType):
     class Meta:
         model = CourseParticipant
 
+class CourseCompletedType(DjangoObjectType):
+    class Meta:
+        model = CompletedCourses
 
 class CourseType(DjangoObjectType):
     completed = graphene.Boolean()

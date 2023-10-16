@@ -4,7 +4,7 @@ from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
 from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, CourseParticipantType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
+from .gqTypes import AnnouncementType, ChapterType, CourseParticipantType,CourseCompletedType,ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
 from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible, SORT_BY_OPTIONS
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
@@ -128,6 +128,7 @@ class PublicUserType(graphene.ObjectType):
 class MemberCourses(graphene.ObjectType):
     records = graphene.List(CourseType)
     participant_record = graphene.List(CourseParticipantType)
+
 
 class TotalCourseParticipant(graphene.ObjectType):
     total_current_participant = graphene.Int()
@@ -258,13 +259,15 @@ class Query(ObjectType):
     project = graphene.Field(ProjectType, id=graphene.ID())
     projects = graphene.List(
         ProjectType, author_id=graphene.ID(), sortBy=graphene.String(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    projects_course = graphene.List(ProjectType,id=graphene.ID())
 
     # Course Queries
     course = graphene.Field(CourseType, id=graphene.ID())
     courses = graphene.Field(
         MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     course_participant= graphene.List(CourseParticipantType, id=graphene.ID(), user_id = graphene.Int())
-    # course_participants= graphene.List(CourseParticipantType, id=graphene.ID())
+    course_participants= graphene.List(CourseParticipantType, id=graphene.ID())
+    course_completed=graphene.List(CourseCompletedType,id=graphene.ID())
 
     total_course_participant = graphene.Field(TotalCourseParticipant, id = graphene.ID())
     member_courses = graphene.Field(
@@ -1004,6 +1007,7 @@ class Query(ObjectType):
             project_instance = None
         return project_instance
 
+
     def resolve_projects(root, info, author_id=None, searchField=None, sortBy=SORT_BY_OPTIONS['NEW'], limit=None, offset=None, **kwargs):
         current_user = info.context.user
 
@@ -1064,15 +1068,30 @@ class Query(ObjectType):
         course_instance=CourseParticipant.objects.filter(participant=current_user,course=id)
         return course_instance
 
-    #      @login_required
-    # def resolve_course_participants(root, info, id, **kwargs):
-    #     current_user = info.context.user
-    #     print('dddddd',current_user)
-    #     PUBLISHED = Course.StatusChoices.PUBLISHED
-    #     # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
-    #     course_instance=CourseParticipant.objects.filter(course=id)
-    #     return course_instance
+    @login_required
+    def resolve_course_participants(root, info, id, **kwargs):
+        current_user = info.context.user
+        PUBLISHED = Course.StatusChoices.PUBLISHED
+        # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        course_instance=CourseParticipant.objects.filter(course=id)
+        return course_instance
     
+    @login_required
+    def resolve_projects_course(root,info,id,**kwargs):
+        current_user = info.context.user
+        project_instance = Project.objects.filter(course=id)
+        return project_instance
+
+    @login_required
+    def resolve_course_completed(root, info, id, **kwargs):
+        current_user = info.context.user
+        # PUBLISHED = Course.StatusChoices.PUBLISHED
+        # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        course_instance=CompletedCourses.objects.filter(course=id)
+        return course_instance
+
+   
+
     @login_required
     def resolve_total_course_participant(root, info, id, **kwargs):
         current_user = info.context.user
