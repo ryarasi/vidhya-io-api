@@ -176,7 +176,6 @@ class PublicCourseType(graphene.ObjectType):
     blurb = graphene.String()
     description = graphene.String()
     video = graphene.String()
-    instructor = graphene.Field(UserType)
     mandatoryPrerequisites = graphene.List(CourseType)
     recommendedPrerequisites = graphene.List(CourseType)
     startDate = graphene.String()
@@ -982,7 +981,7 @@ class Query(ObjectType):
             blurb=course_instance.blurb,
             description=course_instance.description,
             video=course_instance.video,
-            instructor=course_instance.instructor,
+            #instructor=course_instance.instructor,
             # mandatoryPrerequisites= course_instance.mandatory_prerequisites,
             # recommendedPrerequisites=course_instance.recommended_prerequisites,
             startDate=course_instance.start_date,

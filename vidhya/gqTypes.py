@@ -416,7 +416,6 @@ class CourseInput(graphene.InputObjectType):
     blurb = graphene.String(required=True)
     description = graphene.String(required=True)
     video = graphene.String()
-    instructor_id = graphene.ID(name="instructor")
     institution_ids = graphene.List(
         graphene.ID, name="institutions")
     participant_ids = graphene.List(graphene.ID, name="participants")

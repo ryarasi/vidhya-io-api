@@ -299,7 +299,6 @@ class Course(models.Model):
     blurb = models.CharField(max_length=150)
     video = models.CharField(max_length=500, blank=True, null=True)
     description = models.CharField(max_length=1000)
-    instructor = models.ForeignKey(User, on_delete=models.PROTECT)
     institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
         'course', 'institution'), blank=True)
     duration = models.CharField(default="0",max_length=50)
