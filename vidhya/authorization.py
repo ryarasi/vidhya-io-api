@@ -276,8 +276,17 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
     if RESOURCE_TYPE == RESOURCES["COURSE"]:
         PUBLISHED = Course.StatusChoices.PUBLISHED
         if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
+            # print(participants.values_list('id'))
             qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructors__in=[user])).distinct().order_by("-created_at")
+                Q(participants__in=[user]) | Q(instructors__in=[user.id])).distinct().order_by("-created_at")
+    
+            
+            # .filter(
+            # 
+            # .filter().distinct().order_by("-created_at")
+
+            # .filter(
+            #     Q(participants__in=[user]) | Q(instructors__in=[user.id]))
         else:
             qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
             # qs = Course.objects.all().filter(
@@ -300,9 +309,10 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         
         if course_id is not None:
             try:
-                course = Course.objects.get( Q(status=PUBLISHED) | Q(instructors__in=[user]),pk=course_id)
-            except:
-                raise GraphQLError("Course unavailable")            
+                course = Course.objects.filter( Q(status=PUBLISHED) | Q(instructors__in=[user.id]),pk=course_id)
+            except Course.DoesNotExist:
+                 print(f"Query: status={PUBLISHED}, user={user}, pk={course_id}")
+                 raise GraphQLError("Course unavailable")            
             filter = (
                 Q(course_id=course_id)
             )
@@ -447,7 +457,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         course_id = options["course_id"]
         if course_id is not None:
             try:
-                course = Course.objects.get(Q(status=Course.StatusChoices.PUBLISHED) | Q(instructors__in=[user]), pk=course_id, active=True, )
+                course = Course.objects.get(Q(status=Course.StatusChoices.PUBLISHED) | Q(instructors__in=[user.id]), pk=course_id, active=True, )
             except:
                 raise GraphQLError("Course unavailable")
             qs = CourseSection.objects.all().filter(course_id=course_id).order_by("index")
