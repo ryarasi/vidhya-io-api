@@ -65,3 +65,4 @@ Unidecode==1.2.0
 whitenoise==5.3.0
 yarl==1.6.3
 zope.interface==5.4.0
+django-camunda==0.13.0

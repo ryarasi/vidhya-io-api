@@ -20,9 +20,22 @@ services:
       - 8000:8000
     expose:
       - 8000
-    depends_on:
+    depends_on: 
       - redis
     restart: "on-failure"
+
+  camunda:
+    image: camunda/camunda-bpm-platform:latest
+    volumes:
+      - .:/camunda
+    ports:
+      - ${CAMUNDA_PORT}:8080
+    depends_on:
+      - web
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://5432/vidhya_dev
+      - SPRING_DATASOURCE_USERNAME=vidhyadev
+      - SPRING_DATASOURCE_PASSWORD=WHVHa7Kf6uPkx6g!Z2x4k7%LvMQJWPLxPp7H2P$V22sLb2PSzN
 
 volumes:
   database-data: # named volumes can be managed easier using docker-compose

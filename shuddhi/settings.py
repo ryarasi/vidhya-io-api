@@ -242,8 +242,8 @@ DATABASES['default'].update(db_from_env)
 CACHE_HOST='redis'
 CACHE_PORT=6379
 
-if not REDIS_URL:
-    REDIS_URL = f'{CACHE_HOST}://{CACHE_HOST}:{CACHE_PORT}/1'
+#if not REDIS_URL:
+REDIS_URL = f'{CACHE_HOST}://{CACHE_HOST}:{CACHE_PORT}/1'
     
 CACHES = {
     "default": {
