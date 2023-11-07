@@ -100,8 +100,11 @@ def redact_user(root, info, user):
 
 def is_course_locked(user, course):
     locked = True
+    print("id",course.instructors.values_list('id',flat=True))
+   # objects.filter(email=input.email).exists()
     # Checking if the user is the author of the course
-    if course.instructor.id == user.id:
+    instructor_ids = course.instructors.values_list('id',flat=True)
+    if instructor_ids== user.id:
         # If yes, we mark it as unlocked
         locked = False
         return locked        
@@ -129,7 +132,9 @@ def is_chapter_locked(user, chapter):
     grader = user_role == USER_ROLES_NAMES['GRADER']
 
     # Checking if the user is the author of the course or a grader
-    if chapter.course.instructor.id == user.id or grader:
+    instructor_ids = chapter.course.instructors.values_list('id',flat=True)
+
+    if instructor_ids == user.id or grader:
         # If yes, we mark it as unlocked
         return locked
 
@@ -271,8 +276,17 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
     if RESOURCE_TYPE == RESOURCES["COURSE"]:
         PUBLISHED = Course.StatusChoices.PUBLISHED
         if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
+            # print(participants.values_list('id'))
             qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructor_id=user.id)).distinct().order_by("-created_at")
+                Q(participants__in=[user]) | Q(instructors__in=[user.id])).distinct().order_by("-created_at")
+    
+            
+            # .filter(
+            # 
+            # .filter().distinct().order_by("-created_at")
+
+            # .filter(
+            #     Q(participants__in=[user]) | Q(instructors__in=[user.id]))
         else:
             qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
             # qs = Course.objects.all().filter(
@@ -295,9 +309,10 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         
         if course_id is not None:
             try:
-                course = Course.objects.get( Q(status=PUBLISHED) | Q(instructor_id=user.id),pk=course_id)
-            except:
-                raise GraphQLError("Course unavailable")            
+                course = Course.objects.filter( Q(status=PUBLISHED) | Q(instructors__in=[user.id]),pk=course_id)
+            except Course.DoesNotExist:
+                 print(f"Query: status={PUBLISHED}, user={user}, pk={course_id}")
+                 raise GraphQLError("Course unavailable")            
             filter = (
                 Q(course_id=course_id)
             )
@@ -442,7 +457,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         course_id = options["course_id"]
         if course_id is not None:
             try:
-                course = Course.objects.get(Q(status=Course.StatusChoices.PUBLISHED) | Q(instructor_id=user.id), pk=course_id, active=True, )
+                course = Course.objects.get(Q(status=Course.StatusChoices.PUBLISHED) | Q(instructors__in=[user.id]), pk=course_id, active=True, )
             except:
                 raise GraphQLError("Course unavailable")
             qs = CourseSection.objects.all().filter(course_id=course_id).order_by("index")

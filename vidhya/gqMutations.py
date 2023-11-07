@@ -7,7 +7,7 @@ import graphene
 import datetime
 import graphql_social_auth
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, CourseGrader, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
@@ -1585,8 +1585,8 @@ class CreateCourse(graphene.Mutation):
             error += "Blurb is a required field<br />"
         if input.description is None:
             error += "Description is a required field<br />"
-        if input.instructor_id is None:
-            error += "Instructor is a required field<br />"
+        if input.instructor_ids is None:
+            error += "Instructor is a required field<br />"    
         if input.institution_ids is None:
             error += "Institution(s) is a required field<br />"
         if error:
@@ -1602,7 +1602,7 @@ class CreateCourse(graphene.Mutation):
             blurb=input.blurb,
             description=input.description,
             video=input.video,
-            instructor_id=input.instructor_id,
+           # instructor_id=input.instructor_id,
             start_date=input.start_date,
             end_date=input.end_date,
             credit_hours=input.credit_hours,
@@ -1623,6 +1623,9 @@ class CreateCourse(graphene.Mutation):
 
         if input.grader_ids or input.grader_ids == []:
             course_instance.graders.add(*input.grader_ids)
+        
+        if input.instructor_ids or input.instructor_ids == []:
+            course_instance.instructors.add(*input.instructor_ids)
 
         if input.mandatory_prerequisite_ids:
             course_instance.mandatory_prerequisites.add(
@@ -1664,7 +1667,6 @@ class UpdateCourse(graphene.Mutation):
             # course_instance.index = input.index if input.index is not None else course.index
             course_instance.video = input.video if input.video is not None else course.video
             course_instance.blurb = input.blurb if input.blurb is not None else course.blurb
-            course_instance.instructor_id = input.instructor_id if input.instructor_id is not None else course.instructor_id
             course_instance.start_date = input.start_date if input.start_date is not None else course.start_date
             course_instance.end_date = input.end_date if input.end_date is not None else course.end_date
             course_instance.credit_hours = input.credit_hours if input.credit_hours is not None else course.credit_hours
@@ -1691,6 +1693,10 @@ class UpdateCourse(graphene.Mutation):
             if input.grader_ids or input.grader_ids == []:
                 course_instance.graders.clear()
                 course_instance.graders.add(*input.grader_ids)
+            
+            if input.instructor_ids or input.instructor_ids == []:
+                course_instance.instructors.clear()
+                course_instance.instructors.add(*input.instructor_ids)
 
             if input.mandatory_prerequisite_ids or input.mandatory_prerequisite_ids == []:
                 course_instance.mandatory_prerequisites.clear()
