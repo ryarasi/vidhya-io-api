@@ -287,6 +287,9 @@ def chapters_modified():
 def exercises_modified():
     invalidate_cache(CACHE_ENTITIES['EXERCISES'])
 
+def exercises_keys_modified():
+    invalidate_cache(CACHE_ENTITIES['EXERCISE_KEYS'])
+
 
 def exercise_submission_submitted():
     invalidate_cache(CACHE_ENTITIES['SUBMISSION_GROUPS'])

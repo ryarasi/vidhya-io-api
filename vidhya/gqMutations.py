@@ -16,7 +16,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
-from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
+from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, exercises_keys_modified, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified, exercises_modified
 from django.core.cache import cache
 from django.db import connection, transaction
 from graphql_jwt.shortcuts import get_token, create_refresh_token
@@ -458,13 +458,10 @@ class usernameValidation(graphene.Mutation):
         user = None
         current_user = info.context.user
         usernameExistStatus = False
-        # try:
-        print('nn',user)
         usernameExistStatus = User.objects.exclude(id=current_user.id).filter(username=username).exists()
         usernamePatternMatch = False
 
         if re.match("^[A-Za-z0-9_.]*$", username):
-            print('match')
             usernamePatternMatch = True
         
 
@@ -496,7 +493,6 @@ class UpdateUser(graphene.Mutation):
         if(usernameExistStatus == True):
             userExist = User.objects.get(username=input.username)
             if(userExist.id != current_user.id):
-                print(userExist.id)
                 error += "Username already exist<br />"    
         if error:
             raise GraphQLError(error)
@@ -661,7 +657,6 @@ class ModifyUserInstitution(graphene.Mutation):
         if user_instance:
             ok = True
             user_id = graphene.ID(required=True)
-            # print(user_instance.institution)
             user_instance.institution_id = institution_id
             user_instance.designation = designation
 
@@ -1612,9 +1607,6 @@ class CreateCourse(graphene.Mutation):
         course_instance.save()
 
         courses_modified()  # Invalidating course cache
-        # print(input)
-        print('course_instance ',course_instance)
-
         if input.institution_ids:
             course_instance.institutions.add(*input.institution_ids)
         
@@ -1707,9 +1699,6 @@ class UpdateCourse(graphene.Mutation):
                 course_instance.recommended_prerequisites.clear()
                 course_instance.recommended_prerequisites.add(
                     *input.recommended_prerequisite_ids)
-            print('course_instance',course_instance.participants.all())
-            print('input',input)
-
             payload = {"course": course_instance,
                        "method": UPDATE_METHOD}
             NotifyCourse.broadcast(
@@ -1742,9 +1731,6 @@ class UpdateCourseParticipant(graphene.Mutation):
                 
                 participant_record =  CourseParticipant.objects.filter(
                  participant=user_id,course=course_instance.id)
-                print('participant_record',participant_record)
-                # participant_record = CourseParticipant.objects.filter(participant__in=[user_id],course__status=PUBLISHED)
-                # course_instance.participants.filter(participant__im)
                 return UpdateCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
             return UpdateCourseParticipant(ok=ok, course=None, participant_record=None)
 
@@ -1800,7 +1786,6 @@ class AuditCourseParticipant(graphene.Mutation):
                 else:
                     course_instance.participants.add(user_id)
                     course_part = CourseParticipant.objects.all().get(participant_id=user_id,course_id=id)
-                    print('course_part',course_part.audit)
                     course_part.audit= audit
                     course_part.save()
                     participant_record = CourseParticipant.objects.filter(participant=user_id,course=course_instance.id)
@@ -2283,19 +2268,19 @@ class CreateExercise(graphene.Mutation):
                                             valid_answers=input.valid_answers, reference_link=input.reference_link, reference_images=input.reference_images, remarks=input.remarks)
 
         exercise_key_instance.save()
-
         # Notifying creation of Exercise
         payload = {"exercise": exercise_instance,
                    "method": CREATE_METHOD}
         NotifyExercise.broadcast(
             payload=payload)
+        exercises_modified()
 
         # Notifying creation of Exercise Key
         exercise_key_payload = {"exercise_key": exercise_key_instance,
                                 "method": CREATE_METHOD}
         NotifyExerciseKey.broadcast(
             payload=exercise_key_payload)
-
+        exercises_keys_modified()
         return CreateExercise(ok=ok, exercise=exercise_instance)
 
 
@@ -2373,7 +2358,8 @@ class UpdateExercise(graphene.Mutation):
                        "method": UPDATE_METHOD}
             NotifyExerciseKey.broadcast(
                 payload=payload)
-
+            exercises_modified()            
+            exercises_keys_modified()
             return UpdateExercise(ok=ok, exercise=exercise_instance)
         return UpdateExercise(ok=ok, exercise=None)
 
@@ -2439,6 +2425,9 @@ class DeleteExercise(graphene.Mutation):
                                     "method": DELETE_METHOD}
             NotifyExerciseKey.broadcast(
                 payload=exercise_key_payload)
+            exercises_modified()            
+            exercises_keys_modified()
+
             return DeleteExercise(ok=ok, exercise=exercise)
         return DeleteExercise(ok=ok, exercise=None)
 
@@ -3077,7 +3066,6 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         print('Graders => ', graders)
         for grader in graders:
             recipient_list = [grader.grader.email]
-            print('recipients_list => ', recipient_list)
             send_mail(
                 'There is a new assignment submission!',
                 notification_text,
