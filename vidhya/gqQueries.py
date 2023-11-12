@@ -565,7 +565,6 @@ class Query(ObjectType):
 
         if membership_status_is:
             qs = qs.filter(membership_status__in=membership_status_is)
-        print('roles => ', roles)
         if roles:
             qs = qs.filter(role__in=roles)
 
@@ -1289,9 +1288,7 @@ class Query(ObjectType):
 
         if cached_response:
             return cached_response
-
         qs = ExerciseKey.objects.all().filter(active=True).order_by('id')
-
         if exercise_id is not None:
             filter = (
                 Q(exercise_id=exercise_id)
