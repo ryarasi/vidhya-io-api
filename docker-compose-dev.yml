@@ -10,6 +10,8 @@ services:
     command: ["redis-server", "/redis.conf"]
     restart: "on-failure"
 
+  # db:
+
   web:
     build: .
     container_name: vidhya_io_api
@@ -22,6 +24,7 @@ services:
       - 8000
     depends_on:
       - redis
+      # - db
     restart: "on-failure"
 
 volumes:

@@ -2,9 +2,9 @@ from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseInstructor, CourseParticipant, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, CourseParticipantType,CourseCompletedType,ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
+from .gqTypes import AnnouncementType, ChapterType, CourseInstructorType, CourseParticipantType,CourseCompletedType,ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
 from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible, SORT_BY_OPTIONS
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
@@ -258,15 +258,16 @@ class Query(ObjectType):
     project = graphene.Field(ProjectType, id=graphene.ID())
     projects = graphene.List(
         ProjectType, author_id=graphene.ID(), sortBy=graphene.String(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-    projects_course = graphene.List(ProjectType,id=graphene.ID())
+    projects_course = graphene.List(ProjectType,id=graphene.ID(),searchField=graphene.String(),limit=graphene.Int(), offset=graphene.Int(),sortBy=graphene.String())
 
     # Course Queries
     course = graphene.Field(CourseType, id=graphene.ID())
     courses = graphene.Field(
         MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     course_participant= graphene.List(CourseParticipantType, id=graphene.ID(), user_id = graphene.Int())
-    course_participants= graphene.List(CourseParticipantType, id=graphene.ID())
-    course_completed=graphene.List(CourseCompletedType,id=graphene.ID())
+    course_participants= graphene.List(CourseParticipantType, id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    course_completed=graphene.List(CourseCompletedType,id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    course_instructors= graphene.List(CourseInstructorType, id=graphene.ID(),user_id = graphene.Int())
 
     total_course_participant = graphene.Field(TotalCourseParticipant, id = graphene.ID())
     member_courses = graphene.Field(
@@ -1058,6 +1059,7 @@ class Query(ObjectType):
                 'This course is locked for you. Please complete the prerequisites.')
         else:
             return course_instance
+        
 
     @login_required
     def resolve_course_participant(root, info, id, **kwargs):
@@ -1067,13 +1069,55 @@ class Query(ObjectType):
         course_instance=CourseParticipant.objects.filter(participant=current_user,course=id)
         return course_instance
 
+    
     @login_required
-    def resolve_course_participants(root, info, id, **kwargs):
-        current_user = info.context.user
-        PUBLISHED = Course.StatusChoices.PUBLISHED
-        # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
-        course_instance=CourseParticipant.objects.filter(course=id)
-        return course_instance
+    def resolve_course_participants(root,info,id,searchField=None,sortBy=SORT_BY_OPTIONS['NEW'], limit=None, offset=None, **kwargs):
+
+        qs = CourseParticipant.objects.filter(course=id)
+        course_instances = []
+        if searchField is None: 
+            return qs
+        
+        else:
+            searchField = searchField.lower()
+
+            if searchField is not None:
+                user_filter = Q()  
+                for i in qs:  
+                    user_instance = User.objects.get(id=i.participant_id)
+                    institution = user_instance.institution 
+            
+                    if institution and institution.location.lower().find(searchField.lower())!= -1:
+                        print("lower search",institution.location.lower().find(searchField.lower())!= -1)
+                        user_filter |= Q(institution__location__icontains=searchField.lower())
+                        print("searched filter",user_filter)
+                        course_instance = CourseParticipant.objects.filter(participant_id=user_instance.id, course=id)
+                        course_instances.extend(course_instance)  
+                        print("course value",course_instance)
+                        return course_instance
+                    else:
+                        for field in User._meta.get_fields():
+                            if field.is_relation:
+                                continue
+                            field_name = field.name
+                            user_filter |= Q(**{field_name + '__icontains': searchField.lower()})
+
+                        if User.objects.filter(user_filter,id=user_instance.id).exists():
+                            print("user",User.objects.filter(user_filter,id=user_instance.id).exists())
+                            print("not institution",not institution and institution.location.lower().find(searchField.lower())!= -1 )
+                            print("institution",institution and institution.location.lower().find(searchField.lower())!= -1)
+                            print("else ",User.objects.filter(user_filter,id=user_instance.id).exists() and (not institution and institution.location.lower().find(searchField.lower())!= -1 ))
+                            course_instance = CourseParticipant.objects.filter(participant_id=user_instance.id, course=id)
+                            course_instances.extend(course_instance) 
+    
+            if offset is not None:
+                course_instances = course_instances[offset:]
+
+            if limit is not None:
+                course_instances = course_instances[:limit]
+
+            return course_instances
+  
     
     @login_required
     def resolve_projects_course(root,info,id,**kwargs):
@@ -1087,8 +1131,9 @@ class Query(ObjectType):
         # PUBLISHED = Course.StatusChoices.PUBLISHED
         # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         course_instance=CompletedCourses.objects.filter(course=id)
+        # print(course_instance,"course_instance")
         return course_instance
-
+   
    
 
     @login_required
@@ -1105,17 +1150,18 @@ class Query(ObjectType):
     def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
         current_user = info.context.user
-        # cache_entity = CACHE_ENTITIES['COURSES']
+        cache_entity = CACHE_ENTITIES['COURSES']
 
-        # cache_key = generate_courses_cache_key(
-        #     cache_entity, searchField, limit, offset, current_user)
+        cache_key = generate_courses_cache_key(
+            cache_entity, searchField, limit, offset, current_user)
 
-        # cached_response = fetch_cache(cache_entity, cache_key)
+        cached_response = fetch_cache(cache_entity, cache_key)
 
-        # if cached_response:
-        #     return cached_response
+        if cached_response:
+            return cached_response
 
         qs = rows_accessible(current_user, RESOURCES['COURSE'])
+        # qs = rows_accessible(current_user,RESOURCES['COURSES'])
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())

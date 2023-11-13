@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
 from django.db import models
 from vidhya.authorization import is_chapter_locked, is_course_locked
 
@@ -168,6 +168,10 @@ class CourseParticipantType(DjangoObjectType):
     class Meta:
         model = CourseParticipant
 
+class CourseInstructorType(DjangoObjectType):
+
+    class Meta:
+        model = CourseInstructor
 class CourseCompletedType(DjangoObjectType):
     class Meta:
         model = CompletedCourses
@@ -176,7 +180,19 @@ class CourseType(DjangoObjectType):
     completed = graphene.Boolean()
     report = graphene.Field(ReportType)
     locked = graphene.Boolean()
+    instructors = graphene.List(CourseInstructorType)
 
+    def resolve_instructors(self,info):
+        instructors = None
+        user = info.context.user
+        # instructors = CourseInstructor.objects.filter(course_id=self.id)
+        # print("instructors id",instructors,)
+        try:
+            instructors = CourseInstructor.objects.filter(course_id=self.id)
+            print("instructors id",instructors,)
+        except:
+            pass
+        return instructors
     def resolve_completed(self, info):
         user = info.context.user
         completed = CompletedCourses.objects.filter(

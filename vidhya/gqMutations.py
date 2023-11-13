@@ -545,9 +545,16 @@ class UpdateUser(graphene.Mutation):
             searchField += user_instance.bio if user_instance.bio is not None else ""
             searchField += user_instance.gender if user_instance.gender is not None else ""
             searchField += user_instance.membership_status if user_instance.membership_status is not None else ""
+            print('user instance institution', user_instance.institution)
             if user_instance.institution:
                 searchField += user_instance.institution.name if user_instance.institution.name is not None else ""
-            user_instance.searchField = searchField.lower()
+                searchField += user_instance.institution.location if user_instance.institution.location is not None else ""
+                searchField += user_instance.institution.designation if user_instance.institution.designation is not None else ""
+                searchField += user_instance.institution.participant if user_instance.institution.participant is not None else ""
+
+                user_instance.institution.searchField= searchField.lower()
+
+            user_instance.searchField= searchField.lower()
 
             user_instance.save()
 
