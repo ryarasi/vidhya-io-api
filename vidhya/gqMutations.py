@@ -9,7 +9,7 @@ import graphql_social_auth
 from graphql import GraphQLError
 from vidhya.models import CompletedChapters, CourseGrader, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput,UserRoleInput,  UserType,UsersType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from vidhya.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
 from django.core.mail import send_mail
@@ -21,8 +21,10 @@ from django.core.cache import cache
 from django.db import connection, transaction
 from graphql_jwt.shortcuts import get_token, create_refresh_token
 from django.contrib.auth import get_user_model
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import re
+from django.contrib.auth.hashers import make_password
+
 
 
 class CreateInstitution(graphene.Mutation):
@@ -470,6 +472,165 @@ class usernameValidation(graphene.Mutation):
         else:
             return usernameValidation(usernameNotExist=True,message='Username not exists',usernamePatternMatch=usernamePatternMatch)
         
+class createUpdatedateBulkUser(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a bulk User"
+    class Arguments:
+        pass
+        input = graphene.List(UserInput)
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+    user_submissions_count = graphene.Int()
+    userList = graphene.List(UsersType)
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        ok = False
+        processed_count = 0
+        usersList = []    
+        shuddhi_vidhya = Institution.objects.get(id=settings.ENV_SHUDDHI_VIDHYA_INSTITUTION_ID)
+        for user in input:
+            searchField = user.email
+            existUser = User.objects.filter(email=user.email).exists()
+            print('existUser',existUser,user.email)
+            if  user.phone !='0000000000':
+                phoneNumberValid = user.phone.isdigit()
+            else:
+                phoneNumberValid = False
+            emailValid = createUpdatedateBulkUser.mail_check(user.email)
+            print('emailValid',emailValid)
+            if(existUser==True):
+                user_instance = User.objects.get(email=user.email)
+                selectedUser = user_instance
+                selectedUser.errormessage = {'firstName':None,'lastName':None,'phone':None,'email':None,'code':None,'designation':None} 
+                selectedUser.success = False
+                if not user.first_name:
+                    selectedUser.errormessage['firstName']="First Name is required"
+                if not user.last_name:
+                    selectedUser.errormessage['lastName']="Last Name is required"
+                if not user.designation:
+                    selectedUser.errormessage['designation']="Designation is required"
+                if phoneNumberValid==False:
+                    selectedUser.errormessage['phone']="Phone Number is invalid"
+                if  user.phone == '0000000000' and phoneNumberValid==True:
+                    selectedUser.errormessage['phone']="Phone Number is required"
+                if emailValid == False:
+                    if not user.email:
+                        selectedUser.errormessage['email']="Email is required"
+                    else:
+                        selectedUser.errormessage['email']= "Email is invalid"
+                if selectedUser.errormessage['firstName'] is None and selectedUser.errormessage['lastName'] is None and selectedUser.errormessage['email'] is None and selectedUser.errormessage['phone'] is None and selectedUser.errormessage['designation'] is None:
+                    user_instance.email=user.email
+                    user_instance.first_name=user.first_name
+                    user_instance.last_name=user.last_name
+                    user_instance.name=user.first_name + ' ' + user.last_name
+                    user_instance.manualLogin=True
+                    user_instance.membership_status = 'AP'
+                    user_instance.role_id = 'Learner'
+                    user_instance.designation = user.designation
+                    user_instance.phone=user.phone
+                    user_instance.institution_id = user.institution_id
+                    searchField = user_instance.first_name if user_instance.first_name is not None else ""
+                    searchField += user_instance.last_name if user_instance.last_name is not None else ""
+                    searchField += user_instance.username if user_instance.username is not None else ""
+                    searchField += user_instance.title if user_instance.title is not None else ""
+                    searchField += user_instance.bio if user_instance.bio is not None else ""
+                    searchField += user_instance.gender if user_instance.gender is not None else ""
+                    searchField += user_instance.membership_status if user_instance.membership_status is not None else ""
+                    if user_instance.institution:
+                        searchField += user_instance.institution.name if user_instance.institution.name is not None else ""
+                    user_instance.searchField = searchField.lower()
+                    user_instance.save()
+                    selectedUser.success = True
+                    selectedUser.errormessage = ''
+                    notification_text = 'Dear '+user_instance.name+',\n\n'+info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin updated the detail to the following:\n\nFirst name :'+ user.first_name+'\nLast name: '+user.last_name+'\nEmail:'+user_instance.email+'\nUsername:'+user_instance.username+'\nRole:'+user_instance.role_id+'\nInstitution:'+user_instance.institution.name+'\nDesignation:'+user_instance.designation+'\n\nIf the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.\n\nThis email was sent automatically. Please do not reply to this.'
+                    send_mail( 
+                                'Member is updated',
+                                notification_text,
+                                settings.DEFAULT_FROM_EMAIL,
+                                [user.email],
+                                fail_silently=False,
+                    )
+                else:
+                    selectedUser = user_instance
+                    selectedUser.success = False
+                    selectedUser.errormessage = json.dumps(selectedUser.errormessage)   
+                processed_count += 1
+            else:          
+                searchField = searchField.lower()   
+                selectedUser = User
+                selectedUser.errormessage = {'firstName':None,'lastName':None,'phone':None,'email':None,'code':None,'designation':None} 
+                selectedUser.success = False
+                otp = ''
+                if emailValid:   
+                    email_otp = GenerateEmailOTP.check_if_email_otp_exists(user.email)                
+                    otp = generate_otp()
+                    email_otp.otp=otp
+                    email_otp.save()
+                user_instance = User(
+                    email=user.email,
+                    password=make_password(str(otp)),
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    name=user.first_name + ' ' + user.last_name,
+                    designation = user.designation,
+                    username=user.first_name+''+date.today().strftime("%m%y"),#+''+datetime.datetime.now().microsecond/1000,
+                    phone=user.phone,
+                    searchField=searchField,
+                    manualLogin=True,
+                    role_id='Learner',
+                    institution_id = user.institution_id,
+                    membership_status = 'AP')
+                selectedUser = user_instance
+                if not user.first_name:
+                    selectedUser.errormessage['first_name']="First Name is required"
+                if not user.last_name:
+                    selectedUser.errormessage['last_name']="Last Name is required"
+                if not user.designation:
+                    selectedUser.errormessage['designation']="Designation is required"
+                if phoneNumberValid==False:
+                        selectedUser.errormessage['phone']="Phone Number is invalid"
+                if not user.phone:
+                        selectedUser.errormessage['phone']="Phone Number is required"
+                if emailValid == False:
+                    if not user.email:
+                        selectedUser.errormessage['email']="Email is required"
+                    else:
+                        selectedUser.errormessage['email']= "Email is invalid"
+                        
+                if selectedUser.errormessage['firstName'] is None and selectedUser.errormessage['lastName'] is None and selectedUser.errormessage['email'] is None and selectedUser.errormessage['phone'] is None and selectedUser.errormessage['designation'] is None:
+                    user_instance.save()
+                    selectedUser.success = True
+                    selectedUser.errormessage = ''
+                    notification_text = 'Dear '+user_instance.name+',\n\nYour account is added by '+ info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin. To login please use the following credential:\n\nUsername: '+user_instance.username+'\nPassword: '+user_instance.password+'.\n\nIf the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.\n\nThis email was sent automatically. Please do not reply to this.'
+                    send_mail( 
+                            'New member is added',
+                            notification_text,
+                            settings.DEFAULT_FROM_EMAIL,
+                            [user.email],
+                            fail_silently=False,
+                    )
+                    processed_count += 1
+                else:
+                    selectedUser = user_instance
+                    selectedUser.success = False
+                    selectedUser.errormessage = json.dumps(selectedUser.errormessage) 
+            if selectedUser.success == False:
+                selectedUser.id=0
+                usersList.append(selectedUser)
+        ok = True
+        users_modified()  # Invalidating users cache
+
+        return createUpdatedateBulkUser(ok=ok, user_submissions_count=processed_count,userList=usersList)
+
+    
+    def mail_check(s):
+        pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+        if re.match(pat,s):
+            return True
+        else:
+            return False
+ 
 class UpdateUser(graphene.Mutation):
     class Meta:
         description = "Mutation to update a User"
@@ -1754,6 +1915,7 @@ class DeleteCourseParticipant(graphene.Mutation):
         course_instance = course
         if course_instance:
             if user_id or user_id == []:
+
                 course_instance.participants.remove(user_id)                
                 participant_record = CourseParticipant.objects.filter(
                  participant=user_id,course=course_instance.id)
@@ -3886,6 +4048,7 @@ class Mutation(graphene.ObjectType):
     # passwordChange = passwordChange.Field()
     username_validation = usernameValidation.Field()
     # create_user = createUser.Field()
+    create_update_bulk_user =createUpdatedateBulkUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     approve_user = ApproveUser.Field()
