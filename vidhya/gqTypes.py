@@ -29,6 +29,19 @@ class UserType(DjangoObjectType):
         model = User
 
 
+class UsersType(DjangoObjectType):
+    class Meta:
+        model = User
+    success = graphene.Boolean()
+    errormessage = graphene.String()
+
+    def resolve_success(self, info):
+        print('self success',self.success)
+        return self.success
+    
+    def resolve_errormessage(self, info):
+        return self.errormessage
+
 class UserRoleType(DjangoObjectType):
     class Meta:
         model = UserRole
