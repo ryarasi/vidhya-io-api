@@ -1069,48 +1069,29 @@ class Query(ObjectType):
         course_instance=CourseParticipant.objects.filter(participant=current_user,course=id)
         return course_instance
 
-    
     @login_required
-    def resolve_course_participants(root,info,id,searchField=None,sortBy=SORT_BY_OPTIONS['NEW'], limit=None, offset=None, **kwargs):
-
+    def resolve_course_participants(root, info, id, searchField=None, sortBy=SORT_BY_OPTIONS['NEW'], limit=None, offset=None, **kwargs):
         qs = CourseParticipant.objects.filter(course=id)
-        course_instances = []
-        if searchField is None: 
+
+        if searchField is None:
             return qs
-        
-        else:
-            searchField = searchField.lower()
 
-            if searchField is not None:
-                user_filter = Q()  
-                for i in qs:  
-                    user_instance = User.objects.get(id=i.participant_id)
-                    institution = user_instance.institution 
-            
-                    if institution and institution.location.lower().find(searchField.lower())!= -1:
-                        user_filter |= Q(institution__location__icontains=searchField.lower())
-                        course_instance = CourseParticipant.objects.filter(participant_id=user_instance.id, course=id)
-                        course_instances.extend(course_instance)  
-                        return course_instance
-                    else:
-                        for field in User._meta.get_fields():
-                            if field.is_relation:
-                                continue
-                            field_name = field.name
-                            user_filter |= Q(**{field_name + '__icontains': searchField.lower()})
+        searchField = searchField.lower()
+        filter = (
+                Q(searchField__icontains=searchField.lower())
+            )
+        user_ids = User.objects.filter(filter).values_list(
+                'id', flat=True)           
+        user_filter = Q(participant_id__in= user_ids)
+        filtered_users = CourseParticipant.objects.filter(user_filter,course=id)
 
-                        if User.objects.filter(user_filter,id=user_instance.id).exists():
-                            course_instance = CourseParticipant.objects.filter(participant_id=user_instance.id, course=id)
-                            course_instances.extend(course_instance) 
-    
-            if offset is not None:
-                course_instances = course_instances[offset:]
+        if offset is not None:
+            filtered_users = filtered_users[offset:]
 
-            if limit is not None:
-                course_instances = course_instances[:limit]
+        if limit is not None:
+            filtered_users = filtered_users[:limit]
 
-            return course_instances
-  
+        return filtered_users
     
     @login_required
     def resolve_projects_course(root,info,id,**kwargs):
