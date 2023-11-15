@@ -306,8 +306,6 @@ class Query(ObjectType):
 
     exercise_submission_groups = graphene.List(ExerciseSubmissionGroup, group_by=graphene.String(required=True), status=graphene.String(
         required=True), flagged=graphene.Boolean(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-       
-    
 
     # Report Queries
     report = graphene.Field(ReportType, id=graphene.ID())
@@ -571,6 +569,7 @@ class Query(ObjectType):
 
         if membership_status_is:
             qs = qs.filter(membership_status__in=membership_status_is)
+        print('roles => ', roles)
         if roles:
             qs = qs.filter(role__in=roles)
 
@@ -1089,12 +1088,9 @@ class Query(ObjectType):
                     institution = user_instance.institution 
             
                     if institution and institution.location.lower().find(searchField.lower())!= -1:
-                        print("lower search",institution.location.lower().find(searchField.lower())!= -1)
                         user_filter |= Q(institution__location__icontains=searchField.lower())
-                        print("searched filter",user_filter)
                         course_instance = CourseParticipant.objects.filter(participant_id=user_instance.id, course=id)
                         course_instances.extend(course_instance)  
-                        print("course value",course_instance)
                         return course_instance
                     else:
                         for field in User._meta.get_fields():
@@ -1104,10 +1100,6 @@ class Query(ObjectType):
                             user_filter |= Q(**{field_name + '__icontains': searchField.lower()})
 
                         if User.objects.filter(user_filter,id=user_instance.id).exists():
-                            print("user",User.objects.filter(user_filter,id=user_instance.id).exists())
-                            print("not institution",not institution and institution.location.lower().find(searchField.lower())!= -1 )
-                            print("institution",institution and institution.location.lower().find(searchField.lower())!= -1)
-                            print("else ",User.objects.filter(user_filter,id=user_instance.id).exists() and (not institution and institution.location.lower().find(searchField.lower())!= -1 ))
                             course_instance = CourseParticipant.objects.filter(participant_id=user_instance.id, course=id)
                             course_instances.extend(course_instance) 
     
@@ -1364,7 +1356,9 @@ class Query(ObjectType):
 
         if cached_response:
             return cached_response
+
         qs = ExerciseKey.objects.all().filter(active=True).order_by('id')
+
         if exercise_id is not None:
             filter = (
                 Q(exercise_id=exercise_id)
@@ -1430,7 +1424,7 @@ class Query(ObjectType):
             qs = ExerciseSubmission.objects.all().filter(active=True, pk=submission_id)
         else:
             qs = ExerciseSubmission.objects.all().filter(
-                active=True).distinct().order_by('-updated_at')
+                active=True).order_by('-updated_at')
 
             if exercise_id is not None:
                 filter = (
@@ -1483,32 +1477,33 @@ class Query(ObjectType):
         set_cache(cache_entity, cache_key, qs)
 
         return qs
+
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['CHAPTER'], ACTIONS['LIST']))
     def resolve_exercise_submission_groups(root, info, group_by=None, status=None, searchField=None, flagged=None, limit=None, offset=None, **kwargs):
 
         groups = []
-        
+
         cache_entity = CACHE_ENTITIES['SUBMISSION_GROUPS']
 
         cache_key = generate_submission_groups_cache_key(
-         cache_entity, searchField, limit, offset, group_by, status, flagged)
+            cache_entity, searchField, limit, offset, group_by, status, flagged)
 
         cached_response = fetch_cache(cache_entity, cache_key)
 
         if cached_response:
             return cached_response
-  
+
         if flagged is not None:
             if flagged == False:
                 flagged = 0
 
         all_submissions = ExerciseSubmission.objects.filter(
-            status=status, active=True).distinct().order_by('-updated_at')
-    
+            status=status, active=True).order_by('-updated_at')
+
         if status == ExerciseSubmission.StatusChoices['GRADED'] or status == ExerciseSubmission.StatusChoices['RETURNED'] and not searchField:
             all_submissions = ExerciseSubmission.objects.filter(
-                status=status, active=True).distinct().order_by('-updated_at')[:10]
+                status=status, active=True).order_by('-updated_at')[:10]
 
         if group_by == RESOURCES['EXERCISE_SUBMISSION']:
 
@@ -1541,34 +1536,36 @@ class Query(ObjectType):
                         chapter_index = str(chapter.index) + \
                             '.' if chapter.index else ''
                         exercise_index = str(
-                            exercise.index) + ') ' if exercise.index else ''   
+                            exercise.index) + ') ' if exercise.index else ''
                         exercise_prompt = section_index + chapter_index + exercise_index + exercise.prompt
 
                         card = ExerciseSubmissionGroup(
-                            id=exercise_id, type=group_by, title=exercise_prompt, subtitle=exercise.course.title, count=count)  
+                            id=exercise_id, type=group_by, title=exercise_prompt, subtitle=exercise.course.title, count=count)
                         groups.append(card)
-        
-    
+
         if group_by == RESOURCES['CHAPTER']:
 
-            unique_chapters = list(set(all_submissions.values_list('chapter', flat=True)))
+            unique_chapters = all_submissions.values_list('chapter', flat=True)
+
             if searchField is not None:
                 filter = Q(searchField__icontains=searchField.lower())
                 unique_chapters = unique_chapters.filter(filter)
-            
+
             for chapter_id in unique_chapters:
+
                 chapter = Chapter.objects.get(pk=chapter_id)
                 submissions = ExerciseSubmission.objects.all().filter(
                     chapter=chapter, status=status, active=True)
 
                 if flagged is not None:
-                    submissions = submissions.filter(flagged=flagged)
+                    filter = Q(flagged=flagged)
+                    submissions = submissions.filter(filter)
                 if searchField is not None:
-                    submissions = submissions.filter(searchField__icontains=searchField.lower())
+                    filter = Q(searchField__icontains=searchField.lower())
+                    submissions = submissions.filter(filter)
                 count = submissions.count()
                 if count > 0:
-                    
-                # Generating chapter title
+                    # Generating chapter title
                     section_index = ''
                     section = chapter.section
                     if section:
@@ -1577,34 +1574,34 @@ class Query(ObjectType):
                     chapter_index = str(chapter.index) + \
                         ' ' if chapter.index else ''
                     chapter_title = section_index + chapter_index + chapter.title
-                            
+
                     card = ExerciseSubmissionGroup(
                         id=chapter_id, type=group_by, title=chapter_title, subtitle=chapter.course.title, count=count)
+
                     groups.append(card)
-             
 
         if group_by == RESOURCES['COURSE']:
 
-            unique_courses = list(set(all_submissions.values_list('course', flat=True)))
+            unique_courses = all_submissions.values_list('course', flat=True)
             if searchField is not None:
                 filter = Q(searchField__icontains=searchField.lower())
                 unique_courses = unique_courses.filter(filter)
-                
             for course_id in unique_courses:
                 course = Course.objects.get(pk=course_id)
                 submissions = ExerciseSubmission.objects.all().filter(
                     course=course, status=status, active=True)
                 if flagged is not None:
-                    submissions = submissions.filter(flagged=flagged)
+                    filter = Q(flagged=flagged)
+                    submissions = submissions.filter(filter)
                 if searchField is not None:
-                    submissions = submissions.filter(searchField__icontains=searchField.lower())
-
+                    filter = Q(searchField__icontains=searchField.lower())
+                    submissions = submissions.filter(filter)
                 count = submissions.count()
                 if count > 0:
                     card = ExerciseSubmissionGroup(
                         id=course_id, type=group_by, title=course.title, subtitle=course.blurb, count=count)
                     groups.append(card)
-                                            
+
         if offset is not None:
             groups = groups[offset:]
 
@@ -1612,9 +1609,9 @@ class Query(ObjectType):
             groups = groups[:limit]
 
         set_cache(cache_entity, cache_key, groups)
-        
+
         return groups
-       
+
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['ISSUE'], ACTIONS['GET']))
     def resolve_issue(root, info, id, **kwargs):
@@ -1726,7 +1723,7 @@ class Query(ObjectType):
         qs = []
         if exercise_id and participant_id:
             qs = SubmissionHistory.objects.filter(
-                exercise_id=exercise_id, participant_id=participant_id, active=True).distinct().order_by('-id')
+                exercise_id=exercise_id, participant_id=participant_id, active=True).order_by('-id')
         return qs
 
     @login_required

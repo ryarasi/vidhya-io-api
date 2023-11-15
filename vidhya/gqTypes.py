@@ -184,15 +184,13 @@ class CourseType(DjangoObjectType):
 
     def resolve_instructors(self,info):
         instructors = None
-        user = info.context.user
-        # instructors = CourseInstructor.objects.filter(course_id=self.id)
-        # print("instructors id",instructors,)
         try:
             instructors = CourseInstructor.objects.filter(course_id=self.id)
             print("instructors id",instructors,)
         except:
             pass
         return instructors
+    
     def resolve_completed(self, info):
         user = info.context.user
         completed = CompletedCourses.objects.filter(
