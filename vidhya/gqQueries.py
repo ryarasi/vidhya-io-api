@@ -128,8 +128,6 @@ class PublicUserType(graphene.ObjectType):
 class MemberCourses(graphene.ObjectType):
     records = graphene.List(CourseType)
     participant_record = graphene.List(CourseParticipantType)
-
-
 class TotalCourseParticipant(graphene.ObjectType):
     total_current_participant = graphene.Int()
     total_completed_participant = graphene.Int()
@@ -264,10 +262,10 @@ class Query(ObjectType):
     course = graphene.Field(CourseType, id=graphene.ID())
     courses = graphene.Field(
         MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-    course_participant= graphene.List(CourseParticipantType, id=graphene.ID(), user_id = graphene.Int())
-    course_participants= graphene.List(CourseParticipantType, id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-    course_completed=graphene.List(CourseCompletedType,id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-    course_instructors= graphene.List(CourseInstructorType, id=graphene.ID(),user_id = graphene.Int())
+    course_participant = graphene.List(CourseParticipantType, id=graphene.ID(), user_id = graphene.Int())
+    course_participants = graphene.List(CourseParticipantType, id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    course_completed = graphene.List(CourseCompletedType,id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    course_instructors = graphene.List(CourseInstructorType, id=graphene.ID(),user_id = graphene.Int())
 
     total_course_participant = graphene.Field(TotalCourseParticipant, id = graphene.ID())
     member_courses = graphene.Field(
@@ -569,7 +567,6 @@ class Query(ObjectType):
 
         if membership_status_is:
             qs = qs.filter(membership_status__in=membership_status_is)
-        print('roles => ', roles)
         if roles:
             qs = qs.filter(role__in=roles)
 
@@ -1102,10 +1099,7 @@ class Query(ObjectType):
     @login_required
     def resolve_course_completed(root, info, id, **kwargs):
         current_user = info.context.user
-        # PUBLISHED = Course.StatusChoices.PUBLISHED
-        # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         course_instance=CompletedCourses.objects.filter(course=id)
-        # print(course_instance,"course_instance")
         return course_instance
    
    
@@ -1135,7 +1129,6 @@ class Query(ObjectType):
             return cached_response
 
         qs = rows_accessible(current_user, RESOURCES['COURSE'])
-        # qs = rows_accessible(current_user,RESOURCES['COURSES'])
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -1526,7 +1519,7 @@ class Query(ObjectType):
 
         if group_by == RESOURCES['CHAPTER']:
 
-            unique_chapters = all_submissions.values_list('chapter', flat=True)
+            unique_chapters = list(set(all_submissions.values_list('chapter', flat=True)))
 
             if searchField is not None:
                 filter = Q(searchField__icontains=searchField.lower())
@@ -1542,8 +1535,7 @@ class Query(ObjectType):
                     filter = Q(flagged=flagged)
                     submissions = submissions.filter(filter)
                 if searchField is not None:
-                    filter = Q(searchField__icontains=searchField.lower())
-                    submissions = submissions.filter(filter)
+                    submissions = submissions.filter(searchField__icontains=searchField.lower())
                 count = submissions.count()
                 if count > 0:
                     # Generating chapter title
@@ -1563,7 +1555,7 @@ class Query(ObjectType):
 
         if group_by == RESOURCES['COURSE']:
 
-            unique_courses = all_submissions.values_list('course', flat=True)
+            unique_courses = list(set(all_submissions.values_list('course', flat=True)))
             if searchField is not None:
                 filter = Q(searchField__icontains=searchField.lower())
                 unique_courses = unique_courses.filter(filter)
@@ -1572,8 +1564,7 @@ class Query(ObjectType):
                 submissions = ExerciseSubmission.objects.all().filter(
                     course=course, status=status, active=True)
                 if flagged is not None:
-                    filter = Q(flagged=flagged)
-                    submissions = submissions.filter(filter)
+                    submissions = submissions.filter(flagged=flagged)
                 if searchField is not None:
                     filter = Q(searchField__icontains=searchField.lower())
                     submissions = submissions.filter(filter)
