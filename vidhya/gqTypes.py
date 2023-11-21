@@ -185,6 +185,7 @@ class CourseInstructorType(DjangoObjectType):
 
     class Meta:
         model = CourseInstructor
+
 class CourseCompletedType(DjangoObjectType):
     class Meta:
         model = CompletedCourses
@@ -199,7 +200,6 @@ class CourseType(DjangoObjectType):
         instructors = None
         try:
             instructors = CourseInstructor.objects.filter(course_id=self.id)
-            print("instructors id",instructors,)
         except:
             pass
         return instructors
