@@ -642,51 +642,69 @@ class UpdateUser(graphene.Mutation):
     user = graphene.Field(UserType)
     usernameExist = graphene.Boolean()
 
+    # the following method will update the searchField for the given user
+    @staticmethod
+    def update_user_searchfield(user_instance):
+        search_field = user_instance.first_name if user_instance.first_name is not None else ""
+        search_field += user_instance.last_name if user_instance.last_name is not None else ""
+        search_field += user_instance.username if user_instance.username is not None else ""
+        search_field += user_instance.title if user_instance.title is not None else ""
+        search_field += user_instance.bio if user_instance.bio is not None else ""
+        search_field += user_instance.gender if user_instance.gender is not None else ""
+        search_field += user_instance.designation if user_instance.designation is not None else ""
+        search_field += user_instance.membership_status if user_instance.membership_status is not None else ""
+        
+        if user_instance.institution:
+            search_field += user_instance.institution.name if user_instance.institution.name is not None else ""
+            search_field += user_instance.institution.location if user_instance.institution.location is not None else ""
+            user_instance.institution.search_field = search_field.lower()
+            
+        return search_field.lower()
+
     @staticmethod
     @login_required
     def mutate(root, info, input=None):
-        ok = False
-        error = ""
         current_user = info.context.user
-        user = User.objects.get(pk=current_user.id, active=True)
-        user_instance = user
-        usernameExistStatus = User.objects.filter(username=input.username).exists()
-        if(usernameExistStatus == True):
-            userExist = User.objects.get(username=input.username)
-            if(userExist.id != current_user.id):
-                error += "Username already exist<br />"    
-        if error:
-            raise GraphQLError(error)
-        if user_instance:
-            ok = True
-            user_instance.first_name = input.first_name if input.first_name is not None else user.first_name
-            user_instance.last_name = input.last_name if input.last_name is not None else user.last_name
-            user_instance.name = user_instance.first_name + ' ' + \
-                user_instance.last_name if user_instance.first_name is not None and user_instance.last_name is not None else ""
-            user_instance.avatar = input.avatar if input.avatar is not None else user.avatar
-            user_instance.institution_id = input.institution_id if input.institution_id is not None else user.institution_id
-            user_instance.role_id = input.role_id if input.role_id is not None else user.role_id
-            user_instance.title = input.title if input.title is not None else user.title
-            user_instance.bio = input.bio if input.bio is not None else user.bio
-            user_instance.username = input.username if input.username is not None else user.username
-            user_instance.dob = input.dob if input.dob is not None else user.dob
-            user_instance.gender = input.gender if input.gender is not None else user.gender
-            user_instance.phone = input.phone if input.phone is not None else user.phone
-            user_instance.mobile = input.mobile if input.mobile is not None else user.mobile
-            user_instance.address = input.address if input.address is not None else user.address
-            user_instance.city = input.city if input.city is not None else user.city
-            user_instance.pincode = input.pincode if input.pincode is not None else user.pincode
-            user_instance.state = input.state if input.state is not None else user.state
-            user_instance.country = input.country if input.country is not None else user.country
-            user_instance.designation = input.designation if input.designation is not None else user.designation
+        user_instance = User.objects.get(pk=current_user.id, active=True)
 
-            # Updatiing the membership status to Pending if the user is currently Uninitialized and
-            # they provide first name, last name and institution to set up their profile
-            if user_instance.membership_status == 'UI':
-                if user_instance.name and user_instance.institution_id is not None:
-                    user_instance.membership_status = 'PE'
-                    UserRole =  User.objects.filter(role=USER_ROLES_NAMES['SUPER_ADMIN'], active=True)
-                    for superUser in UserRole:
+        if User.objects.filter(username=input.username).exclude(id=current_user.id).exists():
+            raise GraphQLError("Username already exists")
+
+        user_instance.first_name = input.first_name if input.first_name is not None else user_instance.first_name
+        user_instance.last_name = input.last_name if input.last_name is not None else user_instance.last_name
+        user_instance.name = (
+            f"{user_instance.first_name} {user_instance.last_name}" 
+            if user_instance.first_name is not None and user_instance.last_name is not None 
+            else ""
+        )
+        user_instance.avatar = input.avatar if input.avatar is not None else user_instance.avatar
+        user_instance.institution_id = input.institution_id if input.institution_id is not None else user_instance.institution_id
+        user_instance.role_id = input.role_id if input.role_id is not None else user_instance.role_id
+        user_instance.title = input.title if input.title is not None else user_instance.title
+        user_instance.bio = input.bio if input.bio is not None else user_instance.bio
+        user_instance.username = input.username if input.username is not None else user_instance.username
+        user_instance.dob = input.dob if input.dob is not None else user_instance.dob
+        user_instance.gender = input.gender if input.gender is not None else user_instance.gender
+        user_instance.phone = input.phone if input.phone is not None else user_instance.phone
+        user_instance.mobile = input.mobile if input.mobile is not None else user_instance.mobile
+        user_instance.address = input.address if input.address is not None else user_instance.address
+        user_instance.city = input.city if input.city is not None else user_instance.city
+        user_instance.pincode = input.pincode if input.pincode is not None else user_instance.pincode
+        user_instance.state = input.state if input.state is not None else user_instance.state
+        user_instance.country = input.country if input.country is not None else user_instance.country
+        user_instance.designation = input.designation if input.designation is not None else user_instance.designation
+        user_instance.searchField = UpdateUser.update_user_searchfield(user_instance)
+
+
+        # Updatiing the membership status to Pending if the user is currently Uninitialized and
+        # they provide first name, last name, and institution to set up their profile
+        
+        if user_instance.membership_status == 'UI' and user_instance.name and user_instance.institution_id is not None:
+            user_instance.membership_status = 'PE'
+            
+            UserRole = User.objects.filter(role=USER_ROLES_NAMES['SUPER_ADMIN'], active=True)  
+            
+            for superUser in UserRole:
                         notification_text = 'Dear '+superUser.name+',\n\nThere is a new user with the username '+user_instance.name+' and email ID '+user_instance.email+' awaiting approval. There maybe more such users awaiting your approval.\nPlease click here to respond - '+settings.FRONTEND_DOMAIN_URL + '/dashboard?adminSection=MODERATION&membershipStatusIs=PE.\n\nThis email was sent automatically. Please do not reply to this.'
                         send_mail( 
                         'New member is added, and waiting for your approval!',
@@ -695,32 +713,14 @@ class UpdateUser(graphene.Mutation):
                         [superUser.email],
                         fail_silently=False,
                     )
-            searchField = user_instance.first_name if user_instance.first_name is not None else ""
-            searchField += user_instance.last_name if user_instance.last_name is not None else ""
-            searchField += user_instance.username if user_instance.username is not None else ""
-            searchField += user_instance.title if user_instance.title is not None else ""
-            searchField += user_instance.bio if user_instance.bio is not None else ""
-            searchField += user_instance.gender if user_instance.gender is not None else ""
-            searchField += user_instance.designation if user_instance.designation is not None else ""
-            searchField += user_instance.membership_status if user_instance.membership_status is not None else ""
-            if user_instance.institution:
-                searchField += user_instance.institution.name if user_instance.institution.name is not None else ""
-                searchField += user_instance.institution.location if user_instance.institution.location is not None else ""
-                user_instance.institution.searchField= searchField.lower()
-            user_instance.searchField= searchField.lower()
+        user_instance.save()
+        users_modified()  # Invalidating users cache 
 
-            user_instance.save()
+        payload = {"user": user_instance, "method": "UPDATE"}
+        NotifyUser.broadcast(payload=payload)
 
-            users_modified()  # Invalidating users cache
 
-            payload = {"user": user_instance,
-                       "method": UPDATE_METHOD}
-            NotifyUser.broadcast(
-                payload=payload)
-
-            return UpdateUser(ok=ok, user=user_instance)
-        return UpdateUser(ok=ok, user=None)
-
+        return UpdateUser(ok=True, user=user_instance)
 
 class DeleteUser(graphene.Mutation):
     class Meta:
@@ -3976,8 +3976,29 @@ class ClearServerCache(graphene.Mutation):
         ok = True
         return ClearServerCache(ok=ok)
 
-# createGoogleToken
+# the following method updates the searchField for all the records in the user database
 
+class BulkUpdateUserSearchField(graphene.Mutation):
+    class Meta:
+        description = "Updating all the users in the user table"
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: is_admin_user(user))
+    def mutate(root, info):
+
+        for user in User.objects.all().iterator(): 
+            user.searchField = UpdateUser.update_user_searchfield(user) 
+            user.save()
+    
+        users_modified()  #clear cache
+        ok = True
+        return BulkUpdateUserSearchField(ok=ok)
+    
+
+# createGoogleToken
 
 class createGoogleToken(graphene.Mutation):
     ok = graphene.Boolean()
@@ -4130,6 +4151,7 @@ class Mutation(graphene.ObjectType):
 
     # Admin mutations
     clear_server_cache = ClearServerCache.Field()
+    bulk_update_user_searchField = BulkUpdateUserSearchField.Field()
 
     # Social AUth
     social_auth = graphql_social_auth.SocialAuthJWT.Field()
