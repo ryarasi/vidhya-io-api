@@ -131,7 +131,7 @@ class MemberCourses(graphene.ObjectType):
 class TotalCourseParticipant(graphene.ObjectType):
     total_current_participant = graphene.Int()
     total_completed_participant = graphene.Int()
-
+    total_project_participant = graphene.Int()
 class PublicUsers(graphene.ObjectType):
     records = graphene.List(PublicUserType)
     total = graphene.Int()
@@ -1111,7 +1111,8 @@ class Query(ObjectType):
         # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         total_current_participant=CourseParticipant.objects.filter(course=id).count()
         total_completed_participant = CompletedCourses.objects.filter(course=id).count()
-        return TotalCourseParticipant(total_current_participant = total_current_participant,total_completed_participant = total_completed_participant)
+        total_project_participant = Project.objects.filter(course=id).count()
+        return TotalCourseParticipant(total_current_participant = total_current_participant,total_completed_participant = total_completed_participant,total_project_participant = total_project_participant)
     
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
