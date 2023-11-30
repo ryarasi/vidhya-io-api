@@ -29,7 +29,8 @@ CACHE_ENTITIES = {
     'EXERCISE_SUBMISSIONS': 'EXERCISE_SUBMISSIONS',
     'SUBMISSION_GROUPS': 'SUBMISSION_GROUPS',
     'ASSIGNMENTS': 'ASSIGNMENTS',
-    'REPORTS': 'REPORTS'
+    'REPORTS': 'REPORTS',
+    'COURSEPARTICIPANTS' : 'COURSEPARTICIPANTS'
 }
 
 
@@ -129,6 +130,11 @@ def generate_courses_cache_key(entity, searchField=None, limit=None, offset=None
         str(limit) + offset_label + str(offset)
     return sanitize_cache_key(cache_key)
 
+def generate_course_participants_cache_key(entity, searchField=None, sortBy=None, limit=None, offset=None, course=None):
+    cache_key = str(course.id) + str(entity) + separator + searchField_label + str(searchField) + 'sortBy' + \
+        sortBy + limit_label + str(limit) + offset_label + \
+        str(offset) 
+    return sanitize_cache_key(cache_key)
 
 def generate_member_courses_cache_key(entity, searchField=None, limit=None, offset=None, user=None):
     cache_key = str(user.id) + str(entity) + separator + searchField_label + \
@@ -279,6 +285,8 @@ def projects_modified():
 def courses_modified():
     invalidate_cache(CACHE_ENTITIES['COURSES'])
 
+def course_participants_modified():
+    invalidate_cache(CACHE_ENTITIES['COURSEPARTICIPANTS'])
 
 def chapters_modified():
     invalidate_cache(CACHE_ENTITIES['CHAPTERS'])
