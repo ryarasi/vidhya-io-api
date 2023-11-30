@@ -312,6 +312,45 @@ class VerifyEmailOTP(graphene.Mutation):
 
         return VerifyEmailOTP(ok=ok)
 
+class UpdateRegisteredUser(graphene.Mutation):
+    class Meta:
+        description = "Mutation to Send email for register confirmation with their credential"
+
+    class Arguments:
+        email = graphene.String(required=True)
+        first_name = graphene.String(required=True)
+        last_name = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+    @staticmethod
+    def mutate(root, info, email=None,first_name=None,last_name=None):
+        ok = False
+        user_instance = User.objects.get(email=email, active=True)
+        user_instance.first_name = first_name
+        user_instance.last_name = last_name
+        user_instance.save()
+        emailotp = EmailOTP.objects.get(email=email)
+        send_mail(
+            'Your email registered successfully',
+            'Dear user,\n\nYour email is registered successfully. The credential to login your account is as follows\n\nUsername: ' +
+            user_instance.username + '\n\nPassword: '+emailotp.otp+'\n\nThis email was sent automatically. Please do not reply to this.',
+            settings.DEFAULT_FROM_EMAIL,
+            [user_instance.email],
+            fail_silently=False,
+        )
+        print('user',user_instance)
+        # users_modified()  # Invalidating users cache
+
+        # payload = {"user": user_instance,
+        #             "method": UPDATE_METHOD}
+        # NotifyUser.broadcast(
+        #     payload=payload)
+        ok = True
+        # return UpdateRegisteredUser(ok=ok)
+        return UpdateRegisteredUser(ok=ok,user=user_instance)
+
+
 
 class AddInvitecode(graphene.Mutation):
     class Meta:
@@ -4043,6 +4082,8 @@ class Mutation(graphene.ObjectType):
     verify_invitecode = VerifyInvitecode.Field()
     generate_email_otp = GenerateEmailOTP.Field()
     verify_email_otp = VerifyEmailOTP.Field()
+    update_registered_user = UpdateRegisteredUser.Field()
+
     # verify_email_user = verifyEmailUser.Field()
     verifyUserLoginGetEmailOtp = verifyUserLoginGetEmailOtp.Field()
     # passwordChange = passwordChange.Field()
