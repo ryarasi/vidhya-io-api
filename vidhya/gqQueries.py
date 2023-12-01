@@ -131,7 +131,6 @@ class MemberCourses(graphene.ObjectType):
 
 class CourseParticipants(graphene.ObjectType):
     records = graphene.List(CourseParticipantType)
-    # participant_record = graphene.List(CourseParticipantType)
     total = graphene.Int()  
 
 class TotalCourseParticipant(graphene.ObjectType):
@@ -1074,18 +1073,6 @@ class Query(ObjectType):
 
     @login_required
     def resolve_course_participants(root, info, id, searchField=None, sortBy=SORT_BY_OPTIONS['NEW'], limit=None, offset=None, **kwargs):
-
-        current_user = info.context.user
-
-        cache_entity = CACHE_ENTITIES['COURSEPARTICIPANTS']
-
-        cache_key = generate_course_participants_cache_key(
-            cache_entity, searchField, sortBy, limit, offset,current_user)
-
-        cached_response = fetch_cache(cache_entity, cache_key)
-
-        if cached_response:
-            return cached_response
     
         qs = CourseParticipant.objects.filter(course=id)
 
@@ -1097,7 +1084,7 @@ class Query(ObjectType):
             user_ids = User.objects.filter(filter).values_list(
                     'id', flat=True)           
             user_filter = Q(participant_id__in= user_ids)
-            qs = qs.filter(user_filter,course=id)
+            qs = qs.filter(user_filter)
         total = len(qs)
 
         if offset is not None:
@@ -1107,7 +1094,6 @@ class Query(ObjectType):
             qs = qs[:limit]
 
         results = CourseParticipants(records = qs,total = total)
-        set_cache(cache_entity, cache_key,qs)
 
         return results
     
