@@ -9,7 +9,7 @@ from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_ad
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
-from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_member_courses_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key,generate_coordinator_options_cache_key, set_cache
+from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_course_participants_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_member_courses_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key,generate_coordinator_options_cache_key, set_cache
 from datetime import date, datetime, timedelta
 
 
@@ -52,7 +52,6 @@ class Users(graphene.ObjectType):
 class UserRoles(graphene.ObjectType):
     records = graphene.List(UserRoleType)
     total = graphene.Int()
-
 
 class Institutions(graphene.ObjectType):
     records = graphene.List(InstitutionType)
@@ -128,10 +127,16 @@ class PublicUserType(graphene.ObjectType):
 class MemberCourses(graphene.ObjectType):
     records = graphene.List(CourseType)
     participant_record = graphene.List(CourseParticipantType)
+    total = graphene.Int()
+
+class CourseParticipants(graphene.ObjectType):
+    records = graphene.List(CourseParticipantType)
+    total = graphene.Int()  
+
 class TotalCourseParticipant(graphene.ObjectType):
     total_current_participant = graphene.Int()
     total_completed_participant = graphene.Int()
-
+    total_project_participant = graphene.Int()
 class PublicUsers(graphene.ObjectType):
     records = graphene.List(PublicUserType)
     total = graphene.Int()
@@ -263,13 +268,13 @@ class Query(ObjectType):
     courses = graphene.Field(
         MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     course_participant = graphene.List(CourseParticipantType, id=graphene.ID(), user_id = graphene.Int())
-    course_participants = graphene.List(CourseParticipantType, id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     course_completed = graphene.List(CourseCompletedType,id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     course_instructors = graphene.List(CourseInstructorType, id=graphene.ID(),user_id = graphene.Int())
 
     total_course_participant = graphene.Field(TotalCourseParticipant, id = graphene.ID())
     member_courses = graphene.Field(
         MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    course_participants = graphene.Field(CourseParticipants,id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     
     # Course Section Queries
     # course_section = graphene.Field(CourseSectionType, id=graphene.ID()) # No use for this one
@@ -1068,27 +1073,29 @@ class Query(ObjectType):
 
     @login_required
     def resolve_course_participants(root, info, id, searchField=None, sortBy=SORT_BY_OPTIONS['NEW'], limit=None, offset=None, **kwargs):
+    
         qs = CourseParticipant.objects.filter(course=id)
 
-        if searchField is None:
-            return qs
-
-        searchField = searchField.lower()
-        filter = (
-                Q(searchField__icontains=searchField.lower())
-            )
-        user_ids = User.objects.filter(filter).values_list(
-                'id', flat=True)           
-        user_filter = Q(participant_id__in= user_ids)
-        filtered_users = CourseParticipant.objects.filter(user_filter,course=id)
+        if searchField is not None:
+            searchField = searchField.lower()
+            filter = (
+                    Q(searchField__icontains=searchField.lower())
+                )
+            user_ids = User.objects.filter(filter).values_list(
+                    'id', flat=True)           
+            user_filter = Q(participant_id__in= user_ids)
+            qs = qs.filter(user_filter)
+        total = len(qs)
 
         if offset is not None:
-            filtered_users = filtered_users[offset:]
+            qs = qs[offset:]
 
         if limit is not None:
-            filtered_users = filtered_users[:limit]
+            qs = qs[:limit]
 
-        return filtered_users
+        results = CourseParticipants(records = qs,total = total)
+
+        return results
     
     @login_required
     def resolve_projects_course(root,info,id,**kwargs):
@@ -1111,7 +1118,8 @@ class Query(ObjectType):
         # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         total_current_participant=CourseParticipant.objects.filter(course=id).count()
         total_completed_participant = CompletedCourses.objects.filter(course=id).count()
-        return TotalCourseParticipant(total_current_participant = total_current_participant,total_completed_participant = total_completed_participant)
+        total_project_participant = Project.objects.filter(course=id).count()
+        return TotalCourseParticipant(total_current_participant = total_current_participant,total_completed_participant = total_completed_participant,total_project_participant = total_project_participant)
     
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
