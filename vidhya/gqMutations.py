@@ -519,7 +519,33 @@ class usernameValidation(graphene.Mutation):
             return usernameValidation(usernameNotExist=False,message='Username exists',usernamePatternMatch =usernamePatternMatch) 
         else:
             return usernameValidation(usernameNotExist=True,message='Username not exists',usernamePatternMatch=usernamePatternMatch)
+
+class checkUsernameExist(graphene.Mutation):   
+    
+    class Meta:
+        description = "Mutation to validate  Username exist"
+
+    class Arguments:
+        username = graphene.String(required=True)
+
+    message = graphene.String()
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, username=None):
+        ok = False
+        print('username',username)
+        usernameExistStatus = User.objects.filter(username=username).exists()
+        # EmailOTP.objects.get(email=email)
+        if usernameExistStatus:
+            ok = False
+            message = 'Username is exist'
+        else:
+            ok = True
+            message = 'Username is not exist'
         
+        return checkUsernameExist(ok=ok,message=message)
+     
 class createUpdatedateBulkUser(graphene.Mutation):
     class Meta:
         description = "Mutation to update a bulk User"
@@ -4138,6 +4164,7 @@ class Mutation(graphene.ObjectType):
     username_validation = usernameValidation.Field()
     # create_user = createUser.Field()
     create_update_bulk_user =createUpdatedateBulkUser.Field()
+    check_username_exist = checkUsernameExist.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     approve_user = ApproveUser.Field()
