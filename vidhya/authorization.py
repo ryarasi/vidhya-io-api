@@ -133,10 +133,12 @@ def is_chapter_locked(user, chapter):
 
     # Checking if the user is the author of the course or a grader
     instructor_ids = chapter.course.instructors.values_list('id',flat=True)
+    instructor = user.id in instructor_ids
 
-    if instructor_ids == user.id or grader:
+    if grader or instructor:
         # If yes, we mark it as unlocked
-        return locked
+     locked = False
+     return locked
 
     course_locked = is_course_locked(user, chapter.course) # Checking if this belongs to a course that is locked
     if course_locked:
