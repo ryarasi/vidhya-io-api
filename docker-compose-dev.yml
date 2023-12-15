@@ -20,6 +20,7 @@ services:
       - POSTGRES_PASS=password
       - POSTGRES_DB=shuddhidb
       - POSTGRES_PORT=5432
+      - POSTGRES_HOST_AUTH_METHOD=trust
     ports:
       - "5432:5432"
     volumes:
@@ -40,18 +41,18 @@ services:
       - db
     restart: "on-failure"
 
-  # pgadmin:
-  #     image: dpage/pgadmin4
-  #     container_name: vidhya_io_pgadmin #you can change this
-  #     depends_on:
-  #       - db
-  #       - web
-  #     ports:
-  #       - "8001:80"
-  #     environment:
-  #       PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
-  #       PGADMIN_DEFAULT_PASSWORD: root
-  #     restart: always
+  pgadmin:
+      image: dpage/pgadmin4
+      container_name: vidhya_io_pgadmin #you can change this
+      depends_on:
+        - db
+        - web
+      ports:
+        - "8001:80"
+      environment:
+        PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+        PGADMIN_DEFAULT_PASSWORD: root
+      restart: always
   
 volumes:
   postgres_data: # named volumes can be managed easier using docker-compose
