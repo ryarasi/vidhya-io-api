@@ -120,4 +120,4 @@ GitHub.sublime-settings
 
 # static files
 # static/*
-# staticfiles/*
+staticfiles/*

@@ -7,6 +7,7 @@ limit_label = 'limit'
 offset_label = 'offset'
 searchField_label = 'searchField'
 status_label = 'status'
+verified_label = 'verified'
 
 CACHE_ENTITIES = {
     'INSTITUTIONS': 'INSTITUTION',
@@ -20,6 +21,7 @@ CACHE_ENTITIES = {
     'PUBLIC_ANNOUNCEMENTS': 'PUBLIC_ANNOUNCEMENTS',
     'PROJECTS': 'PROJECTS',
     'COURSES': 'COURSES',
+    "MEMBER_COURSES": "MEMBER_COURSES",
     'PUBLIC_COURSES': 'PUBLIC_COURSES',
     'CHAPTERS': 'CHAPTERS',
     'EXERCISES': 'EXERCISES',
@@ -27,7 +29,8 @@ CACHE_ENTITIES = {
     'EXERCISE_SUBMISSIONS': 'EXERCISE_SUBMISSIONS',
     'SUBMISSION_GROUPS': 'SUBMISSION_GROUPS',
     'ASSIGNMENTS': 'ASSIGNMENTS',
-    'REPORTS': 'REPORTS'
+    'REPORTS': 'REPORTS',
+    'COURSEPARTICIPANTS' : 'COURSEPARTICIPANTS'
 }
 
 
@@ -42,8 +45,9 @@ def generate_public_institutions_cache_key(entity, searchField, limit, offset):
     return sanitize_cache_key(cache_key)
 
 
-def generate_institutions_cache_key(entity, searchField, limit, offset):
+def generate_institutions_cache_key(entity, searchField,verified, limit, offset):
     cache_key = str(entity) + separator + searchField_label + str(searchField) + \
+        separator + verified_label + str(verified) + \
         separator + limit_label + \
         str(limit) + separator + offset_label + str(offset)
     return sanitize_cache_key(cache_key)
@@ -57,6 +61,11 @@ def generate_users_cache_key(entity=None, searchField=None, all_institutions=Non
         'membership_status_is' + str(membership_status_is_str) + 'roles' + str(roles_str) + \
         'unpaginated' + str(unpaginated) + limit_label + \
         str(limit) + offset_label + str(offset)
+    return sanitize_cache_key(cache_key)
+
+def generate_coordinator_options_cache_key(entity=None, query=None, roles=None, limit=None, offset=None):
+    roles_str = ''.join(map(str, roles))
+    cache_key = str(entity) + separator + searchField_label + str(query) + 'roles' + str(roles_str) + limit_label + str(limit) + offset_label + str(offset)
     return sanitize_cache_key(cache_key)
 
 
@@ -116,6 +125,18 @@ def generate_public_courses_cache_key(entity, searchField, limit, offset):
 
 
 def generate_courses_cache_key(entity, searchField=None, limit=None, offset=None, user=None):
+    cache_key = str(user.id) + str(entity) + separator + searchField_label + \
+        str(searchField) + limit_label + \
+        str(limit) + offset_label + str(offset)
+    return sanitize_cache_key(cache_key)
+
+def generate_course_participants_cache_key(entity, searchField=None, sortBy=None, limit=None, offset=None, course=None):
+    cache_key = str(course.id) + str(entity) + separator + searchField_label + str(searchField) + 'sortBy' + \
+        sortBy + limit_label + str(limit) + offset_label + \
+        str(offset) 
+    return sanitize_cache_key(cache_key)
+
+def generate_member_courses_cache_key(entity, searchField=None, limit=None, offset=None, user=None):
     cache_key = str(user.id) + str(entity) + separator + searchField_label + \
         str(searchField) + limit_label + \
         str(limit) + offset_label + str(offset)
@@ -264,6 +285,8 @@ def projects_modified():
 def courses_modified():
     invalidate_cache(CACHE_ENTITIES['COURSES'])
 
+def course_participants_modified():
+    invalidate_cache(CACHE_ENTITIES['COURSEPARTICIPANTS'])
 
 def chapters_modified():
     invalidate_cache(CACHE_ENTITIES['CHAPTERS'])
@@ -271,6 +294,9 @@ def chapters_modified():
 
 def exercises_modified():
     invalidate_cache(CACHE_ENTITIES['EXERCISES'])
+
+def exercises_keys_modified():
+    invalidate_cache(CACHE_ENTITIES['EXERCISE_KEYS'])
 
 
 def exercise_submission_submitted():
