@@ -7,22 +7,25 @@ import graphene
 import datetime
 import graphql_social_auth
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, CourseGrader, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput,UserRoleInput,  UserType,UsersType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from vidhya.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
-from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified
+from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, exercises_keys_modified, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified, exercises_modified
 from django.core.cache import cache
 from django.db import connection, transaction
 from graphql_jwt.shortcuts import get_token, create_refresh_token
 from django.contrib.auth import get_user_model
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import re
+from django.contrib.auth.hashers import make_password
+from django.template.loader import render_to_string
+
 
 
 class CreateInstitution(graphene.Mutation):
@@ -257,6 +260,8 @@ class GenerateEmailOTP(graphene.Mutation):
             settings.DEFAULT_FROM_EMAIL,
             [email_otp.email],
             fail_silently=False,
+            html_message='Dear user,<br><br>The code for verifying your email ID is as follows<br><br>' +
+            email_otp.otp + '<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
         )
 
     @staticmethod
@@ -309,6 +314,51 @@ class VerifyEmailOTP(graphene.Mutation):
                 ok = True
 
         return VerifyEmailOTP(ok=ok)
+
+class UpdateRegisteredUser(graphene.Mutation):
+    class Meta:
+        description = "Mutation to Send email for register confirmation with their credential"
+
+    class Arguments:
+        email = graphene.String(required=True)
+        first_name = graphene.String(required=True)
+        last_name = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+    @staticmethod
+    def mutate(root, info, email=None,first_name=None,last_name=None):
+        ok = False
+        user_instance = User.objects.get(email=email, active=True)
+        user_instance.first_name = first_name
+        user_instance.last_name = last_name
+        user_instance.save()
+        emailotp = EmailOTP.objects.get(email=email)
+        context = {
+                'user_name': first_name+' '+last_name,
+                'subject':  'Your email registered successfully',
+            }
+
+        send_mail(
+            'Your email registered successfully',
+            'Dear '+first_name+' '+last_name+',\n\nYour email is registered successfully. The credentials to login your account are as follows\n\nUsername: ' +
+            user_instance.username + '\n\nPassword: '+emailotp.otp+'\n\nThis email was sent automatically. Please do not reply to this.',
+            settings.DEFAULT_FROM_EMAIL,
+            [user_instance.email],
+            fail_silently=False,
+            html_message='Dear '+first_name+' '+last_name+',<br><br>Your email is registered successfully. The credentials to login your account are as follows<br><br>Username: ' +
+            user_instance.username + '<br>Password: '+emailotp.otp+'<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
+        )
+        print('user',user_instance)
+        users_modified()  # Invalidating users cache
+
+        payload = {"user": user_instance,
+                    "method": UPDATE_METHOD}
+        NotifyUser.broadcast(
+            payload=payload)
+        ok = True
+        return UpdateRegisteredUser(ok=ok,user=user_instance)
+
 
 
 class AddInvitecode(graphene.Mutation):
@@ -458,13 +508,10 @@ class usernameValidation(graphene.Mutation):
         user = None
         current_user = info.context.user
         usernameExistStatus = False
-        # try:
-        print('nn',user)
         usernameExistStatus = User.objects.exclude(id=current_user.id).filter(username=username).exists()
         usernamePatternMatch = False
 
         if re.match("^[A-Za-z0-9_.]*$", username):
-            print('match')
             usernamePatternMatch = True
         
 
@@ -472,7 +519,198 @@ class usernameValidation(graphene.Mutation):
             return usernameValidation(usernameNotExist=False,message='Username exists',usernamePatternMatch =usernamePatternMatch) 
         else:
             return usernameValidation(usernameNotExist=True,message='Username not exists',usernamePatternMatch=usernamePatternMatch)
+
+class checkUsernameExist(graphene.Mutation):   
+    
+    class Meta:
+        description = "Mutation to validate  Username exist"
+
+    class Arguments:
+        username = graphene.String(required=True)
+
+    message = graphene.String()
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, username=None):
+        ok = False
+        print('username',username)
+        usernameExistStatus = User.objects.filter(username=username).exists()
+        # EmailOTP.objects.get(email=email)
+        if usernameExistStatus:
+            ok = False
+            message = 'Username is exist'
+        else:
+            ok = True
+            message = 'Username is not exist'
         
+        return checkUsernameExist(ok=ok,message=message)
+     
+class createUpdatedateBulkUser(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update a bulk User"
+    class Arguments:
+        pass
+        input = graphene.List(UserInput)
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+    user_submissions_count = graphene.Int()
+    userList = graphene.List(UsersType)
+    @staticmethod
+    @login_required
+    def mutate(root, info, input=None):
+        ok = False
+        processed_count = 0
+        usersList = []    
+        shuddhi_vidhya = Institution.objects.get(id=settings.ENV_SHUDDHI_VIDHYA_INSTITUTION_ID)
+        for user in input:
+            searchField = user.email
+            existUser = User.objects.filter(email=user.email).exists()
+            print('existUser',existUser,user.email)
+            if  user.phone !='0000000000':
+                phoneNumberValid = user.phone.isdigit()
+            else:
+                phoneNumberValid = False
+            emailValid = createUpdatedateBulkUser.mail_check(user.email)
+            print('emailValid',emailValid)
+            if(existUser==True):
+                user_instance = User.objects.get(email=user.email)
+                selectedUser = user_instance
+                selectedUser.errormessage = {'firstName':None,'lastName':None,'phone':None,'email':None,'code':None,'designation':None} 
+                selectedUser.success = False
+                if not user.first_name:
+                    selectedUser.errormessage['firstName']="First Name is required"
+                if not user.last_name:
+                    selectedUser.errormessage['lastName']="Last Name is required"
+                if not user.designation:
+                    selectedUser.errormessage['designation']="Designation is required"
+                if phoneNumberValid==False:
+                    selectedUser.errormessage['phone']="Phone Number is invalid"
+                if  user.phone == '0000000000' and phoneNumberValid==True:
+                    selectedUser.errormessage['phone']="Phone Number is required"
+                if emailValid == False:
+                    if not user.email:
+                        selectedUser.errormessage['email']="Email is required"
+                    else:
+                        selectedUser.errormessage['email']= "Email is invalid"
+                if selectedUser.errormessage['firstName'] is None and selectedUser.errormessage['lastName'] is None and selectedUser.errormessage['email'] is None and selectedUser.errormessage['phone'] is None and selectedUser.errormessage['designation'] is None:
+                    user_instance.email=user.email
+                    user_instance.first_name=user.first_name
+                    user_instance.last_name=user.last_name
+                    user_instance.name=user.first_name + ' ' + user.last_name
+                    user_instance.manualLogin=True
+                    user_instance.membership_status = 'AP'
+                    user_instance.role_id = 'Learner'
+                    user_instance.designation = user.designation
+                    user_instance.phone=user.phone
+                    user_instance.institution_id = user.institution_id
+                    searchField = user_instance.first_name if user_instance.first_name is not None else ""
+                    searchField += user_instance.last_name if user_instance.last_name is not None else ""
+                    searchField += user_instance.username if user_instance.username is not None else ""
+                    searchField += user_instance.title if user_instance.title is not None else ""
+                    searchField += user_instance.bio if user_instance.bio is not None else ""
+                    searchField += user_instance.gender if user_instance.gender is not None else ""
+                    searchField += user_instance.membership_status if user_instance.membership_status is not None else ""
+                    if user_instance.institution:
+                        searchField += user_instance.institution.name if user_instance.institution.name is not None else ""
+                    user_instance.searchField = searchField.lower()
+                    user_instance.save()
+                    selectedUser.success = True
+                    selectedUser.errormessage = ''
+                    notification_text = 'Dear '+user_instance.name+',\n\n'+info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin updated the detail to the following:\n\nFirst name :'+ user.first_name+'\nLast name: '+user.last_name+'\nEmail:'+user_instance.email+'\nUsername:'+user_instance.username+'\nRole:'+user_instance.role_id+'\nInstitution:'+user_instance.institution.name+'\nDesignation:'+user_instance.designation+'\n\nIf the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.\n\nThis email was sent automatically. Please do not reply to this.'
+                    notification_html = 'Dear '+user_instance.name+',<br><br>'+info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin updated the detail to the following:<br><br>First name :'+ user.first_name+'<br>Last name: '+user.last_name+'<br>Email:'+user_instance.email+'<br>Username:'+user_instance.username+'<br>Role:'+user_instance.role_id+'<br>Institution:'+user_instance.institution.name+'<br>Designation:'+user_instance.designation+'<br><br>If the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
+                    send_mail( 
+                                'Member is updated',
+                                notification_text,
+                                settings.DEFAULT_FROM_EMAIL,
+                                [user.email],
+                                fail_silently=False,
+                                html_message=notification_html
+                    )
+                else:
+                    selectedUser = user_instance
+                    selectedUser.success = False
+                    selectedUser.errormessage = json.dumps(selectedUser.errormessage)   
+                processed_count += 1
+            else:         
+                searchField = '' 
+                if searchField is not None:
+                    searchField = searchField.lower()   
+                selectedUser = User
+                selectedUser.errormessage = {'firstName':None,'lastName':None,'phone':None,'email':None,'code':None,'designation':None} 
+                selectedUser.success = False
+                otp = ''
+                if emailValid:   
+                    email_otp = GenerateEmailOTP.check_if_email_otp_exists(user.email)                
+                    otp = generate_otp()
+                    email_otp.otp=otp
+                    email_otp.save()
+                user_instance = User(
+                    email=user.email,
+                    password=make_password(str(otp)),
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    name=user.first_name + ' ' + user.last_name,
+                    designation = user.designation,
+                    username=user.first_name+''+date.today().strftime("%m%y"),#+''+datetime.datetime.now().microsecond/1000,
+                    phone=user.phone,
+                    searchField=searchField,
+                    manualLogin=True,
+                    role_id='Learner',
+                    institution_id = user.institution_id,
+                    membership_status = 'AP')
+                selectedUser = user_instance
+                if not user.first_name:
+                    selectedUser.errormessage['first_name']="First Name is required"
+                if not user.last_name:
+                    selectedUser.errormessage['last_name']="Last Name is required"
+                if not user.designation:
+                    selectedUser.errormessage['designation']="Designation is required"
+                if phoneNumberValid==False:
+                        selectedUser.errormessage['phone']="Phone Number is invalid"
+                if not user.phone:
+                        selectedUser.errormessage['phone']="Phone Number is required"
+                if emailValid == False:
+                    if not user.email:
+                        selectedUser.errormessage['email']="Email is required"
+                    else:
+                        selectedUser.errormessage['email']= "Email is invalid"
+                        
+                if selectedUser.errormessage['firstName'] is None and selectedUser.errormessage['lastName'] is None and selectedUser.errormessage['email'] is None and selectedUser.errormessage['phone'] is None and selectedUser.errormessage['designation'] is None:
+                    user_instance.save()
+                    selectedUser.success = True
+                    selectedUser.errormessage = ''
+                    notification_text = 'Dear '+user_instance.name+',\n\nYour account is added by '+ info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin. To login please use the following credential:\n\nUsername: '+user_instance.username+'\nPassword: '+user_instance.password+'.\n\nIf the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.\n\nThis email was sent automatically. Please do not reply to this.'
+                    notification_html = 'Dear '+user_instance.name+',<br><br>Your account is added by '+ info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin. To login please use the following credential:<br><br>Username: '+user_instance.username+'<br>Password: '+user_instance.password+'.<br><br>If the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
+                    send_mail( 
+                            'New member is added',
+                            notification_text,
+                            settings.DEFAULT_FROM_EMAIL,
+                            [user.email],
+                            fail_silently=False,
+                            html_message=notification_html
+                    )
+                    processed_count += 1
+                else:
+                    selectedUser = user_instance
+                    selectedUser.success = False
+                    selectedUser.errormessage = json.dumps(selectedUser.errormessage) 
+            if selectedUser.success == False:
+                selectedUser.id=0
+                usersList.append(selectedUser)
+        ok = True
+        users_modified()  # Invalidating users cache
+
+        return createUpdatedateBulkUser(ok=ok, user_submissions_count=processed_count,userList=usersList)
+
+    
+    def mail_check(s):
+        pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+        if re.match(pat,str(s)):
+            return True
+        else:
+            return False
+ 
 class UpdateUser(graphene.Mutation):
     class Meta:
         description = "Mutation to update a User"
@@ -484,83 +722,87 @@ class UpdateUser(graphene.Mutation):
     user = graphene.Field(UserType)
     usernameExist = graphene.Boolean()
 
+    # the following method will update the searchField for the given user
+    @staticmethod
+    def update_user_searchfield(user_instance):
+        search_field = user_instance.first_name if user_instance.first_name is not None else ""
+        search_field += user_instance.last_name if user_instance.last_name is not None else ""
+        search_field += user_instance.username if user_instance.username is not None else ""
+        search_field += user_instance.title if user_instance.title is not None else ""
+        search_field += user_instance.bio if user_instance.bio is not None else ""
+        search_field += user_instance.gender if user_instance.gender is not None else ""
+        search_field += user_instance.designation if user_instance.designation is not None else ""
+        search_field += user_instance.membership_status if user_instance.membership_status is not None else ""
+        
+        if user_instance.institution:
+            search_field += user_instance.institution.name if user_instance.institution.name is not None else ""
+            search_field += user_instance.institution.location if user_instance.institution.location is not None else ""
+            user_instance.institution.search_field = search_field.lower()
+            
+        return search_field.lower()
+
     @staticmethod
     @login_required
     def mutate(root, info, input=None):
-        ok = False
-        error = ""
         current_user = info.context.user
-        user = User.objects.get(pk=current_user.id, active=True)
-        user_instance = user
-        usernameExistStatus = User.objects.filter(username=input.username).exists()
-        if(usernameExistStatus == True):
-            userExist = User.objects.get(username=input.username)
-            if(userExist.id != current_user.id):
-                print(userExist.id)
-                error += "Username already exist<br />"    
-        if error:
-            raise GraphQLError(error)
-        if user_instance:
-            ok = True
-            user_instance.first_name = input.first_name if input.first_name is not None else user.first_name
-            user_instance.last_name = input.last_name if input.last_name is not None else user.last_name
-            user_instance.name = user_instance.first_name + ' ' + \
-                user_instance.last_name if user_instance.first_name is not None and user_instance.last_name is not None else ""
-            user_instance.avatar = input.avatar if input.avatar is not None else user.avatar
-            user_instance.institution_id = input.institution_id if input.institution_id is not None else user.institution_id
-            user_instance.role_id = input.role_id if input.role_id is not None else user.role_id
-            user_instance.title = input.title if input.title is not None else user.title
-            user_instance.bio = input.bio if input.bio is not None else user.bio
-            user_instance.username = input.username if input.username is not None else user.username
-            user_instance.dob = input.dob if input.dob is not None else user.dob
-            user_instance.gender = input.gender if input.gender is not None else user.gender
-            user_instance.phone = input.phone if input.phone is not None else user.phone
-            user_instance.mobile = input.mobile if input.mobile is not None else user.mobile
-            user_instance.address = input.address if input.address is not None else user.address
-            user_instance.city = input.city if input.city is not None else user.city
-            user_instance.pincode = input.pincode if input.pincode is not None else user.pincode
-            user_instance.state = input.state if input.state is not None else user.state
-            user_instance.country = input.country if input.country is not None else user.country
-            user_instance.designation = input.designation if input.designation is not None else user.designation
+        user_instance = User.objects.get(pk=current_user.id, active=True)
 
-            # Updatiing the membership status to Pending if the user is currently Uninitialized and
-            # they provide first name, last name and institution to set up their profile
-            if user_instance.membership_status == 'UI':
-                if user_instance.name and user_instance.institution_id is not None:
-                    user_instance.membership_status = 'PE'
-                    UserRole =  User.objects.filter(role=USER_ROLES_NAMES['SUPER_ADMIN'], active=True)
-                    for superUser in UserRole:
+        if User.objects.filter(username=input.username).exclude(id=current_user.id).exists():
+            raise GraphQLError("Username already exists")
+
+        user_instance.first_name = input.first_name if input.first_name is not None else user_instance.first_name
+        user_instance.last_name = input.last_name if input.last_name is not None else user_instance.last_name
+        user_instance.name = (
+            f"{user_instance.first_name} {user_instance.last_name}" 
+            if user_instance.first_name is not None and user_instance.last_name is not None 
+            else ""
+        )
+        user_instance.avatar = input.avatar if input.avatar is not None else user_instance.avatar
+        user_instance.institution_id = input.institution_id if input.institution_id is not None else user_instance.institution_id
+        user_instance.role_id = input.role_id if input.role_id is not None else user_instance.role_id
+        user_instance.title = input.title if input.title is not None else user_instance.title
+        user_instance.bio = input.bio if input.bio is not None else user_instance.bio
+        user_instance.username = input.username if input.username is not None else user_instance.username
+        user_instance.dob = input.dob if input.dob is not None else user_instance.dob
+        user_instance.gender = input.gender if input.gender is not None else user_instance.gender
+        user_instance.phone = input.phone if input.phone is not None else user_instance.phone
+        user_instance.mobile = input.mobile if input.mobile is not None else user_instance.mobile
+        user_instance.address = input.address if input.address is not None else user_instance.address
+        user_instance.city = input.city if input.city is not None else user_instance.city
+        user_instance.pincode = input.pincode if input.pincode is not None else user_instance.pincode
+        user_instance.state = input.state if input.state is not None else user_instance.state
+        user_instance.country = input.country if input.country is not None else user_instance.country
+        user_instance.designation = input.designation if input.designation is not None else user_instance.designation
+        user_instance.searchField = UpdateUser.update_user_searchfield(user_instance)
+
+
+        # Updatiing the membership status to Pending if the user is currently Uninitialized and
+        # they provide first name, last name, and institution to set up their profile
+        
+        if user_instance.membership_status == 'UI' and user_instance.name and user_instance.institution_id is not None:
+            user_instance.membership_status = 'PE'
+            
+            UserRole = User.objects.filter(role=USER_ROLES_NAMES['SUPER_ADMIN'], active=True)  
+            
+            for superUser in UserRole:
                         notification_text = 'Dear '+superUser.name+',\n\nThere is a new user with the username '+user_instance.name+' and email ID '+user_instance.email+' awaiting approval. There maybe more such users awaiting your approval.\nPlease click here to respond - '+settings.FRONTEND_DOMAIN_URL + '/dashboard?adminSection=MODERATION&membershipStatusIs=PE.\n\nThis email was sent automatically. Please do not reply to this.'
+                        notification_html = 'Dear '+superUser.name+',<br><br>There is a new user with the username '+user_instance.name+' and email ID '+user_instance.email+' awaiting approval. There maybe more such users awaiting your approval.<br>Please click here to respond - '+settings.FRONTEND_DOMAIN_URL + '/dashboard?adminSection=MODERATION&membershipStatusIs=PE.<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
                         send_mail( 
                         'New member is added, and waiting for your approval!',
                         notification_text,
                         settings.DEFAULT_FROM_EMAIL,
                         [superUser.email],
                         fail_silently=False,
+                        html_message=notification_html
                     )
-            searchField = user_instance.first_name if user_instance.first_name is not None else ""
-            searchField += user_instance.last_name if user_instance.last_name is not None else ""
-            searchField += user_instance.username if user_instance.username is not None else ""
-            searchField += user_instance.title if user_instance.title is not None else ""
-            searchField += user_instance.bio if user_instance.bio is not None else ""
-            searchField += user_instance.gender if user_instance.gender is not None else ""
-            searchField += user_instance.membership_status if user_instance.membership_status is not None else ""
-            if user_instance.institution:
-                searchField += user_instance.institution.name if user_instance.institution.name is not None else ""
-            user_instance.searchField = searchField.lower()
+        user_instance.save()
+        users_modified()  # Invalidating users cache 
 
-            user_instance.save()
+        payload = {"user": user_instance, "method": "UPDATE"}
+        NotifyUser.broadcast(payload=payload)
 
-            users_modified()  # Invalidating users cache
 
-            payload = {"user": user_instance,
-                       "method": UPDATE_METHOD}
-            NotifyUser.broadcast(
-                payload=payload)
-
-            return UpdateUser(ok=ok, user=user_instance)
-        return UpdateUser(ok=ok, user=None)
-
+        return UpdateUser(ok=True, user=user_instance)
 
 class DeleteUser(graphene.Mutation):
     class Meta:
@@ -626,6 +868,9 @@ class ApproveUser(graphene.Mutation):
                 settings.DEFAULT_FROM_EMAIL,
                 [user_instance.email],
                 fail_silently=False,
+                html_message='Dear '+user_instance.username+',<br><br>Your account is now approved!<br><br>Please login with your credentials - '+settings.FRONTEND_DOMAIN_URL +
+                '.<br><br>This approval action was undertaken by ' +
+                current_user.name + '.<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
             )
             user_instance.save()
 
@@ -661,7 +906,6 @@ class ModifyUserInstitution(graphene.Mutation):
         if user_instance:
             ok = True
             user_id = graphene.ID(required=True)
-            # print(user_instance.institution)
             user_instance.institution_id = institution_id
             user_instance.designation = designation
 
@@ -1585,8 +1829,8 @@ class CreateCourse(graphene.Mutation):
             error += "Blurb is a required field<br />"
         if input.description is None:
             error += "Description is a required field<br />"
-        if input.instructor_id is None:
-            error += "Instructor is a required field<br />"
+        if input.instructor_ids is None:
+            error += "Instructor is a required field<br />"    
         if input.institution_ids is None:
             error += "Institution(s) is a required field<br />"
         if error:
@@ -1602,7 +1846,7 @@ class CreateCourse(graphene.Mutation):
             blurb=input.blurb,
             description=input.description,
             video=input.video,
-            instructor_id=input.instructor_id,
+           # instructor_id=input.instructor_id,
             start_date=input.start_date,
             end_date=input.end_date,
             credit_hours=input.credit_hours,
@@ -1612,9 +1856,6 @@ class CreateCourse(graphene.Mutation):
         course_instance.save()
 
         courses_modified()  # Invalidating course cache
-        # print(input)
-        print('course_instance ',course_instance)
-
         if input.institution_ids:
             course_instance.institutions.add(*input.institution_ids)
         
@@ -1623,6 +1864,9 @@ class CreateCourse(graphene.Mutation):
 
         if input.grader_ids or input.grader_ids == []:
             course_instance.graders.add(*input.grader_ids)
+        
+        if input.instructor_ids or input.instructor_ids == []:
+            course_instance.instructors.add(*input.instructor_ids)
 
         if input.mandatory_prerequisite_ids:
             course_instance.mandatory_prerequisites.add(
@@ -1664,7 +1908,6 @@ class UpdateCourse(graphene.Mutation):
             # course_instance.index = input.index if input.index is not None else course.index
             course_instance.video = input.video if input.video is not None else course.video
             course_instance.blurb = input.blurb if input.blurb is not None else course.blurb
-            course_instance.instructor_id = input.instructor_id if input.instructor_id is not None else course.instructor_id
             course_instance.start_date = input.start_date if input.start_date is not None else course.start_date
             course_instance.end_date = input.end_date if input.end_date is not None else course.end_date
             course_instance.credit_hours = input.credit_hours if input.credit_hours is not None else course.credit_hours
@@ -1691,6 +1934,10 @@ class UpdateCourse(graphene.Mutation):
             if input.grader_ids or input.grader_ids == []:
                 course_instance.graders.clear()
                 course_instance.graders.add(*input.grader_ids)
+            
+            if input.instructor_ids or input.instructor_ids == []:
+                course_instance.instructors.clear()
+                course_instance.instructors.add(*input.instructor_ids)
 
             if input.mandatory_prerequisite_ids or input.mandatory_prerequisite_ids == []:
                 course_instance.mandatory_prerequisites.clear()
@@ -1701,9 +1948,6 @@ class UpdateCourse(graphene.Mutation):
                 course_instance.recommended_prerequisites.clear()
                 course_instance.recommended_prerequisites.add(
                     *input.recommended_prerequisite_ids)
-            print('course_instance',course_instance.participants.all())
-            print('input',input)
-
             payload = {"course": course_instance,
                        "method": UPDATE_METHOD}
             NotifyCourse.broadcast(
@@ -1736,9 +1980,6 @@ class UpdateCourseParticipant(graphene.Mutation):
                 
                 participant_record =  CourseParticipant.objects.filter(
                  participant=user_id,course=course_instance.id)
-                print('participant_record',participant_record)
-                # participant_record = CourseParticipant.objects.filter(participant__in=[user_id],course__status=PUBLISHED)
-                # course_instance.participants.filter(participant__im)
                 return UpdateCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
             return UpdateCourseParticipant(ok=ok, course=None, participant_record=None)
 
@@ -1762,6 +2003,7 @@ class DeleteCourseParticipant(graphene.Mutation):
         course_instance = course
         if course_instance:
             if user_id or user_id == []:
+
                 course_instance.participants.remove(user_id)                
                 participant_record = CourseParticipant.objects.filter(
                  participant=user_id,course=course_instance.id)
@@ -1794,7 +2036,6 @@ class AuditCourseParticipant(graphene.Mutation):
                 else:
                     course_instance.participants.add(user_id)
                     course_part = CourseParticipant.objects.all().get(participant_id=user_id,course_id=id)
-                    print('course_part',course_part.audit)
                     course_part.audit= audit
                     course_part.save()
                     participant_record = CourseParticipant.objects.filter(participant=user_id,course=course_instance.id)
@@ -2277,19 +2518,19 @@ class CreateExercise(graphene.Mutation):
                                             valid_answers=input.valid_answers, reference_link=input.reference_link, reference_images=input.reference_images, remarks=input.remarks)
 
         exercise_key_instance.save()
-
         # Notifying creation of Exercise
         payload = {"exercise": exercise_instance,
                    "method": CREATE_METHOD}
         NotifyExercise.broadcast(
             payload=payload)
+        exercises_modified()
 
         # Notifying creation of Exercise Key
         exercise_key_payload = {"exercise_key": exercise_key_instance,
                                 "method": CREATE_METHOD}
         NotifyExerciseKey.broadcast(
             payload=exercise_key_payload)
-
+        exercises_keys_modified()
         return CreateExercise(ok=ok, exercise=exercise_instance)
 
 
@@ -2367,7 +2608,8 @@ class UpdateExercise(graphene.Mutation):
                        "method": UPDATE_METHOD}
             NotifyExerciseKey.broadcast(
                 payload=payload)
-
+            exercises_modified()            
+            exercises_keys_modified()
             return UpdateExercise(ok=ok, exercise=exercise_instance)
         return UpdateExercise(ok=ok, exercise=None)
 
@@ -2433,6 +2675,9 @@ class DeleteExercise(graphene.Mutation):
                                     "method": DELETE_METHOD}
             NotifyExerciseKey.broadcast(
                 payload=exercise_key_payload)
+            exercises_modified()            
+            exercises_keys_modified()
+
             return DeleteExercise(ok=ok, exercise=exercise)
         return DeleteExercise(ok=ok, exercise=None)
 
@@ -3066,18 +3311,21 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
         notification_text = exercise_submission_instance.participant.name + ' has submitted a new assignment for "' + exercise_submission_instance.chapter.title + \
             '" in "' + exercise_submission_instance.course.title + '".\n\nPlease visit ' + \
             settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.\n\nThis email was sent automatically. Please do not reply to this.'
+        notification_html = exercise_submission_instance.participant.name + ' has submitted a new assignment for "' + exercise_submission_instance.chapter.title + \
+            '" in "' + exercise_submission_instance.course.title + '".<br><br>Please visit ' + \
+            settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
         graders = CourseGrader.objects.filter(
             course_id=exercise_submission_instance.course.id).distinct()
         print('Graders => ', graders)
         for grader in graders:
             recipient_list = [grader.grader.email]
-            print('recipients_list => ', recipient_list)
             send_mail(
                 'There is a new assignment submission!',
                 notification_text,
                 settings.DEFAULT_FROM_EMAIL,
                 recipient_list,
                 fail_silently=False,
+                html_message=notification_html
             )
         return
 
@@ -3817,8 +4065,29 @@ class ClearServerCache(graphene.Mutation):
         ok = True
         return ClearServerCache(ok=ok)
 
-# createGoogleToken
+# the following method updates the searchField for all the records in the user database
 
+class BulkUpdateUserSearchField(graphene.Mutation):
+    class Meta:
+        description = "Updating all the users in the user table"
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    @login_required
+    @user_passes_test(lambda user: is_admin_user(user))
+    def mutate(root, info):
+
+        for user in User.objects.all().iterator(): 
+            user.searchField = UpdateUser.update_user_searchfield(user) 
+            user.save()
+    
+        users_modified()  #clear cache
+        ok = True
+        return BulkUpdateUserSearchField(ok=ok)
+    
+
+# createGoogleToken
 
 class createGoogleToken(graphene.Mutation):
     ok = graphene.Boolean()
@@ -3887,11 +4156,15 @@ class Mutation(graphene.ObjectType):
     verify_invitecode = VerifyInvitecode.Field()
     generate_email_otp = GenerateEmailOTP.Field()
     verify_email_otp = VerifyEmailOTP.Field()
+    update_registered_user = UpdateRegisteredUser.Field()
+
     # verify_email_user = verifyEmailUser.Field()
     verifyUserLoginGetEmailOtp = verifyUserLoginGetEmailOtp.Field()
     # passwordChange = passwordChange.Field()
     username_validation = usernameValidation.Field()
     # create_user = createUser.Field()
+    create_update_bulk_user =createUpdatedateBulkUser.Field()
+    check_username_exist = checkUsernameExist.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     approve_user = ApproveUser.Field()
@@ -3970,6 +4243,7 @@ class Mutation(graphene.ObjectType):
 
     # Admin mutations
     clear_server_cache = ClearServerCache.Field()
+    bulk_update_user_searchField = BulkUpdateUserSearchField.Field()
 
     # Social AUth
     social_auth = graphql_social_auth.SocialAuthJWT.Field()

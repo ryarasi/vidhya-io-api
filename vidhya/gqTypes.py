@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
 from django.db import models
 from vidhya.authorization import is_chapter_locked, is_course_locked
 
@@ -28,6 +28,19 @@ class UserType(DjangoObjectType):
     class Meta:
         model = User
 
+
+class UsersType(DjangoObjectType):
+    class Meta:
+        model = User
+    success = graphene.Boolean()
+    errormessage = graphene.String()
+
+    def resolve_success(self, info):
+        print('self success',self.success)
+        return self.success
+    
+    def resolve_errormessage(self, info):
+        return self.errormessage
 
 class UserRoleType(DjangoObjectType):
     class Meta:
@@ -168,12 +181,29 @@ class CourseParticipantType(DjangoObjectType):
     class Meta:
         model = CourseParticipant
 
+class CourseInstructorType(DjangoObjectType):
+
+    class Meta:
+        model = CourseInstructor
+
+class CourseCompletedType(DjangoObjectType):
+    class Meta:
+        model = CompletedCourses
 
 class CourseType(DjangoObjectType):
     completed = graphene.Boolean()
     report = graphene.Field(ReportType)
     locked = graphene.Boolean()
+    instructors = graphene.List(CourseInstructorType)
 
+    def resolve_instructors(self,info):
+        instructors = None
+        try:
+            instructors = CourseInstructor.objects.filter(course_id=self.id)
+        except:
+            pass
+        return instructors
+    
     def resolve_completed(self, info):
         user = info.context.user
         completed = CompletedCourses.objects.filter(
@@ -416,12 +446,12 @@ class CourseInput(graphene.InputObjectType):
     blurb = graphene.String(required=True)
     description = graphene.String(required=True)
     video = graphene.String()
-    instructor_id = graphene.ID(name="instructor", required=True)
     institution_ids = graphene.List(
         graphene.ID, name="institutions")
     participant_ids = graphene.List(graphene.ID, name="participants")
      
     grader_ids = graphene.List(graphene.ID, name="graders")
+    instructor_ids = graphene.List(graphene.ID, name="instructors")
     mandatory_prerequisite_ids = graphene.List(
         graphene.ID, name="mandatoryPrerequisites")
     recommended_prerequisite_ids = graphene.List(

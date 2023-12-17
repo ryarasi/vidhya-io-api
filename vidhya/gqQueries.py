@@ -2,14 +2,14 @@ from django.contrib.auth.models import AnonymousUser
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseInstructor, CourseParticipant, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, CourseParticipantType, ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
+from .gqTypes import AnnouncementType, ChapterType, CourseInstructorType, CourseParticipantType,CourseCompletedType,ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
 from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible, SORT_BY_OPTIONS
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
-from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_member_courses_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key,generate_coordinator_options_cache_key, set_cache
+from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_course_participants_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_member_courses_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key,generate_coordinator_options_cache_key, set_cache
 from datetime import date, datetime, timedelta
 
 
@@ -52,7 +52,6 @@ class Users(graphene.ObjectType):
 class UserRoles(graphene.ObjectType):
     records = graphene.List(UserRoleType)
     total = graphene.Int()
-
 
 class Institutions(graphene.ObjectType):
     records = graphene.List(InstitutionType)
@@ -128,11 +127,16 @@ class PublicUserType(graphene.ObjectType):
 class MemberCourses(graphene.ObjectType):
     records = graphene.List(CourseType)
     participant_record = graphene.List(CourseParticipantType)
+    total = graphene.Int()
+
+class CourseParticipants(graphene.ObjectType):
+    records = graphene.List(CourseParticipantType)
+    total = graphene.Int()  
 
 class TotalCourseParticipant(graphene.ObjectType):
     total_current_participant = graphene.Int()
     total_completed_participant = graphene.Int()
-
+    total_project_participant = graphene.Int()
 class PublicUsers(graphene.ObjectType):
     records = graphene.List(PublicUserType)
     total = graphene.Int()
@@ -176,7 +180,6 @@ class PublicCourseType(graphene.ObjectType):
     blurb = graphene.String()
     description = graphene.String()
     video = graphene.String()
-    instructor = graphene.Field(UserType)
     mandatoryPrerequisites = graphene.List(CourseType)
     recommendedPrerequisites = graphene.List(CourseType)
     startDate = graphene.String()
@@ -258,15 +261,20 @@ class Query(ObjectType):
     project = graphene.Field(ProjectType, id=graphene.ID())
     projects = graphene.List(
         ProjectType, author_id=graphene.ID(), sortBy=graphene.String(), searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    projects_course = graphene.List(ProjectType,id=graphene.ID(),searchField=graphene.String(),limit=graphene.Int(), offset=graphene.Int(),sortBy=graphene.String())
 
     # Course Queries
     course = graphene.Field(CourseType, id=graphene.ID())
     courses = graphene.Field(
         MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
-    course_participant= graphene.List(CourseParticipantType, id=graphene.ID(), user_id = graphene.Int())
+    course_participant = graphene.List(CourseParticipantType, id=graphene.ID(), user_id = graphene.Int())
+    course_completed = graphene.List(CourseCompletedType,id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    course_instructors = graphene.List(CourseInstructorType, id=graphene.ID(),user_id = graphene.Int())
+
     total_course_participant = graphene.Field(TotalCourseParticipant, id = graphene.ID())
     member_courses = graphene.Field(
         MemberCourses, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    course_participants = graphene.Field(CourseParticipants,id=graphene.ID(),searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
     
     # Course Section Queries
     # course_section = graphene.Field(CourseSectionType, id=graphene.ID()) # No use for this one
@@ -564,7 +572,6 @@ class Query(ObjectType):
 
         if membership_status_is:
             qs = qs.filter(membership_status__in=membership_status_is)
-        print('roles => ', roles)
         if roles:
             qs = qs.filter(role__in=roles)
 
@@ -982,7 +989,7 @@ class Query(ObjectType):
             blurb=course_instance.blurb,
             description=course_instance.description,
             video=course_instance.video,
-            instructor=course_instance.instructor,
+            #instructor=course_instance.instructor,
             # mandatoryPrerequisites= course_instance.mandatory_prerequisites,
             # recommendedPrerequisites=course_instance.recommended_prerequisites,
             startDate=course_instance.start_date,
@@ -1001,6 +1008,7 @@ class Query(ObjectType):
         if allow_access != True:
             project_instance = None
         return project_instance
+
 
     def resolve_projects(root, info, author_id=None, searchField=None, sortBy=SORT_BY_OPTIONS['NEW'], limit=None, offset=None, **kwargs):
         current_user = info.context.user
@@ -1053,6 +1061,7 @@ class Query(ObjectType):
                 'This course is locked for you. Please complete the prerequisites.')
         else:
             return course_instance
+        
 
     @login_required
     def resolve_course_participant(root, info, id, **kwargs):
@@ -1061,7 +1070,47 @@ class Query(ObjectType):
         # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         course_instance=CourseParticipant.objects.filter(participant=current_user,course=id)
         return course_instance
+
+    @login_required
+    def resolve_course_participants(root, info, id, searchField=None, sortBy=SORT_BY_OPTIONS['NEW'], limit=None, offset=None, **kwargs):
     
+        qs = CourseParticipant.objects.filter(course=id)
+
+        if searchField is not None:
+            searchField = searchField.lower()
+            filter = (
+                    Q(searchField__icontains=searchField.lower())
+                )
+            user_ids = User.objects.filter(filter).values_list(
+                    'id', flat=True)           
+            user_filter = Q(participant_id__in= user_ids)
+            qs = qs.filter(user_filter)
+        total = len(qs)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+
+        results = CourseParticipants(records = qs,total = total)
+
+        return results
+    
+    @login_required
+    def resolve_projects_course(root,info,id,**kwargs):
+        current_user = info.context.user
+        project_instance = Project.objects.filter(course=id)
+        return project_instance
+
+    @login_required
+    def resolve_course_completed(root, info, id, **kwargs):
+        current_user = info.context.user
+        course_instance=CompletedCourses.objects.filter(course=id)
+        return course_instance
+   
+   
+
     @login_required
     def resolve_total_course_participant(root, info, id, **kwargs):
         current_user = info.context.user
@@ -1069,22 +1118,23 @@ class Query(ObjectType):
         # course_instance = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         total_current_participant=CourseParticipant.objects.filter(course=id).count()
         total_completed_participant = CompletedCourses.objects.filter(course=id).count()
-        return TotalCourseParticipant(total_current_participant = total_current_participant,total_completed_participant = total_completed_participant)
+        total_project_participant = Project.objects.filter(course=id).count()
+        return TotalCourseParticipant(total_current_participant = total_current_participant,total_completed_participant = total_completed_participant,total_project_participant = total_project_participant)
     
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
         current_user = info.context.user
-        # cache_entity = CACHE_ENTITIES['COURSES']
+        cache_entity = CACHE_ENTITIES['COURSES']
 
-        # cache_key = generate_courses_cache_key(
-        #     cache_entity, searchField, limit, offset, current_user)
+        cache_key = generate_courses_cache_key(
+            cache_entity, searchField, limit, offset, current_user)
 
-        # cached_response = fetch_cache(cache_entity, cache_key)
+        cached_response = fetch_cache(cache_entity, cache_key)
 
-        # if cached_response:
-        #     return cached_response
+        if cached_response:
+            return cached_response
 
         qs = rows_accessible(current_user, RESOURCES['COURSE'])
         if searchField is not None:
@@ -1477,7 +1527,7 @@ class Query(ObjectType):
 
         if group_by == RESOURCES['CHAPTER']:
 
-            unique_chapters = all_submissions.values_list('chapter', flat=True)
+            unique_chapters = list(set(all_submissions.values_list('chapter', flat=True)))
 
             if searchField is not None:
                 filter = Q(searchField__icontains=searchField.lower())
@@ -1493,8 +1543,7 @@ class Query(ObjectType):
                     filter = Q(flagged=flagged)
                     submissions = submissions.filter(filter)
                 if searchField is not None:
-                    filter = Q(searchField__icontains=searchField.lower())
-                    submissions = submissions.filter(filter)
+                    submissions = submissions.filter(searchField__icontains=searchField.lower())
                 count = submissions.count()
                 if count > 0:
                     # Generating chapter title
@@ -1514,7 +1563,7 @@ class Query(ObjectType):
 
         if group_by == RESOURCES['COURSE']:
 
-            unique_courses = all_submissions.values_list('course', flat=True)
+            unique_courses = list(set(all_submissions.values_list('course', flat=True)))
             if searchField is not None:
                 filter = Q(searchField__icontains=searchField.lower())
                 unique_courses = unique_courses.filter(filter)
@@ -1523,8 +1572,7 @@ class Query(ObjectType):
                 submissions = ExerciseSubmission.objects.all().filter(
                     course=course, status=status, active=True)
                 if flagged is not None:
-                    filter = Q(flagged=flagged)
-                    submissions = submissions.filter(filter)
+                    submissions = submissions.filter(flagged=flagged)
                 if searchField is not None:
                     filter = Q(searchField__icontains=searchField.lower())
                     submissions = submissions.filter(filter)
