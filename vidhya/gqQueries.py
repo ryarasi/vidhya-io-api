@@ -1187,6 +1187,7 @@ class Query(ObjectType):
 
         # qs = Course.objects.filter( Q(instructors__in=[current_user])|Q(courseparticipant__participant=current_user)).distinct().order_by("created_at")
         participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -1212,20 +1213,26 @@ class Query(ObjectType):
         completed = []
         others = []
         for course in qs:
-            # json_str = json.dumps(course, indent=4)
-            # print(json_str)
+            print('course.id',course.id)
+            psobjs = Course.objects.filter(pk=course.id)
+            # participant=current_user,course=id
+            print('psobjs',psobjs)
+            print('course',course)
+            # queryset = CourseParticipant.objects.filter(participant_id__in=psobjs.values('participants'))
+            
+            queryset = CourseParticipant.objects.filter(participant__in=psobjs.values('participants'),course_id=course.id)
+            print('queryset',queryset)
 
-            # print('user',user.locked)
+            # for participant in queryset:
+            #     if(participant.completed == True):
+            #         completed.append(course)
+            #     if(participant.audit == True):
+            #         others.append(course)
             if course.status == Course.StatusChoices.DRAFT:
                 draft.append(course)
             elif course.status == Course.StatusChoices.PUBLISHED :
                 publish.append(course)
-            # elif course.status == Course.StatusChoices.PUBLISHED :
-            #     completed.append(course)
-            else:
-                others.append(course)
-
-        sorted_qs = draft + publish + completed + others
+        sorted_qs =  draft + publish + completed + others
         results = MemberCourses(records=sorted_qs,participant_record=participant_record)
 
         return results
