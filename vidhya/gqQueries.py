@@ -11,7 +11,6 @@ from .gqMutations import UpdateAnnouncement
 from django.core.cache import cache
 from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_course_participants_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_member_courses_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key,generate_coordinator_options_cache_key, set_cache
 from datetime import date, datetime, timedelta
-import json
 
 
 def generate_public_institution(institution):
@@ -239,11 +238,6 @@ class Query(ObjectType):
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
-    #Instructor Queries
-    instructors = graphene.Field(
-        Users,  role_name=graphene.String())
-    
-    
     coordinator_options = graphene.Field(
         Users,query=graphene.String(), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
     # User Role Queries
@@ -565,7 +559,7 @@ class Query(ObjectType):
 
         qs = rows_accessible(current_user, RESOURCES['MEMBER'], {
                              'all_institutions': all_institutions})
-        
+
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower()) | Q(
@@ -641,23 +635,6 @@ class Query(ObjectType):
         set_cache(cache_entity, cache_key, qs)
 
         return qs
-    
-    def resolve_instructors(root, info, role_name, **kwargs):
-          cache_entity = CACHE_ENTITIES['USERS']
-          cache_key = generate_instructor_options_cache_key(cache_entity)
-
-          cached_response = fetch_cache(cache_entity, cache_key)
-
-          if cached_response:
-            return cached_response
-          
-          instructor_roles =  UserRole.objects.filter(permissions__COURSE__CREATE=True)
-          qs = User.objects.filter(role__in = instructor_roles,active=True)
-          results = Users(records=qs, total=len(qs))
-
-          set_cache(cache_entity, cache_key, results)
-
-          return results
     
     @login_required
     def resolve_coordinator_options(root, info, query=None, roles=[], limit=None, offset=None, **kwargs):
@@ -1149,15 +1126,15 @@ class Query(ObjectType):
     def resolve_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
         current_user = info.context.user
-        # cache_entity = CACHE_ENTITIES['COURSES']
+        cache_entity = CACHE_ENTITIES['COURSES']
 
-        # cache_key = generate_courses_cache_key(
-        #     cache_entity, searchField, limit, offset, current_user)
+        cache_key = generate_courses_cache_key(
+            cache_entity, searchField, limit, offset, current_user)
 
-        # cached_response = fetch_cache(cache_entity, cache_key)
+        cached_response = fetch_cache(cache_entity, cache_key)
 
-        # if cached_response:
-            # return cached_response
+        if cached_response:
+            return cached_response
 
         qs = rows_accessible(current_user, RESOURCES['COURSE'])
         if searchField is not None:
@@ -1173,7 +1150,7 @@ class Query(ObjectType):
             qs = qs[:limit]
         PUBLISHED = Course.StatusChoices.PUBLISHED
 
-        participant_record = CourseParticipant.objects.filter(participant__in=[current_user])
+        participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         results = MemberCourses(records=qs,participant_record=participant_record)
         # set_cache(cache_entity, cache_key, results)
         return results
@@ -1183,11 +1160,9 @@ class Query(ObjectType):
 
         current_user = info.context.user.id
         PUBLISHED = Course.StatusChoices.PUBLISHED
-        qs = rows_accessible(current_user, RESOURCES['MEMBER_COURSE'])
-
-        # qs = Course.objects.filter( Q(instructors__in=[current_user])|Q(courseparticipant__participant=current_user)).distinct().order_by("created_at")
+        qs = Course.objects.filter(
+                 status=PUBLISHED,courseparticipant__participant=current_user).distinct().order_by("created_at")
         participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
-        
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -1199,41 +1174,7 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
-        # redacted_qs = []
-
-        # # if admin_user:
-        # redacted_qs = qs
-        
-        # for user in qs:
-        #     user = redact_user(root, info, user)
-        #     redacted_qs.append(user)
-
-        draft = []
-        publish = []
-        completed = []
-        others = []
-        for course in qs:
-            print('course.id',course.id)
-            psobjs = Course.objects.filter(pk=course.id)
-            # participant=current_user,course=id
-            print('psobjs',psobjs)
-            print('course',course)
-            # queryset = CourseParticipant.objects.filter(participant_id__in=psobjs.values('participants'))
-            
-            queryset = CourseParticipant.objects.filter(participant__in=psobjs.values('participants'),course_id=course.id)
-            print('queryset',queryset)
-
-            # for participant in queryset:
-            #     if(participant.completed == True):
-            #         completed.append(course)
-            #     if(participant.audit == True):
-            #         others.append(course)
-            if course.status == Course.StatusChoices.DRAFT:
-                draft.append(course)
-            elif course.status == Course.StatusChoices.PUBLISHED :
-                publish.append(course)
-        sorted_qs =  draft + publish + completed + others
-        results = MemberCourses(records=sorted_qs,participant_record=participant_record)
+        results = MemberCourses(records=qs,participant_record=participant_record)
 
         return results
 

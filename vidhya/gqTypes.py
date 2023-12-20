@@ -195,7 +195,6 @@ class CourseType(DjangoObjectType):
     report = graphene.Field(ReportType)
     locked = graphene.Boolean()
     instructors = graphene.List(CourseInstructorType)
-    audit = graphene.Boolean()
 
     def resolve_instructors(self,info):
         instructors = None
@@ -207,19 +206,9 @@ class CourseType(DjangoObjectType):
     
     def resolve_completed(self, info):
         user = info.context.user
-        print('user id',user.id)
-        completed = CourseParticipant.objects.filter(
-            participant_id=user.id, course_id=self.id,completed=True).exists()
-        print('completed',completed)
+        completed = CompletedCourses.objects.filter(
+            participant_id=user.id, course_id=self.id).exists()
         return completed
-    
-    def resolve_audit(self, info):
-        user = info.context.user
-        print('user id',user.id)
-        audit = CourseParticipant.objects.filter(
-            participant_id=user.id, course_id=self.id,audit=True).exists()
-        print('audit',audit)
-        return audit
 
     def resolve_report(self, info):
         report = None
