@@ -276,9 +276,8 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         PUBLISHED = Course.StatusChoices.PUBLISHED
         if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
             qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructors__in=[user.id])).distinct().order_by("-created_at")
+                Q(participants__in=[user]) | Q(instructors__in=[user.id]),status=PUBLISHED).distinct().order_by("-created_at")
         else:
-            print('hello2')
             qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
             # qs = Course.objects.all().filter(
                 # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
@@ -288,6 +287,28 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         else:
             qs = qs.filter(active=True)
         return qs
+    
+    if RESOURCE_TYPE == RESOURCES["MEMBER_COURSE"]:
+        PUBLISHED = Course.StatusChoices.PUBLISHED
+        DRAFT = Course.StatusChoices.DRAFT
+        qs = Course.objects.filter(
+             Q(instructors__in=[user],status=DRAFT)|Q(courseparticipant__participant=user)).distinct()
+        # print('course', Course.objects.filter( Q(instructors__in=[user])))
+        # .order_by("created_at")
+
+        # if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
+
+        #     qs = Course.objects.filter( Q(instructors__in=[user])|Q(courseparticipant__participant=user.id)).distinct().order_by("created_at")
+        #     print('user',user)
+        # else:
+        #     qs = Course.objects.filter(Q(courseparticipant__participant=user.id)).distinct().order_by("created_at")
+        if subscription_method == DELETE_METHOD:
+            qs = qs.filter(active=False)
+        else:
+            qs = qs.filter(active=True)
+        return qs
+
+            # participant_record = CourseParticipant.objects.filter(participant__in=[user],course__status=PUBLISHED)
 
     if RESOURCE_TYPE == RESOURCES["CHAPTER"]:
         course_id = options["course_id"]
