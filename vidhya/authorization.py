@@ -278,7 +278,6 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
             qs = Course.objects.all().filter(
                 Q(participants__in=[user]) | Q(instructors__in=[user.id]),status=PUBLISHED).distinct().order_by("-created_at")
         else:
-            print('hello2')
             qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
             # qs = Course.objects.all().filter(
                 # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
