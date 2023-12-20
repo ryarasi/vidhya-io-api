@@ -276,7 +276,8 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         PUBLISHED = Course.StatusChoices.PUBLISHED
         if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
             qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructors__in=[user.id])).distinct().order_by("-created_at")
+                Q(participants__in=[user]) | Q(instructors__in=[user.id]),status=PUBLISHED).distinct().order_by("-created_at")
+
         else:
             print('hello2')
             qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")

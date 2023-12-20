@@ -1161,7 +1161,7 @@ class Query(ObjectType):
         current_user = info.context.user.id
         PUBLISHED = Course.StatusChoices.PUBLISHED
         qs = Course.objects.filter(
-                 status=PUBLISHED,courseparticipant__participant=current_user).distinct().order_by("created_at")
+                courseparticipant__participant=current_user).distinct().order_by("created_at")
         participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         if searchField is not None:
             filter = (
