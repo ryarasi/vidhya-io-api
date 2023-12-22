@@ -1162,7 +1162,7 @@ class Query(ObjectType):
         PUBLISHED = Course.StatusChoices.PUBLISHED
         qs = Course.objects.filter(
                 courseparticipant__participant=current_user).distinct().order_by("created_at")
-        participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        participant_record = CourseParticipant.objects.filter(participant__in=[current_user])
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
