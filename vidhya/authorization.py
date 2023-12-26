@@ -56,6 +56,148 @@ ACTIONS = {
     "DELETE": "DELETE",
 }
 
+DEFAULT_USER_ROLE_PERMISSIONS = {
+ {
+  "GROUP": {
+    "GET": True,
+    "LIST": True,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "ISSUE": {
+    "GET": True,
+    "LIST": False,
+    "CREATE": True,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "COURSE": {
+    "GET": True,
+    "LIST": True,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "MEMBER": {
+    "GET": False,
+    "LIST": False,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "REPORT": {
+    "GET": False,
+    "LIST": False,
+    "CREATE": True,
+    "DELETE": False,
+    "UPDATE": True
+  },
+  "CHAPTER": {
+    "GET": True,
+    "LIST": True,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "GRADING": {
+    "GET": False,
+    "LIST": False,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "LEARNER": {
+    "GET": False,
+    "LIST": False,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "PROJECT": {
+    "GET": True,
+    "LIST": True,
+    "CREATE": True,
+    "DELETE": True,
+    "UPDATE": True
+  },
+  "USER_ROLE": {
+    "GET": False,
+    "LIST": False,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "MODERATION": {
+    "GET": False,
+    "LIST": False,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "CLASS_ADMIN": {
+    "GET": False,
+    "LIST": False,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "INSTITUTION": {
+    "GET": False,
+    "LIST": False,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "OWN_PROFILE": {
+    "GET": True,
+    "LIST": False,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": True
+  },
+  "ANNOUNCEMENT": {
+    "GET": True,
+    "LIST": True,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "EXERCISE_KEY": {
+    "GET": False,
+    "LIST": False,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "INSTITUTION_ADMIN": {
+    "GET": False,
+    "LIST": False,
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
+  },
+  "EXERCISE_SUBMISSION": {
+    "GET": True,
+    "LIST": False,
+    "CREATE": True,
+    "DELETE": False,
+    "UPDATE": True
+  }
+}
+}
+
+DEFAULT_USER_ROLE = {
+  "name":"Guest User",
+  "description":"This is the User role everybody inherits by default",
+  "priority": 5,
+  "permissions":DEFAULT_USER_ROLE_PERMISSIONS,
+  "searchfield":"learnerstudent user role",
+  "active":"true",
+  "created_at": "2023-08-11 09:24:15.123+00",
+  "updated_At":"2023-08-11 09:24:15.123+00",
+}
+
 
 def has_access(user=None, resource=None, action=None, silent=True):
     result = False
@@ -139,7 +281,7 @@ def is_chapter_locked(user, chapter):
 
     course_locked = is_course_locked(user, chapter.course) # Checking if this belongs to a course that is locked
     if course_locked:
-        # If the course is locked, we immediately return locked is true
+        # If the course is locked, we immediately return locked is True
         locked = 'This chapter is locked for you'
         return locked
 
@@ -274,12 +416,12 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
 
     if RESOURCE_TYPE == RESOURCES["COURSE"]:
         PUBLISHED = Course.StatusChoices.PUBLISHED
-        if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
-            qs = Course.objects.all().filter(
-                Q(participants__in=[user]) | Q(instructors__in=[user.id])).distinct().order_by("-created_at")
-        else:
-            print('hello2')
-            qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
+        # if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
+        #     qs = Course.objects.all().filter(
+        #         Q(participants__in=[user]) | Q(instructors__in=[user.id])).distinct().order_by("-created_at")
+        # else:
+        print('hello2')
+        qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
             # qs = Course.objects.all().filter(
                 # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
         
@@ -288,6 +430,22 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         else:
             qs = qs.filter(active=True)
         return qs
+    # if RESOURCE_TYPE == RESOURCES["COURSE"]:
+    #     PUBLISHED = Course.StatusChoices.PUBLISHED
+    #     if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
+    #         qs = Course.objects.all().filter(
+    #             Q(participants__in=[user]) | Q(instructors__in=[user.id]),status=PUBLISHED).distinct().order_by("-created_at")
+    #     else:
+    #         print('hello2')
+    #         qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
+    #         # qs = Course.objects.all().filter(
+    #             # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
+       
+    #     if subscription_method == DELETE_METHOD:
+    #         qs = qs.filter(active=False)
+    #     else:
+    #         qs = qs.filter(active=True)
+    #     return qs
 
     if RESOURCE_TYPE == RESOURCES["CHAPTER"]:
         course_id = options["course_id"]

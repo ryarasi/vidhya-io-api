@@ -9,6 +9,8 @@ from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
 from django.conf import settings
+
+from vidhya import authorization
 # from django.db.models import JSONField
 
 class LowercaseEmailField(models.EmailField):
@@ -34,7 +36,7 @@ class User(AbstractUser):
     institution = models.ForeignKey(
         'Institution', on_delete=models.PROTECT, blank=True, null=True)
     role = models.ForeignKey(
-        'UserRole', on_delete=models.PROTECT, blank=True, null=True)
+        'UserRole', on_delete=models.PROTECT, blank=True, null=True, default = authorization.DEFAULT_USERROLE_EXISTS['NAME'])
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
     address = models.CharField(max_length=300,blank=True,null=True)
