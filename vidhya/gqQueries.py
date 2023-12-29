@@ -240,8 +240,8 @@ class Query(ObjectType):
     users = graphene.Field(
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
     #Instructor Queries
-    instructors = graphene.Field(
-        Users,  role_name=graphene.String())
+    instructors = graphene.Field(Users)
+    graders = graphene.Field(Users)
     
     
     coordinator_options = graphene.Field(
@@ -642,22 +642,18 @@ class Query(ObjectType):
 
         return qs
     
-    def resolve_instructors(root, info, role_name, **kwargs):
-          cache_entity = CACHE_ENTITIES['USERS']
-          cache_key = generate_instructor_options_cache_key(cache_entity)
-
-          cached_response = fetch_cache(cache_entity, cache_key)
-
-          if cached_response:
-            return cached_response
+    def resolve_instructors(root, info, **kwargs):
           
           instructor_roles =  UserRole.objects.filter(permissions__COURSE__CREATE=True)
           qs = User.objects.filter(role__in = instructor_roles,active=True)
           results = Users(records=qs, total=len(qs))
-
-          set_cache(cache_entity, cache_key, results)
-
           return results
+    
+    def resolve_graders(root, info, **kwargs):
+        graders_role = UserRole.objects.filter(permissions__GRADING__CREATE=True)
+        qs = User.objects.filter(role__in = graders_role,active=True)
+        results = Users(records=qs, total=len(qs))
+        return results
     
     @login_required
     def resolve_coordinator_options(root, info, query=None, roles=[], limit=None, offset=None, **kwargs):
@@ -1211,28 +1207,22 @@ class Query(ObjectType):
         draft = []
         publish = []
         completed = []
-        others = []
+        audit = []
         for course in qs:
-            print('course.id',course.id)
-            psobjs = Course.objects.filter(pk=course.id)
-            # participant=current_user,course=id
-            print('psobjs',psobjs)
-            print('course',course)
-            # queryset = CourseParticipant.objects.filter(participant_id__in=psobjs.values('participants'))
-            
-            queryset = CourseParticipant.objects.filter(participant__in=psobjs.values('participants'),course_id=course.id)
-            print('queryset',queryset)
+            isCourseCompleted = CourseType.resolve_completed(course,info)
 
-            # for participant in queryset:
-            #     if(participant.completed == True):
-            #         completed.append(course)
-            #     if(participant.audit == True):
-            #         others.append(course)
+            isCourseAudit = CourseType.resolve_audit(course,info)
             if course.status == Course.StatusChoices.DRAFT:
                 draft.append(course)
-            elif course.status == Course.StatusChoices.PUBLISHED :
+            elif course.status == Course.StatusChoices.PUBLISHED and isCourseCompleted==False and isCourseAudit==False:
                 publish.append(course)
-        sorted_qs =  draft + publish + completed + others
+            elif isCourseCompleted:
+                completed.append(course)
+                print('course',course)
+            elif isCourseAudit:
+                audit.append(course)
+
+        sorted_qs =  draft + publish + audit + completed
         results = MemberCourses(records=sorted_qs,participant_record=participant_record)
 
         return results

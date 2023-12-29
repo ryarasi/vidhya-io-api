@@ -207,18 +207,14 @@ class CourseType(DjangoObjectType):
     
     def resolve_completed(self, info):
         user = info.context.user
-        print('user id',user.id)
         completed = CourseParticipant.objects.filter(
             participant_id=user.id, course_id=self.id,completed=True).exists()
-        print('completed',completed)
         return completed
     
     def resolve_audit(self, info):
         user = info.context.user
-        print('user id',user.id)
         audit = CourseParticipant.objects.filter(
             participant_id=user.id, course_id=self.id,audit=True).exists()
-        print('audit',audit)
         return audit
 
     def resolve_report(self, info):
