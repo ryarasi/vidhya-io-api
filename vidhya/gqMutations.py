@@ -7,7 +7,7 @@ import graphene
 import datetime
 import graphql_social_auth
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, CompletedCourses, CourseGrader, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput,UserRoleInput,  UserType,UsersType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
@@ -2031,12 +2031,9 @@ class AuditCourseParticipant(graphene.Mutation):
         if course_instance:
             if user_id or user_id == []:
                 participant_record={}
-                print('audit',audit)
                 if audit==False:
                     course_instance.participants.remove(user_id)
                 else:
-                    print('user_id',user_id)
-                    print('course_id',id)
                     course_instance.participants.add(user_id)
                     course_part = CourseParticipant.objects.all().get(participant_id=user_id,course_id=id)
                     course_part.audit= audit
@@ -4089,28 +4086,6 @@ class BulkUpdateUserSearchField(graphene.Mutation):
         ok = True
         return BulkUpdateUserSearchField(ok=ok)
     
-class BulkTransferCourseParticipant(graphene.Mutation):
-    class Meta:
-        description = "Transfer all the data from course completed to course participant"
-
-    ok = graphene.Boolean()
-
-    @staticmethod
-    @login_required
-    @user_passes_test(lambda user: is_admin_user(user))
-    def mutate(root, info):
-        ok = False
-        for completedCourse in CompletedCourses.objects.all().iterator():
-            if CourseParticipant.objects.filter(course_id=completedCourse.course_id,participant_id=completedCourse.participant_id):
-                courseInstance = CourseParticipant.objects.get(course_id=completedCourse.course_id,participant_id=completedCourse.participant_id)
-                courseInstance.completed_course = True
-                courseInstance.save()
-            else:
-                courseInstance = CourseParticipant(completed=True,audit = False,participant_id = completedCourse.participant_id,course_id = completedCourse.course_id)
-                courseInstance.save()
-            print('completedCourse',completedCourse)
-            ok = True
-        return BulkTransferCourseParticipant(ok = ok)
 
 # createGoogleToken
 
@@ -4269,8 +4244,6 @@ class Mutation(graphene.ObjectType):
     # Admin mutations
     clear_server_cache = ClearServerCache.Field()
     bulk_update_user_searchField = BulkUpdateUserSearchField.Field()
-    bulk_transfer_course_participant = BulkTransferCourseParticipant.Field()
-
 
     # Social AUth
     social_auth = graphql_social_auth.SocialAuthJWT.Field()
