@@ -302,7 +302,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
             qs = qs.filter(active=True)
         return qs
 
-    if RESOURCE_TYPE == RESOURCES["CHAPTER"]:
+    if RESOURCE_TYPE == RESOURCES["CHAPTER"]: 
         course_id = options["course_id"]
         PUBLISHED = Course.StatusChoices.PUBLISHED
         if has_access(user, RESOURCES["CHAPTER"], ACTIONS["CREATE"]):

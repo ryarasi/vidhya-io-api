@@ -228,7 +228,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'shuddhidb',
-        'USER': 'shuddhiadmin',
+        'USER': 'shuddhiadmin', 
         'PASSWORD': 'password',
         'HOST': 'db',
         'PORT': '5432',

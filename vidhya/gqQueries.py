@@ -729,7 +729,7 @@ class Query(ObjectType):
 
         # Sorting the results by score before proceeding with pagination
         public_users.sort(key=lambda x: x.score, reverse=True)
-
+ 
         if offset is not None:
             public_users = public_users[offset:]
 
