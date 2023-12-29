@@ -206,9 +206,15 @@ class CourseType(DjangoObjectType):
     
     def resolve_completed(self, info):
         user = info.context.user
-        completed = CompletedCourses.objects.filter(
-            participant_id=user.id, course_id=self.id).exists()
+        completed = CourseParticipant.objects.filter(
+            participant_id=user.id, course_id=self.id,completed=True).exists()
         return completed
+    
+    def resolve_audit(self, info):
+        user = info.context.user
+        audit = CourseParticipant.objects.filter(
+            participant_id=user.id, course_id=self.id,audit=True).exists()
+        return audit
 
     def resolve_report(self, info):
         report = None
