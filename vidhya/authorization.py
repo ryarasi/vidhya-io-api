@@ -276,28 +276,16 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
 
     if RESOURCE_TYPE == RESOURCES["COURSE"]:
         PUBLISHED = Course.StatusChoices.PUBLISHED
-        # if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
-        #     qs = Course.objects.all().filter(status=PUBLISHED).distinct().order_by("-created_at")
-        # else:
-        qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
+        if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
+            qs = Course.objects.all().filter(
+                Q(participants__in=[user]) | Q(instructors__in=[user.id]),status=PUBLISHED).distinct().order_by("-created_at")
+
+        else:
+            print('hello2')
+            qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
             # qs = Course.objects.all().filter(
                 # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
         
-        if subscription_method == DELETE_METHOD:
-            qs = qs.filter(active=False)
-        else:
-            qs = qs.filter(active=True)
-        return qs
-    
-    if RESOURCE_TYPE == RESOURCES["MEMBER_COURSE"]:
-        PUBLISHED = Course.StatusChoices.PUBLISHED
-        DRAFT = Course.StatusChoices.DRAFT
-        userInstance = User.objects.get(pk=user)
-        admin_user = is_admin_user(userInstance)
-        if  admin_user:#if logged user is Super Admin, then fetch all draft courses. Also, fetch published course that are joined or in the try mode
-            qs =  Course.objects.filter(Q(status=DRAFT)|Q(courseparticipant__participant=user) & Q(status=PUBLISHED)).distinct()
-        else:    #logged user is not Super Admin, then fetch all draft courses which is created by the logged in instructor. Also, fetch published course that are joined or in the try mode
-            qs = Course.objects.filter(Q(courseinstructor__instructor=user) & Q(status=DRAFT)|Q(courseparticipant__participant=user) & Q(status=PUBLISHED)).distinct()
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
         else:
