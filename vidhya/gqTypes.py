@@ -195,7 +195,6 @@ class CourseType(DjangoObjectType):
     report = graphene.Field(ReportType)
     locked = graphene.Boolean()
     instructors = graphene.List(CourseInstructorType)
-    audit = graphene.Boolean()
 
     def resolve_instructors(self,info):
         instructors = None
