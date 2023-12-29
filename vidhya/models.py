@@ -371,7 +371,7 @@ class CourseParticipant(models.Model):
     def __str__(self):
         return f'Course {self.course.title}, Participant {self.participant.name}'
 
-class CourseGrader(models.Model):
+class CourseGrader(models.Model): 
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     grader = models.ForeignKey(User, on_delete=models.CASCADE)
 
