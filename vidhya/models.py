@@ -367,10 +367,11 @@ class CourseParticipant(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
     audit = models.BooleanField(User,default=False)
+    completed = models.BooleanField(Course, default= False) 
     def __str__(self):
         return f'Course {self.course.title}, Participant {self.participant.name}'
 
-class CourseGrader(models.Model):
+class CourseGrader(models.Model): 
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     grader = models.ForeignKey(User, on_delete=models.CASCADE)
 
