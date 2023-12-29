@@ -238,11 +238,6 @@ class Query(ObjectType):
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
-    #Instructor Queries
-    instructors = graphene.Field(Users)
-    graders = graphene.Field(Users)
-    
-    
     coordinator_options = graphene.Field(
         Users,query=graphene.String(), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
     # User Role Queries
@@ -640,19 +635,6 @@ class Query(ObjectType):
         set_cache(cache_entity, cache_key, qs)
 
         return qs
-    
-    def resolve_instructors(root, info, **kwargs):
-          
-          instructor_roles =  UserRole.objects.filter(permissions__COURSE__CREATE=True)
-          qs = User.objects.filter(role__in = instructor_roles,active=True)
-          results = Users(records=qs, total=len(qs))
-          return results
-    
-    def resolve_graders(root, info, **kwargs):
-        graders_role = UserRole.objects.filter(permissions__GRADING__CREATE=True)
-        qs = User.objects.filter(role__in = graders_role,active=True)
-        results = Users(records=qs, total=len(qs))
-        return results
     
     @login_required
     def resolve_coordinator_options(root, info, query=None, roles=[], limit=None, offset=None, **kwargs):
@@ -1192,35 +1174,7 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
-        # redacted_qs = []
-
-        # # if admin_user:
-        # redacted_qs = qs
-        
-        # for user in qs:
-        #     user = redact_user(root, info, user)
-        #     redacted_qs.append(user)
-
-        draft = []
-        publish = []
-        completed = []
-        audit = []
-        for course in qs:
-            isCourseCompleted = CourseType.resolve_completed(course,info)
-
-            isCourseAudit = CourseType.resolve_audit(course,info)
-            if course.status == Course.StatusChoices.DRAFT:
-                draft.append(course)
-            elif course.status == Course.StatusChoices.PUBLISHED and isCourseCompleted==False and isCourseAudit==False:
-                publish.append(course)
-            elif isCourseCompleted:
-                completed.append(course)
-                print('course',course)
-            elif isCourseAudit:
-                audit.append(course)
-
-        sorted_qs =  draft + publish + audit + completed
-        results = MemberCourses(records=sorted_qs,participant_record=participant_record)
+        results = MemberCourses(records=qs,participant_record=participant_record)
 
         return results
 
