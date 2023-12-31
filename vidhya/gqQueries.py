@@ -710,7 +710,7 @@ class Query(ObjectType):
 
         # Sorting the results by score before proceeding with pagination
         public_users.sort(key=lambda x: x.score, reverse=True)
-
+ 
         if offset is not None:
             public_users = public_users[offset:]
 
@@ -1161,8 +1161,8 @@ class Query(ObjectType):
         current_user = info.context.user.id
         PUBLISHED = Course.StatusChoices.PUBLISHED
         qs = Course.objects.filter(
-                 status=PUBLISHED,courseparticipant__participant=current_user).distinct().order_by("created_at")
-        participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+                courseparticipant__participant=current_user).distinct().order_by("created_at")
+        participant_record = CourseParticipant.objects.filter(participant__in=[current_user])
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())

@@ -24,5 +24,18 @@ services:
       - redis
     restart: "on-failure"
 
+  # pgadmin:
+  #     image: dpage/pgadmin4
+  #     container_name: vidhya_io_pgadmin #you can change this
+  #     depends_on:
+  #       - db
+  #       - web
+  #     ports:
+  #       - "8001:80"
+  #     environment:
+  #       PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+  #       PGADMIN_DEFAULT_PASSWORD: root
+  #     restart: always
+  
 volumes:
   database-data: # named volumes can be managed easier using docker-compose
