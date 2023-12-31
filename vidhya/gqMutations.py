@@ -1935,7 +1935,7 @@ class UpdateCourse(graphene.Mutation):
                 course_instance.graders.clear()
                 course_instance.graders.add(*input.grader_ids)
             
-            if input.instructor_ids or input.instructor_ids == []:
+            if input.instructor_ids or input.instructor_ids == []: 
                 course_instance.instructors.clear()
                 course_instance.instructors.add(*input.instructor_ids)
 
