@@ -2031,12 +2031,9 @@ class AuditCourseParticipant(graphene.Mutation):
         if course_instance:
             if user_id or user_id == []:
                 participant_record={}
-                print('audit',audit)
                 if audit==False:
                     course_instance.participants.remove(user_id)
                 else:
-                    print('user_id',user_id)
-                    print('course_id',id)
                     course_instance.participants.add(user_id)
                     course_part = CourseParticipant.objects.all().get(participant_id=user_id,course_id=id)
                     course_part.audit= audit
