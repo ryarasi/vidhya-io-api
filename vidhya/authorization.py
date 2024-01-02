@@ -134,7 +134,7 @@ def is_chapter_locked(user, chapter):
     instructor_ids = chapter.course.instructors.values_list('id',flat=True)
     instructor = user.id in instructor_ids
 
-    if instructor or grader:
+    if grader or instructor:
         # If yes, we mark it as unlocked
         locked = False
         return locked
@@ -276,10 +276,13 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
 
     if RESOURCE_TYPE == RESOURCES["COURSE"]:
         PUBLISHED = Course.StatusChoices.PUBLISHED
-        # if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
-        #     qs = Course.objects.all().filter(status=PUBLISHED).distinct().order_by("-created_at")
-        # else:
-        qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
+        if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
+            qs = Course.objects.all().filter(
+                Q(participants__in=[user]) | Q(instructors__in=[user.id]),status=PUBLISHED).distinct().order_by("-created_at")
+
+        else:
+            print('hello2')
+            qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
             # qs = Course.objects.all().filter(
                 # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
         

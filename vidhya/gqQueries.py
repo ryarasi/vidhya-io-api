@@ -237,13 +237,12 @@ class Query(ObjectType):
     user = graphene.Field(UserType, id=graphene.ID())
     users = graphene.Field(
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
+    coordinator_options = graphene.Field(
+        Users,query=graphene.String(), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
     #Instructor Queries
     instructors = graphene.Field(Users)
     graders = graphene.Field(Users)
     
-    
-    coordinator_options = graphene.Field(
-        Users,query=graphene.String(), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
     # User Role Queries
     user_role = graphene.Field(UserRoleType, role_name=graphene.String())
     user_roles = graphene.Field(
@@ -563,7 +562,7 @@ class Query(ObjectType):
 
         qs = rows_accessible(current_user, RESOURCES['MEMBER'], {
                              'all_institutions': all_institutions})
-        
+
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower()) | Q(
@@ -1167,7 +1166,7 @@ class Query(ObjectType):
             qs = qs[:limit]
         PUBLISHED = Course.StatusChoices.PUBLISHED
 
-        participant_record = CourseParticipant.objects.filter(participant__in=[current_user])
+        participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         results = MemberCourses(records=qs,participant_record=participant_record)
         set_cache(cache_entity, cache_key, results)
         return results
@@ -1193,35 +1192,7 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
-        # redacted_qs = []
-
-        # # if admin_user:
-        # redacted_qs = qs
-        
-        # for user in qs:
-        #     user = redact_user(root, info, user)
-        #     redacted_qs.append(user)
-
-        draft = []
-        publish = []
-        completed = []
-        audit = []
-        for course in qs:
-            isCourseCompleted = CourseType.resolve_completed(course,info)
-
-            isCourseAudit = CourseType.resolve_audit(course,info)
-            if course.status == Course.StatusChoices.DRAFT:
-                draft.append(course)
-            elif course.status == Course.StatusChoices.PUBLISHED and isCourseCompleted==False and isCourseAudit==False:
-                publish.append(course)
-            elif isCourseCompleted:
-                completed.append(course)
-                print('course',course)
-            elif isCourseAudit:
-                audit.append(course)
-
-        sorted_qs =  draft + publish + audit + completed
-        results = MemberCourses(records=sorted_qs,participant_record=participant_record)
+        results = MemberCourses(records=qs,participant_record=participant_record)
 
         return results
 
