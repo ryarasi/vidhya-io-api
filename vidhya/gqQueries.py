@@ -639,7 +639,7 @@ class Query(ObjectType):
         set_cache(cache_entity, cache_key, qs)
 
         return qs
-    
+     
     def resolve_instructors(root, info, **kwargs):
           
           instructor_roles =  UserRole.objects.filter(permissions__COURSE__CREATE=True)
