@@ -291,6 +291,21 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         else:
             qs = qs.filter(active=True)
         return qs
+    
+    if RESOURCE_TYPE == RESOURCES["MEMBER_COURSE"]:
+        PUBLISHED = Course.StatusChoices.PUBLISHED
+        DRAFT = Course.StatusChoices.DRAFT
+        userInstance = User.objects.get(pk=user)  
+        admin_user = is_admin_user(userInstance)
+        if  admin_user:#if logged user is Super Admin, then fetch all draft courses. Also, fetch published course that are joined or in the try mode
+            qs =  Course.objects.filter(Q(status=DRAFT)|Q(courseparticipant__participant=user) & Q(status=PUBLISHED)).distinct()
+        else:    #logged user is not Super Admin, then fetch all draft courses which is created by the logged in instructor. Also, fetch published course that are joined or in the try mode
+            qs = Course.objects.filter(Q(courseinstructor__instructor=user) & Q(status=DRAFT)|Q(courseparticipant__participant=user) & Q(status=PUBLISHED)).distinct()
+        if subscription_method == DELETE_METHOD:
+            qs = qs.filter(active=False)
+        else:
+            qs = qs.filter(active=True)
+        return qs
 
     if RESOURCE_TYPE == RESOURCES["CHAPTER"]: 
         course_id = options["course_id"]
