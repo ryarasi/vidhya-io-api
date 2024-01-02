@@ -12,7 +12,6 @@ from django.core.cache import cache
 from .cache import CACHE_ENTITIES, fetch_cache, generate_admin_groups_cache_key, generate_announcements_cache_key, generate_assignments_cache_key, generate_chapters_cache_key, generate_course_participants_cache_key, generate_courses_cache_key, generate_exercise_keys_cache_key, generate_exercises_cache_key, generate_groups_cache_key, generate_institutions_cache_key, generate_member_courses_cache_key, generate_projects_cache_key, generate_public_announcements_cache_key, generate_public_courses_cache_key, generate_public_institutions_cache_key, generate_public_users_cache_key, generate_reports_cache_key, generate_submission_groups_cache_key, generate_submissions_cache_key, generate_user_roles_cache_key, generate_users_cache_key, generate_public_users_cache_key,generate_coordinator_options_cache_key, set_cache
 from datetime import date, datetime, timedelta
 
-
 def generate_public_institution(institution):
     learnerCount = 0
     score = 0
@@ -1152,17 +1151,19 @@ class Query(ObjectType):
 
         participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         results = MemberCourses(records=qs,participant_record=participant_record)
-        # set_cache(cache_entity, cache_key, results)
+        set_cache(cache_entity, cache_key, results)
         return results
     
     @login_required
     def resolve_member_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
         current_user = info.context.user.id
-        PUBLISHED = Course.StatusChoices.PUBLISHED
-        qs = Course.objects.filter(
-                courseparticipant__participant=current_user).distinct().order_by("created_at")
-        participant_record = CourseParticipant.objects.filter(participant__in=[current_user])
+        PUBLISHED = Course.StatusChoices.PUBLISHED 
+        qs = rows_accessible(current_user, RESOURCES['MEMBER_COURSE'])
+
+        # qs = Course.objects.filter( Q(instructors__in=[current_user])|Q(courseparticipant__participant=current_user)).distinct().order_by("created_at")
+        participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
