@@ -292,7 +292,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
     if RESOURCE_TYPE == RESOURCES["MEMBER_COURSE"]:
         PUBLISHED = Course.StatusChoices.PUBLISHED
         DRAFT = Course.StatusChoices.DRAFT
-        userInstance = User.objects.get(pk=user) 
+        userInstance = User.objects.get(pk=user)  
         admin_user = is_admin_user(userInstance)
         if  admin_user:#if logged user is Super Admin, then fetch all draft courses. Also, fetch published course that are joined or in the try mode
             qs =  Course.objects.filter(Q(status=DRAFT)|Q(courseparticipant__participant=user) & Q(status=PUBLISHED)).distinct()
