@@ -292,7 +292,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
             qs = qs.filter(active=True)
         return qs
     
-    if RESOURCE_TYPE == RESOURCES["MEMBER_COURSE"]:
+    if RESOURCE_TYPE == RESOURCES["MEMBER_COURSE"]: 
         PUBLISHED = Course.StatusChoices.PUBLISHED
         DRAFT = Course.StatusChoices.DRAFT
         userInstance = User.objects.get(pk=user)  

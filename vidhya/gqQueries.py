@@ -239,6 +239,10 @@ class Query(ObjectType):
         Users, searchField=graphene.String(), membership_status_not=graphene.List(graphene.String), membership_status_is=graphene.List(graphene.String), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
     coordinator_options = graphene.Field(
         Users,query=graphene.String(), roles=graphene.List(graphene.String), limit=graphene.Int(), offset=graphene.Int())
+    #Instructor Queries
+    instructors = graphene.Field(Users)
+    graders = graphene.Field(Users)
+    
     # User Role Queries
     user_role = graphene.Field(UserRoleType, role_name=graphene.String())
     user_roles = graphene.Field(
@@ -634,6 +638,19 @@ class Query(ObjectType):
         set_cache(cache_entity, cache_key, qs)
 
         return qs
+     
+    def resolve_instructors(root, info, **kwargs):
+          
+          instructor_roles =  UserRole.objects.filter(permissions__COURSE__CREATE=True)
+          qs = User.objects.filter(role__in = instructor_roles,active=True)
+          results = Users(records=qs, total=len(qs))
+          return results
+    
+    def resolve_graders(root, info, **kwargs):
+        graders_role = UserRole.objects.filter(permissions__GRADING__CREATE=True)
+        qs = User.objects.filter(role__in = graders_role,active=True)
+        results = Users(records=qs, total=len(qs))
+        return results
     
     @login_required
     def resolve_coordinator_options(root, info, query=None, roles=[], limit=None, offset=None, **kwargs):
