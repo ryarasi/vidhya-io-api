@@ -1192,7 +1192,25 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
-        results = MemberCourses(records=qs,participant_record=participant_record)
+        draft = []
+        publish = []
+        completed = []
+        audit = []
+        for course in qs:
+            isCourseCompleted = CourseType.resolve_completed(course,info)
+
+            isCourseAudit = CourseType.resolve_audit(course,info)
+            if course.status == Course.StatusChoices.DRAFT:
+                draft.append(course)
+            elif course.status == Course.StatusChoices.PUBLISHED and isCourseCompleted==False and isCourseAudit==False:
+                publish.append(course)
+            elif isCourseCompleted:
+                completed.append(course)
+            elif isCourseAudit:
+                audit.append(course)
+
+        sorted_qs =  draft + publish + audit + completed
+        results = MemberCourses(records=sorted_qs,participant_record=participant_record)
 
         return results
 
