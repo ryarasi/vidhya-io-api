@@ -13,7 +13,7 @@
     "migrate": "docker compose run web python manage.py migrate",
     "test": "echo \"Error: no test specified\" && exit 1",
     "stage": "git checkout staging && git pull origin staging && git push origin staging && git push github staging",
-    "golive": "git checkout staging && git pull origin staging && git checkout master && git merge staging && git push origin master && git push github master && git checkout dev && git merge master && git push origin dev",
+    "golive": "git checkout staging && git pull origin staging && git checkout master && git merge staging && git push origin master && git push github master && git push github master && git checkout dev && git merge master && git push origin dev",
     "sync-all": "npm run stage && npm run golive"
   },
   "repository": {
