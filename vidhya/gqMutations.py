@@ -24,6 +24,7 @@ from django.contrib.auth import get_user_model
 from datetime import date, datetime, timezone
 import re
 from django.contrib.auth.hashers import make_password
+from django.template.loader import render_to_string
 
 
 
@@ -255,10 +256,12 @@ class GenerateEmailOTP(graphene.Mutation):
         send_mail(
             'Your email verification code',
             'Dear user,\n\nThe code for verifying your email ID is as follows\n\n' +
-            email_otp.otp + '\n\n<small><i>This email was sent automatically. Please do not reply to this.</i></small>',
+            email_otp.otp + '\n\nThis email was sent automatically. Please do not reply to this.',
             settings.DEFAULT_FROM_EMAIL,
             [email_otp.email],
             fail_silently=False,
+            html_message='Dear user,<br><br>The code for verifying your email ID is as follows<br><br>' +
+            email_otp.otp + '<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
         )
 
     @staticmethod
@@ -331,13 +334,20 @@ class UpdateRegisteredUser(graphene.Mutation):
         user_instance.last_name = last_name
         user_instance.save()
         emailotp = EmailOTP.objects.get(email=email)
+        context = {
+                'user_name': first_name+' '+last_name,
+                'subject':  'Your email registered successfully',
+            }
+
         send_mail(
             'Your email registered successfully',
             'Dear '+first_name+' '+last_name+',\n\nYour email is registered successfully. The credentials to login your account are as follows\n\nUsername: ' +
-            user_instance.username + '\n\nPassword: '+emailotp.otp+'\n\n<small><i>This email was sent automatically. Please do not reply to this.</i></small>',
+            user_instance.username + '\n\nPassword: '+emailotp.otp+'\n\nThis email was sent automatically. Please do not reply to this.',
             settings.DEFAULT_FROM_EMAIL,
             [user_instance.email],
             fail_silently=False,
+            html_message='Dear '+first_name+' '+last_name+',<br><br>Your email is registered successfully. The credentials to login your account are as follows<br><br>Username: ' +
+            user_instance.username + '<br>Password: '+emailotp.otp+'<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
         )
         print('user',user_instance)
         users_modified()  # Invalidating users cache
@@ -509,7 +519,33 @@ class usernameValidation(graphene.Mutation):
             return usernameValidation(usernameNotExist=False,message='Username exists',usernamePatternMatch =usernamePatternMatch) 
         else:
             return usernameValidation(usernameNotExist=True,message='Username not exists',usernamePatternMatch=usernamePatternMatch)
+
+class checkUsernameExist(graphene.Mutation):   
+    
+    class Meta:
+        description = "Mutation to validate  Username exist"
+
+    class Arguments:
+        username = graphene.String(required=True)
+
+    message = graphene.String()
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, username=None):
+        ok = False
+        print('username',username)
+        usernameExistStatus = User.objects.filter(username=username).exists()
+        # EmailOTP.objects.get(email=email)
+        if usernameExistStatus:
+            ok = False
+            message = 'Username is exist'
+        else:
+            ok = True
+            message = 'Username is not exist'
         
+        return checkUsernameExist(ok=ok,message=message)
+     
 class createUpdatedateBulkUser(graphene.Mutation):
     class Meta:
         description = "Mutation to update a bulk User"
@@ -581,21 +617,25 @@ class createUpdatedateBulkUser(graphene.Mutation):
                     user_instance.save()
                     selectedUser.success = True
                     selectedUser.errormessage = ''
-                    notification_text = 'Dear '+user_instance.name+',\n\n'+info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin updated the detail to the following:\n\nFirst name :'+ user.first_name+'\nLast name: '+user.last_name+'\nEmail:'+user_instance.email+'\nUsername:'+user_instance.username+'\nRole:'+user_instance.role_id+'\nInstitution:'+user_instance.institution.name+'\nDesignation:'+user_instance.designation+'\n\nIf the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.\n\n<small><i>This email was sent automatically. Please do not reply to this.</i></small>'
+                    notification_text = 'Dear '+user_instance.name+',\n\n'+info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin updated the detail to the following:\n\nFirst name :'+ user.first_name+'\nLast name: '+user.last_name+'\nEmail:'+user_instance.email+'\nUsername:'+user_instance.username+'\nRole:'+user_instance.role_id+'\nInstitution:'+user_instance.institution.name+'\nDesignation:'+user_instance.designation+'\n\nIf the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.\n\nThis email was sent automatically. Please do not reply to this.'
+                    notification_html = 'Dear '+user_instance.name+',<br><br>'+info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin updated the detail to the following:<br><br>First name :'+ user.first_name+'<br>Last name: '+user.last_name+'<br>Email:'+user_instance.email+'<br>Username:'+user_instance.username+'<br>Role:'+user_instance.role_id+'<br>Institution:'+user_instance.institution.name+'<br>Designation:'+user_instance.designation+'<br><br>If the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
                     send_mail( 
                                 'Member is updated',
                                 notification_text,
                                 settings.DEFAULT_FROM_EMAIL,
                                 [user.email],
                                 fail_silently=False,
+                                html_message=notification_html
                     )
                 else:
                     selectedUser = user_instance
                     selectedUser.success = False
                     selectedUser.errormessage = json.dumps(selectedUser.errormessage)   
                 processed_count += 1
-            else:          
-                searchField = searchField.lower()   
+            else:         
+                searchField = '' 
+                if searchField is not None:
+                    searchField = searchField.lower()   
                 selectedUser = User
                 selectedUser.errormessage = {'firstName':None,'lastName':None,'phone':None,'email':None,'code':None,'designation':None} 
                 selectedUser.success = False
@@ -640,13 +680,15 @@ class createUpdatedateBulkUser(graphene.Mutation):
                     user_instance.save()
                     selectedUser.success = True
                     selectedUser.errormessage = ''
-                    notification_text = 'Dear '+user_instance.name+',\n\nYour account is added by '+ info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin. To login please use the following credential:\n\nUsername: '+user_instance.username+'\nPassword: '+user_instance.password+'.\n\nIf the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.\n\n<small><i>This email was sent automatically. Please do not reply to this.</i></small>'
+                    notification_text = 'Dear '+user_instance.name+',\n\nYour account is added by '+ info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin. To login please use the following credential:\n\nUsername: '+user_instance.username+'\nPassword: '+user_instance.password+'.\n\nIf the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.\n\nThis email was sent automatically. Please do not reply to this.'
+                    notification_html = 'Dear '+user_instance.name+',<br><br>Your account is added by '+ info.context.user.institution.coordinator.name+' of '+info.context.user.institution.name+' admin. To login please use the following credential:<br><br>Username: '+user_instance.username+'<br>Password: '+user_instance.password+'.<br><br>If the details are incorrect please contact '+shuddhi_vidhya.name+', phone number '+shuddhi_vidhya.coordinator.mobile+', email to '+shuddhi_vidhya.coordinator.email+'.<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
                     send_mail( 
                             'New member is added',
                             notification_text,
                             settings.DEFAULT_FROM_EMAIL,
                             [user.email],
                             fail_silently=False,
+                            html_message=notification_html
                     )
                     processed_count += 1
                 else:
@@ -664,7 +706,7 @@ class createUpdatedateBulkUser(graphene.Mutation):
     
     def mail_check(s):
         pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
-        if re.match(pat,s):
+        if re.match(pat,str(s)):
             return True
         else:
             return False
@@ -743,13 +785,15 @@ class UpdateUser(graphene.Mutation):
             UserRole = User.objects.filter(role=USER_ROLES_NAMES['SUPER_ADMIN'], active=True)  
             
             for superUser in UserRole:
-                        notification_text = 'Dear '+superUser.name+',\n\nThere is a new user with the username '+user_instance.name+' and email ID '+user_instance.email+' awaiting approval. There maybe more such users awaiting your approval.\nPlease click here to respond - '+settings.FRONTEND_DOMAIN_URL + '/dashboard?adminSection=MODERATION&membershipStatusIs=PE.\n\n<small><i>This email was sent automatically. Please do not reply to this.</i></small>'
+                        notification_text = 'Dear '+superUser.name+',\n\nThere is a new user with the username '+user_instance.name+' and email ID '+user_instance.email+' awaiting approval. There maybe more such users awaiting your approval.\nPlease click here to respond - '+settings.FRONTEND_DOMAIN_URL + '/dashboard?adminSection=MODERATION&membershipStatusIs=PE.\n\nThis email was sent automatically. Please do not reply to this.'
+                        notification_html = 'Dear '+superUser.name+',<br><br>There is a new user with the username '+user_instance.name+' and email ID '+user_instance.email+' awaiting approval. There maybe more such users awaiting your approval.<br>Please click here to respond - '+settings.FRONTEND_DOMAIN_URL + '/dashboard?adminSection=MODERATION&membershipStatusIs=PE.<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
                         send_mail( 
                         'New member is added, and waiting for your approval!',
                         notification_text,
                         settings.DEFAULT_FROM_EMAIL,
                         [superUser.email],
                         fail_silently=False,
+                        html_message=notification_html
                     )
         user_instance.save()
         users_modified()  # Invalidating users cache 
@@ -820,10 +864,13 @@ class ApproveUser(graphene.Mutation):
                 'Your Vidhya.io account is approved!',
                 'Dear '+user_instance.username+',\n\nYour account is now approved!\n\nPlease login with your credentials - '+settings.FRONTEND_DOMAIN_URL +
                 '.\n\nThis approval action was undertaken by ' +
-                current_user.name + '.\n\n<small><i>This email was sent automatically. Please do not reply to this.</i></small>',
+                current_user.name + '.\n\nThis email was sent automatically. Please do not reply to this.',
                 settings.DEFAULT_FROM_EMAIL,
                 [user_instance.email],
                 fail_silently=False,
+                html_message='Dear '+user_instance.username+',<br><br>Your account is now approved!<br><br>Please login with your credentials - '+settings.FRONTEND_DOMAIN_URL +
+                '.<br><br>This approval action was undertaken by ' +
+                current_user.name + '.<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
             )
             user_instance.save()
 
@@ -1888,7 +1935,7 @@ class UpdateCourse(graphene.Mutation):
                 course_instance.graders.clear()
                 course_instance.graders.add(*input.grader_ids)
             
-            if input.instructor_ids or input.instructor_ids == []:
+            if input.instructor_ids or input.instructor_ids == []: 
                 course_instance.instructors.clear()
                 course_instance.instructors.add(*input.instructor_ids)
 
@@ -2072,7 +2119,7 @@ class PublishCourse(graphene.Mutation):
 
     class Arguments:
         id = graphene.ID(required=True)
-        publish_chapters = graphene.Boolean(required=True)
+        publish_course = graphene.Boolean(required=True)
 
     ok = graphene.Boolean()
     course = graphene.Field(CourseType)
@@ -2080,20 +2127,25 @@ class PublishCourse(graphene.Mutation):
     @staticmethod
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['UPDATE']))
-    def mutate(root, info, id, publish_chapters):
+    def mutate(root, info, id, publish_course):
         ok = False
         course = Course.objects.get(pk=id, active=True)
         course_instance = course
         if course_instance:
             ok = True
-            course_instance.status = Course.StatusChoices.PUBLISHED
-            if publish_chapters == True:
-                chapters = Chapter.objects.filter(course=id, active=True)
-                for chapter in chapters:
-                    chapter.status = Chapter.StatusChoices.PUBLISHED
-                    chapter.save()
-                # write method to loop through chapters and mark them as published
-                pass
+            if publish_course == True:
+                course_instance.status = Course.StatusChoices.PUBLISHED
+                chapter_status = Chapter.StatusChoices.PUBLISHED
+
+            elif publish_course == False:
+                course_instance.status = Course.StatusChoices.DRAFT
+                chapter_status = Chapter.StatusChoices.DRAFT
+            chapters = Chapter.objects.filter(course=id, active=True)
+            for chapter in chapters:
+                chapter.status = chapter_status
+                chapter.save()
+            # write method to loop through chapters and mark them as published
+            pass
 
             course_instance.save()
 
@@ -3263,7 +3315,10 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
     def notify_graders(root, info, exercise_submission_instance):
         notification_text = exercise_submission_instance.participant.name + ' has submitted a new assignment for "' + exercise_submission_instance.chapter.title + \
             '" in "' + exercise_submission_instance.course.title + '".\n\nPlease visit ' + \
-            settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.\n\n<small><i>This email was sent automatically. Please do not reply to this.</i></small>'
+            settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.\n\nThis email was sent automatically. Please do not reply to this.'
+        notification_html = exercise_submission_instance.participant.name + ' has submitted a new assignment for "' + exercise_submission_instance.chapter.title + \
+            '" in "' + exercise_submission_instance.course.title + '".<br><br>Please visit ' + \
+            settings.FRONTEND_DOMAIN_URL + '/dashboard?tab=Grading to completed grading the work.<br><br><small><i>This email was sent automatically. Please do not reply to this.</i></small>'
         graders = CourseGrader.objects.filter(
             course_id=exercise_submission_instance.course.id).distinct()
         print('Graders => ', graders)
@@ -3275,6 +3330,7 @@ class CreateUpdateExerciseSubmissions(graphene.Mutation):
                 settings.DEFAULT_FROM_EMAIL,
                 recipient_list,
                 fail_silently=False,
+                html_message=notification_html
             )
         return
 
@@ -4113,6 +4169,7 @@ class Mutation(graphene.ObjectType):
     username_validation = usernameValidation.Field()
     # create_user = createUser.Field()
     create_update_bulk_user =createUpdatedateBulkUser.Field()
+    check_username_exist = checkUsernameExist.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     approve_user = ApproveUser.Field()

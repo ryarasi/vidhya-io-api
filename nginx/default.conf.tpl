@@ -2,6 +2,10 @@ upstream vidhya {
     server web:$PORT;
 }
 
+upstream camunda {
+    server camunda:$CAMUNDA_PORT;
+}
+
 server {
 
     listen 80;
@@ -17,6 +21,15 @@ server {
         proxy_redirect          off;
         client_max_body_size    10M;
     }
+
+    location /camunda/ {
+        proxy_pass              http://camunda;
+        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header        Host camunda;
+        proxy_redirect          off;
+        client_max_body_size    10M;
+    }
+
 
     location /ws/ {
         proxy_set_header Host               $http_host;

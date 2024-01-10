@@ -14,9 +14,7 @@ import os
 import dj_database_url
 from environ import Env              
 from datetime import timedelta
-from vidhya.authorization import DEFAULT_USER_ROLE
 
-from vidhya.models import UserRole
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -231,7 +229,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'shuddhidb',
-        'USER': 'shuddhiadmin',
+        'USER': 'shuddhiadmin', 
         'PASSWORD': 'password',
         'HOST': 'db',
         'PORT': '5432',
@@ -355,15 +353,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # This is here because we are using a custom User model
 # https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#substituting-a-custom-user-model
 AUTH_USER_MODEL = "vidhya.User"
-
-DEFAULT_USERROLE_EXISTS = UserRole.objects.get(name= DEFAULT_USER_ROLE).exists()
-if DEFAULT_USERROLE_EXISTS == False:
-    userrole_instance = UserRole(name = DEFAULT_USER_ROLE['name'], 
-                                 description = DEFAULT_USER_ROLE['description'],
-                                 priority = DEFAULT_USER_ROLE['priority'],
-                                 permissions= DEFAULT_USER_ROLE['permissions'],
-                                 searchfield = DEFAULT_USER_ROLE['searchfield'],
-                                 active = DEFAULT_USER_ROLE['active'],
-                                 created_at = DEFAULT_USER_ROLE['created_at'],
-                                 updated_At = DEFAULT_USER_ROLE['updated_At'])
-    userrole_instance.save()

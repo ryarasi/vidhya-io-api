@@ -1,7 +1,7 @@
 from django.db.models.query_utils import Q
 from graphql import GraphQLError
 from django.conf import settings
-from vidhya.models import CompletedChapters, CompletedCourses, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, Announcement, Chapter, Chat, ChatMessage, Course, CourseSection, Exercise, ExerciseKey, ExerciseSubmission, Group, Institution, Issue, Project, Report, UserRole
+from vidhya.models import CompletedChapters, CompletedCourses, CourseParticipant, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, Announcement, Chapter, Chat, ChatMessage, Course, CourseSection, Exercise, ExerciseKey, ExerciseSubmission, Group, Institution, Issue, Project, Report, UserRole
 
 SORT_BY_OPTIONS = {'NEW': 'NEW', 'TOP':'TOP'}
 
@@ -245,15 +245,18 @@ def is_course_locked(user, course):
    # objects.filter(email=input.email).exists()
     # Checking if the user is the author of the course
     instructor_ids = course.instructors.values_list('id',flat=True)
-    if instructor_ids== user.id:
+    instructor = user.id in instructor_ids
+    admin_user = is_admin_user(user)
+    if instructor or admin_user:
         # If yes, we mark it as unlocked
         locked = False
         return locked        
-    completed_courses = CompletedCourses.objects.all().filter(participant_id=user.id)
+    # completed_courses = CompletedCourses.objects.all().filter(participant_id=user.id)
+    completed_courses = CourseParticipant.objects.all().filter(participant_id=user.id,completed=True)
     required_courses = MandatoryRequiredCourses.objects.all().filter(course_id=course.id)
     required_course_ids = required_courses.values_list('requirement_id',flat=True)
     completed_course_ids = completed_courses.values_list('course_id',flat=True)
-
+    print('completed_course_ids',completed_course_ids)
     if required_course_ids:
         # If the course has prerequisites...
         if set(required_course_ids).issubset(set(completed_course_ids)):
@@ -271,12 +274,14 @@ def is_chapter_locked(user, chapter):
     # Letting the user see it if they are a grader
     user_role = user.role.name;
     grader = user_role == USER_ROLES_NAMES['GRADER']
+    admin_user = is_admin_user(user)
 
     # Checking if the user is the author of the course or a grader
     instructor_ids = chapter.course.instructors.values_list('id',flat=True)
-
-    if instructor_ids == user.id or grader:
+    instructor = user.id in instructor_ids
+    if admin_user or grader or instructor:
         # If yes, we mark it as unlocked
+        # locked = False
         return locked
 
     course_locked = is_course_locked(user, chapter.course) # Checking if this belongs to a course that is locked
@@ -417,10 +422,8 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
     if RESOURCE_TYPE == RESOURCES["COURSE"]:
         PUBLISHED = Course.StatusChoices.PUBLISHED
         # if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
-        #     qs = Course.objects.all().filter(
-        #         Q(participants__in=[user]) | Q(instructors__in=[user.id])).distinct().order_by("-created_at")
+        #     qs = Course.objects.all().filter(status=PUBLISHED).distinct().order_by("-created_at")
         # else:
-        print('hello2')
         qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
             # qs = Course.objects.all().filter(
                 # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
@@ -430,24 +433,23 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         else:
             qs = qs.filter(active=True)
         return qs
-    # if RESOURCE_TYPE == RESOURCES["COURSE"]:
-    #     PUBLISHED = Course.StatusChoices.PUBLISHED
-    #     if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
-    #         qs = Course.objects.all().filter(
-    #             Q(participants__in=[user]) | Q(instructors__in=[user.id]),status=PUBLISHED).distinct().order_by("-created_at")
-    #     else:
-    #         print('hello2')
-    #         qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
-    #         # qs = Course.objects.all().filter(
-    #             # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
-       
-    #     if subscription_method == DELETE_METHOD:
-    #         qs = qs.filter(active=False)
-    #     else:
-    #         qs = qs.filter(active=True)
-    #     return qs
+    
+    if RESOURCE_TYPE == RESOURCES["MEMBER_COURSE"]: 
+        PUBLISHED = Course.StatusChoices.PUBLISHED
+        DRAFT = Course.StatusChoices.DRAFT
+        userInstance = User.objects.get(pk=user)  
+        admin_user = is_admin_user(userInstance)
+        if  admin_user:#if logged user is Super Admin, then fetch all draft courses. Also, fetch published course that are joined or in the try mode
+            qs =  Course.objects.filter(Q(status=DRAFT)|Q(courseparticipant__participant=user) & Q(status=PUBLISHED)).distinct()
+        else:    #logged user is not Super Admin, then fetch all draft courses which is created by the logged in instructor. Also, fetch published course that are joined or in the try mode
+            qs = Course.objects.filter(Q(courseinstructor__instructor=user) & Q(status=DRAFT)|Q(courseparticipant__participant=user) & Q(status=PUBLISHED)).distinct()
+        if subscription_method == DELETE_METHOD:
+            qs = qs.filter(active=False)
+        else:
+            qs = qs.filter(active=True)
+        return qs
 
-    if RESOURCE_TYPE == RESOURCES["CHAPTER"]:
+    if RESOURCE_TYPE == RESOURCES["CHAPTER"]: 
         course_id = options["course_id"]
         PUBLISHED = Course.StatusChoices.PUBLISHED
         if has_access(user, RESOURCES["CHAPTER"], ACTIONS["CREATE"]):

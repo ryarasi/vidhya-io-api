@@ -36,7 +36,7 @@ class User(AbstractUser):
     institution = models.ForeignKey(
         'Institution', on_delete=models.PROTECT, blank=True, null=True)
     role = models.ForeignKey(
-        'UserRole', on_delete=models.PROTECT, blank=True, null=True, default = authorization.DEFAULT_USERROLE_EXISTS['NAME'])
+        'UserRole',  on_delete=models.PROTECT, blank=True, null=True)
     title = models.CharField(max_length=150, blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True, null=True)
     address = models.CharField(max_length=300,blank=True,null=True)
@@ -369,10 +369,11 @@ class CourseParticipant(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
     audit = models.BooleanField(User,default=False)
+    completed = models.BooleanField(Course, default= False) 
     def __str__(self):
         return f'Course {self.course.title}, Participant {self.participant.name}'
 
-class CourseGrader(models.Model):
+class CourseGrader(models.Model): 
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     grader = models.ForeignKey(User, on_delete=models.CASCADE)
 
