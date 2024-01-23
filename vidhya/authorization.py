@@ -1,7 +1,7 @@
 from django.db.models.query_utils import Q
 from graphql import GraphQLError
 from django.conf import settings
-from vidhya.models import CompletedChapters, CompletedCourses, CourseParticipant, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, Announcement, Chapter, Chat, ChatMessage, Course, CourseSection, Exercise, ExerciseKey, ExerciseSubmission, Group, Institution, Issue, Project, Report, UserRole
+from vidhya.models import CompletedChapters, CourseParticipant, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, Announcement, Chapter, Chat, ChatMessage, Course, CourseSection, Exercise, ExerciseKey, ExerciseSubmission, Group, Institution, Issue, Project, Report, UserRole
 
 SORT_BY_OPTIONS = {'NEW': 'NEW', 'TOP':'TOP'}
 
@@ -57,7 +57,6 @@ ACTIONS = {
 }
 
 DEFAULT_USER_ROLE_PERMISSIONS = {
- {
   "GROUP": {
     "GET": True,
     "LIST": True,
@@ -68,7 +67,7 @@ DEFAULT_USER_ROLE_PERMISSIONS = {
   "ISSUE": {
     "GET": True,
     "LIST": False,
-    "CREATE": True,
+    "CREATE": False,
     "DELETE": False,
     "UPDATE": False
   },
@@ -89,9 +88,9 @@ DEFAULT_USER_ROLE_PERMISSIONS = {
   "REPORT": {
     "GET": False,
     "LIST": False,
-    "CREATE": True,
+    "CREATE": False,
     "DELETE": False,
-    "UPDATE": True
+    "UPDATE": False
   },
   "CHAPTER": {
     "GET": True,
@@ -117,9 +116,9 @@ DEFAULT_USER_ROLE_PERMISSIONS = {
   "PROJECT": {
     "GET": True,
     "LIST": True,
-    "CREATE": True,
-    "DELETE": True,
-    "UPDATE": True
+    "CREATE": False,
+    "DELETE": False,
+    "UPDATE": False
   },
   "USER_ROLE": {
     "GET": False,
@@ -154,7 +153,7 @@ DEFAULT_USER_ROLE_PERMISSIONS = {
     "LIST": False,
     "CREATE": False,
     "DELETE": False,
-    "UPDATE": True
+    "UPDATE": False
   },
   "ANNOUNCEMENT": {
     "GET": True,
@@ -180,22 +179,20 @@ DEFAULT_USER_ROLE_PERMISSIONS = {
   "EXERCISE_SUBMISSION": {
     "GET": True,
     "LIST": False,
-    "CREATE": True,
+    "CREATE": False,
     "DELETE": False,
-    "UPDATE": True
+    "UPDATE": False
   }
 }
-}
-
 DEFAULT_USER_ROLE = {
   "name":"Guest User",
   "description":"This is the User role everybody inherits by default",
   "priority": 5,
   "permissions":DEFAULT_USER_ROLE_PERMISSIONS,
-  "searchfield":"learnerstudent user role",
-  "active":"true",
+  "searchField":"Guest User This is the User role everybody inherits by default",
+  "active":"True",
   "created_at": "2023-08-11 09:24:15.123+00",
-  "updated_At":"2023-08-11 09:24:15.123+00",
+  "updated_at":"2023-08-11 09:24:15.123+00",
 }
 
 
