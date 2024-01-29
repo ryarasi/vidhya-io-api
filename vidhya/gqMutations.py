@@ -755,8 +755,6 @@ class UpdateUser(graphene.Mutation):
         )
         user_instance.avatar = input.avatar if input.avatar is not None else user_instance.avatar
         user_instance.institution_id = input.institution_id if input.institution_id is not None else user_instance.institution_id
-        # if user_instance.role_id is not None:
-        #     c
         if user_instance.role_id is None:
              userrole_name = DEFAULT_USER_ROLE['name']
              user_instance.role_id = userrole_name
@@ -971,14 +969,9 @@ class AddDefaultUserRole(graphene.Mutation):
         DEFAULT_USERROLE_EXISTS  = False  
         defaultUserRoleName = DEFAULT_USER_ROLE['name']
         defaultUserRoleDescription = DEFAULT_USER_ROLE['description']
-        # print('DEFAULT_USER_ROLE',DEFAULT_USER_ROLE)
-        # print('DEFAULT_USER_ROLE name',DEFAULT_USER_ROLE['name'])
-        # print('UserRole',UserRole)
         try:
             DEFAULT_USERROLE_EXISTS = UserRole.objects.get(pk=defaultUserRoleName).exists()
-            # print('DEFAULT_USERROLE_EXISTS',DEFAULT_USERROLE_EXISTS)
         except:
-            # print('DEFAULT_USERROLE_EXISTS From Except Block',DEFAULT_USERROLE_EXISTS)
             priorty=DEFAULT_USER_ROLE['priority']
             permission=DEFAULT_USER_ROLE['permissions']
             searchField=DEFAULT_USER_ROLE['searchField']
@@ -2085,34 +2078,7 @@ class AuditCourseParticipant(graphene.Mutation):
                     participant_record = CourseParticipant.objects.filter(participant=user_id,course=course_instance.id)
                 
                 return AuditCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
-            return AuditCourseParticipant(ok=ok, course=None,participant_record=None)
-    
-# class StopAuditCourseParticipant(graphene.Mutation):
-#     class Meta:
-#         description = "Mutation to stop audit a Course Participant"
-#     class Arguments:
-#         id = graphene.ID(required=True)
-#         user_id = graphene.Int(required=True)
-#         audit = graphene.Boolean(required = True)
-
-#     ok = graphene.Boolean()
-#     course = graphene.Field(CourseType)
-#     participant_record = graphene.List(CourseParticipantType)
-
-#     @staticmethod
-#     @login_required
-#     def mutate(root, info, id,user_id,audit):
-#         ok = False
-#         course = Course.objects.get(pk=id, active=True)
-#         course_instance = course
-#         if course_instance:
-#             if user_id or user_id == []:
-#                 course_instance.participants.remove(user_id)                
-#                 participant_record =  CourseParticipant.objects.filter(
-#                     participant=user_id,course=course_instance.id)
-#                 return StopAuditCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
-#         return StopAuditCourseParticipant(ok=ok, course=None,participant_record=participant_record)
-
+            return AuditCourseParticipant(ok=ok, course=None,participant_record=None)    
 class DeleteCourse(graphene.Mutation):
     class Meta:
         description = "Mutation to mark an Course as inactive"
@@ -4207,9 +4173,7 @@ class Mutation(graphene.ObjectType):
     verify_email_otp = VerifyEmailOTP.Field()
     update_registered_user = UpdateRegisteredUser.Field()
 
-    # verify_email_user = verifyEmailUser.Field()
     verifyUserLoginGetEmailOtp = verifyUserLoginGetEmailOtp.Field()
-    # passwordChange = passwordChange.Field()
     username_validation = usernameValidation.Field()
     # create_user = createUser.Field()
     create_update_bulk_user =createUpdatedateBulkUser.Field()
@@ -4257,7 +4221,6 @@ class Mutation(graphene.ObjectType):
     delete_course_participant = DeleteCourseParticipant.Field()
 
     audit_course_participant = AuditCourseParticipant.Field()
-    # stop_audit_course_participant = StopAuditCourseParticipant.Field()
 
     create_chapter = CreateChapter.Field()
     update_chapter = UpdateChapter.Field()

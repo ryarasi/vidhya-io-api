@@ -8,8 +8,6 @@ from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
 from django.conf import settings
-# from vidhya.authorization import DEFAULT_USER_ROLE,settings
-# from django.db.models import JSONField
 
 class LowercaseEmailField(models.EmailField):
     """
