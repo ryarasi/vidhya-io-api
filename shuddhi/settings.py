@@ -42,7 +42,7 @@ ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 # Whether or not requests from other origins are allowed
 CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
 # The origins allowed by CORS
-CORS_ALLOWED_ORIGINS=ALLOWED_HOSTS
+CORS_ALLOWED_ORIGINS=env.list('DJANGO_CORS_ALLOWED_ORIGINS')
 # Email host used to send email
 ENV_EMAIL_HOST=env('ENV_EMAIL_HOST',default='smtp.gmail.com')
 # The SMTP host user 
