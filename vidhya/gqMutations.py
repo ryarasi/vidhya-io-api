@@ -1,27 +1,23 @@
 from enum import unique
 import json
-from typing import final
-
 from django.db.models.query_utils import Q
 import graphene
-import datetime
 import graphql_social_auth
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, CourseGrader, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
 from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput,UserRoleInput,  UserType,UsersType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
-from vidhya.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
+from vidhya.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user, DEFAULT_USER_ROLE
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
 from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, exercises_keys_modified, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified, exercises_modified
 from django.core.cache import cache
-from django.db import connection, transaction
 from graphql_jwt.shortcuts import get_token, create_refresh_token
 from django.contrib.auth import get_user_model
-from datetime import date, datetime, timezone
+from datetime import date, timezone
 import re
 from django.contrib.auth.hashers import make_password
 from django.template.loader import render_to_string
@@ -759,6 +755,9 @@ class UpdateUser(graphene.Mutation):
         )
         user_instance.avatar = input.avatar if input.avatar is not None else user_instance.avatar
         user_instance.institution_id = input.institution_id if input.institution_id is not None else user_instance.institution_id
+        if user_instance.role_id is None:
+             userrole_name = DEFAULT_USER_ROLE['name']
+             user_instance.role_id = userrole_name
         user_instance.role_id = input.role_id if input.role_id is not None else user_instance.role_id
         user_instance.title = input.title if input.title is not None else user_instance.title
         user_instance.bio = input.bio if input.bio is not None else user_instance.bio
@@ -823,7 +822,6 @@ class DeleteUser(graphene.Mutation):
         if user_instance:
             ok = True
             user_instance.active = False
-
             user_instance.save()
 
             users_modified()  # Invalidating users cache
@@ -943,7 +941,10 @@ class SuspendUser(graphene.Mutation):
         if user_instance:
             ok = True
             user_instance.bio = remarks
-            user_instance.membership_status = 'SU'
+            user_instance.membership_status = 'SU'            
+            userrole_name = DEFAULT_USER_ROLE['name']
+            user_instance.role_id = userrole_name
+            print('user_instance.role_id',user_instance.role_id)
 
             user_instance.save()
 
@@ -956,7 +957,43 @@ class SuspendUser(graphene.Mutation):
             return SuspendUser(ok=ok, user=user_instance)
         return SuspendUser(ok=ok, user=None)
 
+class AddDefaultUserRole(graphene.Mutation):
+    class Meta:
+        description = "Mutation to add Default User Role"
 
+    ok = graphene.Boolean()
+    @staticmethod
+    # @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['CREATE']))
+    def mutate():
+        ok = True
+        DEFAULT_USERROLE_EXISTS  = False  
+        defaultUserRoleName = DEFAULT_USER_ROLE['name']
+        defaultUserRoleDescription = DEFAULT_USER_ROLE['description']
+        try:
+            DEFAULT_USERROLE_EXISTS = UserRole.objects.get(pk=defaultUserRoleName).exists()
+        except:
+            priorty=DEFAULT_USER_ROLE['priority']
+            permission=DEFAULT_USER_ROLE['permissions']
+            searchField=DEFAULT_USER_ROLE['searchField']
+            active=DEFAULT_USER_ROLE['active']
+            createAt=DEFAULT_USER_ROLE['created_at']
+            updateAt=DEFAULT_USER_ROLE['updated_at']
+
+        if DEFAULT_USERROLE_EXISTS == False:
+            userrole_instance = UserRole(name=defaultUserRoleName, 
+                                description=defaultUserRoleDescription,
+                                priority=priorty,
+                                permissions=permission,
+                                searchField=searchField,
+                                active=active,
+                                created_at=createAt,
+                                updated_at=updateAt)
+            
+            userrole_instance.save()
+
+        return AddDefaultUserRole(ok=ok)
+
+    
 class CreateUserRole(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new User Role"
@@ -2041,34 +2078,7 @@ class AuditCourseParticipant(graphene.Mutation):
                     participant_record = CourseParticipant.objects.filter(participant=user_id,course=course_instance.id)
                 
                 return AuditCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
-            return AuditCourseParticipant(ok=ok, course=None,participant_record=None)
-    
-# class StopAuditCourseParticipant(graphene.Mutation):
-#     class Meta:
-#         description = "Mutation to stop audit a Course Participant"
-#     class Arguments:
-#         id = graphene.ID(required=True)
-#         user_id = graphene.Int(required=True)
-#         audit = graphene.Boolean(required = True)
-
-#     ok = graphene.Boolean()
-#     course = graphene.Field(CourseType)
-#     participant_record = graphene.List(CourseParticipantType)
-
-#     @staticmethod
-#     @login_required
-#     def mutate(root, info, id,user_id,audit):
-#         ok = False
-#         course = Course.objects.get(pk=id, active=True)
-#         course_instance = course
-#         if course_instance:
-#             if user_id or user_id == []:
-#                 course_instance.participants.remove(user_id)                
-#                 participant_record =  CourseParticipant.objects.filter(
-#                     participant=user_id,course=course_instance.id)
-#                 return StopAuditCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
-#         return StopAuditCourseParticipant(ok=ok, course=None,participant_record=participant_record)
-
+            return AuditCourseParticipant(ok=ok, course=None,participant_record=None)    
 class DeleteCourse(graphene.Mutation):
     class Meta:
         description = "Mutation to mark an Course as inactive"
@@ -4163,9 +4173,7 @@ class Mutation(graphene.ObjectType):
     verify_email_otp = VerifyEmailOTP.Field()
     update_registered_user = UpdateRegisteredUser.Field()
 
-    # verify_email_user = verifyEmailUser.Field()
     verifyUserLoginGetEmailOtp = verifyUserLoginGetEmailOtp.Field()
-    # passwordChange = passwordChange.Field()
     username_validation = usernameValidation.Field()
     # create_user = createUser.Field()
     create_update_bulk_user =createUpdatedateBulkUser.Field()
@@ -4176,6 +4184,7 @@ class Mutation(graphene.ObjectType):
     suspend_user = SuspendUser.Field()
     modify_user_institution = ModifyUserInstitution.Field()
 
+    add_default_user_role = AddDefaultUserRole.mutate()
     create_user_role = CreateUserRole.Field()
     update_user_role = UpdateUserRole.Field()
     delete_user_role = DeleteUserRole.Field()
@@ -4212,7 +4221,6 @@ class Mutation(graphene.ObjectType):
     delete_course_participant = DeleteCourseParticipant.Field()
 
     audit_course_participant = AuditCourseParticipant.Field()
-    # stop_audit_course_participant = StopAuditCourseParticipant.Field()
 
     create_chapter = CreateChapter.Field()
     update_chapter = UpdateChapter.Field()

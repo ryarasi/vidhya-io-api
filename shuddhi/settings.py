@@ -14,6 +14,7 @@ import os
 import dj_database_url
 from environ import Env              
 from datetime import timedelta
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -237,8 +238,8 @@ DATABASES = {
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 db_from_env = dj_database_url.config(default=DATABASE_URL, conn_max_age=500, ssl_require=True)
-# if DEBUG == False:
-DATABASES['default'].update(db_from_env)
+if DEBUG == False:
+    DATABASES['default'].update(db_from_env)
 
 CACHE_HOST='redis'
 CACHE_PORT=6379
