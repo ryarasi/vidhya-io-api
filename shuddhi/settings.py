@@ -37,7 +37,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env.bool('DJANGO_DEBUG', default=False)
 # This will enable queries intended for automated testing, false for production
 ENABLED_AUTOMATED_TESTING = env.bool('ENABLED_AUTOMATED_TESTING', default=not DEBUG)
-# Authorized origins
+# Authorized hosts
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 # Whether or not requests from other origins are allowed
 CORS_ORIGIN_ALLOW_ALL = env.bool('DJANGO_CORS_ORIGIN_ALLOW_ALL')
