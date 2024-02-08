@@ -123,7 +123,7 @@ class PublicUserType(graphene.ObjectType):
 
 class MemberCourses(graphene.ObjectType):
     records = graphene.List(CourseType)
-    participant_record = graphene.List(CourseParticipantType)
+    courses_joined = graphene.List(CourseParticipantType)
     total = graphene.Int()
 
 class CourseParticipants(graphene.ObjectType):
@@ -1151,6 +1151,8 @@ class Query(ObjectType):
             return cached_response
 
         qs = rows_accessible(current_user, RESOURCES['COURSE'])
+        total = len(qs)
+        print('total',total)
         if searchField is not None:
             filter = (
                 Q(searchField__icontains=searchField.lower())
@@ -1163,9 +1165,10 @@ class Query(ObjectType):
         if limit is not None:
             qs = qs[:limit]
         PUBLISHED = Course.StatusChoices.PUBLISHED
+       
 
-        participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
-        results = MemberCourses(records=qs,participant_record=participant_record)
+        courses_joined = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        results = MemberCourses(records=qs,courses_joined=courses_joined, total=total)
         set_cache(cache_entity, cache_key, results)
         return results
     
@@ -1175,9 +1178,9 @@ class Query(ObjectType):
         current_user = info.context.user.id
         PUBLISHED = Course.StatusChoices.PUBLISHED 
         qs = rows_accessible(current_user, RESOURCES['MEMBER_COURSE'])
-
+        total = len(qs)
         # qs = Course.objects.filter( Q(instructors__in=[current_user])|Q(courseparticipant__participant=current_user)).distinct().order_by("created_at")
-        participant_record = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
+        courses_joined = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         
         if searchField is not None:
             filter = (
@@ -1194,6 +1197,7 @@ class Query(ObjectType):
         publish = []
         completed = []
         audit = []
+        
         for course in qs:
             isCourseCompleted = CourseType.resolve_completed(course,info)
 
@@ -1208,7 +1212,7 @@ class Query(ObjectType):
                 audit.append(course)
 
         sorted_qs =  draft + publish + audit + completed
-        results = MemberCourses(records=sorted_qs,participant_record=participant_record)
+        results = MemberCourses(records=sorted_qs,courses_joined=courses_joined,total=total)
 
         return results
 

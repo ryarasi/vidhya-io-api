@@ -13,7 +13,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.validators import URLValidator, ValidationError
 from common.utils import generate_otp
-from .cache import announcements_modified, chapters_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, exercises_keys_modified, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified, exercises_modified
+from .cache import announcements_modified, chapters_modified, course_participants_modified, courses_modified, exercise_submission_graded, exercise_submission_submitted, exercises_keys_modified, groups_modified, institutions_modified, project_clapped, projects_modified, public_announcements_modified, user_announcements_modified, user_roles_modified, users_modified, exercises_modified
 from django.core.cache import cache
 from graphql_jwt.shortcuts import get_token, create_refresh_token
 from django.contrib.auth import get_user_model
@@ -2002,7 +2002,7 @@ class UpdateCourseParticipant(graphene.Mutation):
 
     ok = graphene.Boolean()
     course = graphene.Field(CourseType)
-    participant_record = graphene.List(CourseParticipantType)
+    courses_joined = graphene.List(CourseParticipantType)
 
     @staticmethod
     @login_required
@@ -2012,13 +2012,13 @@ class UpdateCourseParticipant(graphene.Mutation):
         course_instance = course
         if course_instance:
             if user_id or user_id == []:
-                course_instance.participants.add(user_id)
-                PUBLISHED = Course.StatusChoices.PUBLISHED
-                
-                participant_record =  CourseParticipant.objects.filter(
+                course_instance.participants.add(user_id)              
+                courses_joined =  CourseParticipant.objects.filter(
                  participant=user_id,course=course_instance.id)
-                return UpdateCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
-            return UpdateCourseParticipant(ok=ok, course=None, participant_record=None)
+                course_participants_modified()  # Invalidating course participant cache
+                courses_modified()  # Invalidating course cache
+                return UpdateCourseParticipant(ok=True,course=course_instance,courses_joined=courses_joined)
+            return UpdateCourseParticipant(ok=ok, course=None, courses_joined=None)
 
 class DeleteCourseParticipant(graphene.Mutation):
     class Meta:
@@ -2029,7 +2029,7 @@ class DeleteCourseParticipant(graphene.Mutation):
 
     ok = graphene.Boolean()
     course = graphene.Field(CourseType)
-    participant_record = graphene.List(CourseParticipantType)
+    courses_joined = graphene.List(CourseParticipantType)
 
 
     @staticmethod
@@ -2037,15 +2037,17 @@ class DeleteCourseParticipant(graphene.Mutation):
     def mutate(root, info, id,user_id=[]):
         ok = False
         course = Course.objects.get(pk=id, active=True)
+        print('course',course)
         course_instance = course
         if course_instance:
             if user_id or user_id == []:
-
                 course_instance.participants.remove(user_id)                
-                participant_record = CourseParticipant.objects.filter(
-                 participant=user_id,course=course_instance.id)
-                return DeleteCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
-        return DeleteCourseParticipant(ok=ok, course=None,participant_record=None)
+                courses_joined = CourseParticipant.objects.filter(
+                participant=user_id,course=course_instance.id)
+                course_participants_modified()  # Invalidating course participant cache
+                courses_modified()  # Invalidating course cache
+                return DeleteCourseParticipant(ok=True,course=course_instance,courses_joined=courses_joined)
+        return DeleteCourseParticipant(ok=ok, course=None,courses_joined=None)
 
 class AuditCourseParticipant(graphene.Mutation):
     class Meta:
@@ -2057,7 +2059,7 @@ class AuditCourseParticipant(graphene.Mutation):
 
     ok = graphene.Boolean()
     course = graphene.Field(CourseType)
-    participant_record = graphene.List(CourseParticipantType)
+    courses_joined = graphene.List(CourseParticipantType)
 
     @staticmethod
     @login_required
@@ -2067,7 +2069,7 @@ class AuditCourseParticipant(graphene.Mutation):
         course_instance = course
         if course_instance:
             if user_id or user_id == []:
-                participant_record={}
+                courses_joined={}
                 if audit==False:
                     course_instance.participants.remove(user_id)
                 else:
@@ -2075,10 +2077,11 @@ class AuditCourseParticipant(graphene.Mutation):
                     course_part = CourseParticipant.objects.all().get(participant_id=user_id,course_id=id)
                     course_part.audit= audit
                     course_part.save()
-                    participant_record = CourseParticipant.objects.filter(participant=user_id,course=course_instance.id)
-                
-                return AuditCourseParticipant(ok=True,course=course_instance,participant_record=participant_record)
-            return AuditCourseParticipant(ok=ok, course=None,participant_record=None)    
+                    courses_joined = CourseParticipant.objects.filter(participant=user_id,course=course_instance.id)
+                course_participants_modified()  # Invalidating course participant cache
+                courses_modified()  # Invalidating course cache
+                return AuditCourseParticipant(ok=True,course=course_instance,courses_joined=courses_joined)
+            return AuditCourseParticipant(ok=ok, course=None,courses_joined=None)    
 class DeleteCourse(graphene.Mutation):
     class Meta:
         description = "Mutation to mark an Course as inactive"
