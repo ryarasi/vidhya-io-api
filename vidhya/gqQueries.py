@@ -123,7 +123,7 @@ class PublicUserType(graphene.ObjectType):
 
 class MemberCourses(graphene.ObjectType):
     records = graphene.List(CourseType)
-    courses_joined = graphene.List(CourseParticipantType)
+    courses_joined = graphene.List(CourseParticipantType) 
     total = graphene.Int()
 
 class CourseParticipants(graphene.ObjectType):
