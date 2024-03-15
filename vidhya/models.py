@@ -47,6 +47,7 @@ class User(AbstractUser):
     manualLogin = models.BooleanField(default="False")
     googleLogin = models.BooleanField(default="False")    
     credit_hours = models.CharField(default="5",max_length=2,null=False)
+    preferred_language = models.ForeignKey('Language', max_length=300,default="en", on_delete=models.PROTECT)
     class GenderChoices(models.TextChoices):
         MALE = "M", _('Male')
         FEMALE = "F", _('Female')
@@ -81,6 +82,16 @@ class User(AbstractUser):
     def __str__(self):
         return f'{self.name}' 
 
+class Language(models.Model):
+    short_code = models.CharField(max_length=3,primary_key=True)
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=500)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f'{self.name}' 
+    
 class EmailOTP(models.Model):
     email = LowercaseEmailField(blank=False, max_length=255)
     def generate_otp():
@@ -295,9 +306,18 @@ class AnnouncementGroup(models.Model):
 
 class Course(models.Model):
     title = models.CharField(max_length=80)
+    def default_title():
+        return {}
+    title_object = JSONField(default=default_title)
     blurb = models.CharField(max_length=150)
+    def default_blurb():
+        return {}
+    blurb_object = JSONField(default= default_blurb)
     video = models.CharField(max_length=500, blank=True, null=True)
     description = models.CharField(max_length=1000)
+    def default_description():
+        return {}
+    description_object = JSONField(default= default_description)
     institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
         'course', 'institution'), blank=True)
     duration = models.CharField(default="0",max_length=50)

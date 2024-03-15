@@ -4,9 +4,9 @@ from django.db.models.query_utils import Q
 import graphene
 import graphql_social_auth
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, CourseGrader, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Language, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput,UserRoleInput,  UserType,UsersType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, LanguageType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput,UserRoleInput,  UserType,UsersType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from vidhya.authorization import USER_ROLES_NAMES, has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user, DEFAULT_USER_ROLE
 from django.core.mail import send_mail
@@ -833,7 +833,79 @@ class DeleteUser(graphene.Mutation):
             return DeleteUser(ok=ok, user=user_instance)
         return DeleteUser(ok=ok, user=None)
 
+# class UpdateLanguage(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to update the preferred language of a user"
 
+#     class Arguments:
+#         user_id = graphene.ID(required=True)
+#         preferredLanguageId  = graphene.String(required=True)  
+
+#     ok = graphene.Boolean()
+#     user = graphene.Field(UserType)
+
+#     @staticmethod
+#     @login_required
+#     def mutate(root, info, user_id, preferredLanguageId ):  
+#         ok = False
+#         user_instance = User.objects.get(pk=user_id, active=True)
+#         if user_instance:
+#             ok = True
+#             user_instance.preferred_language = preferredLanguageId 
+#             user_instance.save()
+#             return UpdateLanguage(ok=ok, user=user_instance)
+#         return UpdateLanguage(ok=ok, user=None)
+
+
+# class UpdateLanguage(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to update the preferred language of a user"
+    
+#     class Arguments:
+#         user_id = graphene.ID(required=True)
+#         preferredLanguageId = graphene.String(required=True)  
+        
+#     ok = graphene.Boolean()
+#     user = graphene.Field(UserType)
+    
+#     @staticmethod
+#     @login_required
+#     def mutate(root, info, user_id, preferredLanguageId):
+#         ok = False
+#         user_instance = User.objects.get(pk=user_id, active=True)
+        
+#         if user_instance:
+#             ok = True
+#             user_instance.preferredLanguageId = preferredLanguageId
+#             user_instance.save()
+#             return UpdateLanguage(ok=ok, user=user_instance)
+        
+#         return UpdateLanguage(ok=ok, user=None)
+
+class UpdateLanguage(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update the preferred language of a user"
+
+    class Arguments:
+        user_id = graphene.ID(required=True)
+        preferred_language  = graphene.String(required=True)  # Update the argument name
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, user_id, preferred_language):  
+        ok = False
+        user_instance = User.objects.get(pk=user_id, active=True)
+        if user_instance:
+            ok = True
+            user_instance.preferred_language_id = preferred_language
+            user_instance.save()
+            return UpdateLanguage(ok=ok, user=user_instance)
+        return UpdateLanguage(ok=ok, user=None)
+
+    
 class ApproveUser(graphene.Mutation):
     class Meta:
         description = "Mutation to approve user"
@@ -4166,6 +4238,9 @@ class createGoogleToken(graphene.Mutation):
         return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token, is_verified=isverified)
 
 class Mutation(graphene.ObjectType):
+
+    update_language = UpdateLanguage.Field()
+    
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
     delete_institution = DeleteInstitution.Field()

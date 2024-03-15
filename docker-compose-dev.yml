@@ -18,6 +18,8 @@ services:
       - POSTGRES_PASS=password
       - POSTGRES_DB=shuddhidb
       - POSTGRES_PORT=5432
+      - POSTGRES_HOST_AUTH_METHOD=trust
+     
     ports:
       - "5432:5432"
     volumes:

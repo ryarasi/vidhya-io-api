@@ -1,9 +1,9 @@
 import graphene
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP, Language
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, CourseInstructorType, CourseParticipantType,CourseCompletedType,ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType
+from .gqTypes import AnnouncementType, ChapterType, CourseInstructorType, CourseParticipantType,CourseCompletedType,ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType, LanguageType
 from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible, SORT_BY_OPTIONS
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
@@ -45,6 +45,9 @@ class Users(graphene.ObjectType):
     records = graphene.List(UserType)
     total = graphene.Int()
 
+class Languages(graphene.ObjectType):
+    records = graphene.List(LanguageType)
+    total = graphene.Int()
 
 class UserRoles(graphene.ObjectType):
     records = graphene.List(UserRoleType)
@@ -198,6 +201,10 @@ class UnreadCount(graphene.ObjectType):
 
 class Query(ObjectType):
     # Public Queries
+
+    languages = graphene.List(
+        LanguageType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    
     user_by_username = graphene.Field(
         PublicUserType, username=graphene.String())
     public_users = graphene.Field(
@@ -650,6 +657,11 @@ class Query(ObjectType):
         results = Users(records=qs, total=len(qs))
         return results
     
+    def resolve_languages(root, info, **kwargs):
+        qs = Language.objects.filter(active=True)
+        return qs
+
+
     @login_required
     def resolve_coordinator_options(root, info, query=None, roles=[], limit=None, offset=None, **kwargs):
         cache_entity = CACHE_ENTITIES['USERS']
