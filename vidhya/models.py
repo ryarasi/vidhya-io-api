@@ -47,6 +47,7 @@ class User(AbstractUser):
     manualLogin = models.BooleanField(default="False")
     googleLogin = models.BooleanField(default="False")    
     credit_hours = models.CharField(default="5",max_length=2,null=False)
+    preferred_language = models.CharField(max_length=300,default="En")
     class GenderChoices(models.TextChoices):
         MALE = "M", _('Male')
         FEMALE = "F", _('Female')
@@ -80,6 +81,12 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
     def __str__(self):
         return f'{self.name}' 
+    
+class Languages(models.Model):
+    short_code = models.CharField(
+        max_length=3,primary_key=True)
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=500)
 
 class EmailOTP(models.Model):
     email = LowercaseEmailField(blank=False, max_length=255)
@@ -295,6 +302,12 @@ class AnnouncementGroup(models.Model):
 
 class Course(models.Model):
     title = models.CharField(max_length=80)
+    def default_title():
+        return {}
+    title_object = JSONField(default=default_title)
+    blurb_object = JSONField(default=default_title)
+    description_object = JSONField(default=default_title)
+
     blurb = models.CharField(max_length=150)
     video = models.CharField(max_length=500, blank=True, null=True)
     description = models.CharField(max_length=1000)

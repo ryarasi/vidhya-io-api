@@ -1,7 +1,11 @@
 from django.db.models.query_utils import Q
+from django.db.models import F, Value, CharField
 from graphql import GraphQLError
 from django.conf import settings
 from vidhya.models import CompletedChapters, CourseParticipant, CriterionResponse, MandatoryChapters, MandatoryRequiredCourses, User, Announcement, Chapter, Chat, ChatMessage, Course, CourseSection, Exercise, ExerciseKey, ExerciseSubmission, Group, Institution, Issue, Project, Report, UserRole
+# from django.db.models.utils import list_to_queryset
+from django.db.models.functions import Cast
+import json
 
 SORT_BY_OPTIONS = {'NEW': 'NEW', 'TOP':'TOP'}
 
@@ -418,18 +422,45 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
 
     if RESOURCE_TYPE == RESOURCES["COURSE"]:
         PUBLISHED = Course.StatusChoices.PUBLISHED
-        # if has_access(user, RESOURCES["COURSE"], ACTIONS["CREATE"]):
-        #     qs = Course.objects.all().filter(status=PUBLISHED).distinct().order_by("-created_at")
+        preferred_language = user.preferred_language
+        preferred_language = 'Hn'
+
+           # Your Course queryset
+        # qs = Course.objects.filter(
+        #     Q(status=PUBLISHED) &
+        #     (Q(title_object__has_key=preferred_language))
+        # ).distinct().order_by("-created_at")
+
+        # qs1 = Course.objects.filter(
+        #     Q(status=PUBLISHED) &
+        #     (~Q(title_object__has_key=preferred_language))
+        # ).distinct().order_by("-created_at")
+
+        # if subscription_method == DELETE_METHOD:
+        #     qs = qs.filter(active=False)
         # else:
-        qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("-created_at")
-            # qs = Course.objects.all().filter(
-                # Q(participants__in=[user]) | Q(instructor_id=user.id), status=PUBLISHED).distinct().order_by("index")
+        #     qs = qs.filter(active=True)
+        # for idx,course in enumerate(qs):
+        #     translation = course.title_object[preferred_language]
+        #     course.title = translation
+        #     qs[idx].title = translation
+        # list1 = list(qs)
+        # list2 = list(qs1)
+
+        # # Concatenate the lists
+        # qs = list1 + list2
+
+
         
+        PUBLISHED = Course.StatusChoices.PUBLISHED
+        qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("id")
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
         else:
             qs = qs.filter(active=True)
+        print('qs',qs)
         return qs
+        # return qs
     
     if RESOURCE_TYPE == RESOURCES["MEMBER_COURSE"]: 
         PUBLISHED = Course.StatusChoices.PUBLISHED

@@ -3,7 +3,7 @@ import graphene
 from graphene.types import generic
 from graphene_django.types import DjangoObjectType
 from django.db.models import Q
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseInstructor, CourseParticipant, Criterion, CriterionResponse, Issue, MandatoryChapters, MandatoryRequiredCourses, Project, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, SubmissionHistory, Report, Chat, ChatMessage, EmailOTP, Languages
 from django.db import models
 from vidhya.authorization import is_chapter_locked, is_course_locked
 
@@ -22,6 +22,11 @@ class EmailOTPType(DjangoObjectType):
 
     class Meta:
         model = EmailOTP
+
+class LanguagesType(DjangoObjectType):
+
+    class Meta:
+        model = Languages
 
 
 class UserType(DjangoObjectType):
@@ -196,6 +201,8 @@ class CourseType(DjangoObjectType):
     locked = graphene.Boolean()
     instructors = graphene.List(CourseInstructorType)
     audit = graphene.Boolean()
+    title = graphene.String() 
+    title_object = None  # Or initialize it appropriately
 
     def resolve_instructors(self,info):
         instructors = None
@@ -216,6 +223,48 @@ class CourseType(DjangoObjectType):
         audit = CourseParticipant.objects.filter(
             participant_id=user.id, course_id=self.id,audit=True).exists()
         return audit
+    
+    def resolve_title(self,info):
+        
+        language = info.context.user.preferred_language
+        print('language',language)
+        if hasattr(self, 'title_object') and self.title_object:
+            # print('title_object',self.title_object)
+            # print('blurb_object',self.blurb_object)
+            # print('description_object',self.description_object)
+            if isinstance(self.title_object, dict):
+                if language in self.title_object and self.title_object[language]:
+                    print('language title')
+                    self.title = self.title_object[language]
+                elif 'En' in self.title_object  and self.title_object['En']:
+                    self.title = self.title_object['En']
+                    print('en title')
+                print('language in self.blurb_object',language in self.blurb_object)
+                if language in self.blurb_object and self.blurb_object[language]:
+                    print('language blurb')
+                    self.blurb = self.blurb_object[language]
+                elif 'En' in self.blurb_object:
+                    print('en blurb')
+                    self.blurb =  self.blurb_object['En']
+                if language in self.description_object and self.description_object[language]:
+                    print('language description')
+                    self.description = self.description_object[language]
+                    
+                elif 'En' in self.description_object:
+                    print('en descriptio')
+                    self.description =  self.description_object['En']
+                print('self',self)
+                return self   
+                # else:
+                    # print('Unexpected structure in self.title_object:', self.title_object)
+            # else:
+                # print('Unexpected type for self.title_object:', type(self.title_object))
+        else:
+            return self
+            # print('title_object is not present on self')
+
+            
+        # return self
 
     def resolve_report(self, info):
         report = None
@@ -470,7 +519,7 @@ class CourseInput(graphene.InputObjectType):
     pass_completion_percentage = graphene.Int()
     status = graphene.String()
     audit = graphene.Boolean()
-
+    title_object = generic.GenericScalar()
 
 class CourseSectionInput(graphene.InputObjectType):
     id = graphene.ID()
