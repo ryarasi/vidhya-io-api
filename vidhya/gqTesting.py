@@ -1,6 +1,6 @@
 import graphene
 from graphene_django.types import ObjectType
-from vidhya.models import Announcement, Course, CourseParticipant, ExerciseSubmission, Group, User
+from vidhya.models import Announcement, Course, CourseParticipant, EmailOTP, ExerciseSubmission, Group, User
 from django.conf import settings
 
 
@@ -136,7 +136,13 @@ EXISTING_DATA = {
 
 class OkResponse(graphene.ObjectType):
     ok = graphene.Boolean()
-
+class EmailOtpResponse(graphene.ObjectType):
+    # emailOtp = graphene.List()
+    email = graphene.String()
+    id = graphene.ID()
+    otp = graphene.String()
+    verified = graphene.Boolean()
+    
 class EmptyQuery(ObjectType):
     pass
 
@@ -145,6 +151,7 @@ class Query(ObjectType):
 
     # Automated Testing related queries
     cy_delete_new_user = graphene.Field(OkResponse)
+    cy_fetch_otp = graphene.Field(EmailOtpResponse)
     cy_create_global_announcement = graphene.Field(OkResponse)
     cy_delete_global_announcement = graphene.Field(OkResponse)
     cy_create_learner_group = graphene.Field(OkResponse)
@@ -166,6 +173,25 @@ class Query(ObjectType):
                 pass
         response = OkResponse(ok=ok)
         return response
+    
+    def resolve_cy_fetch_otp(root, info, **kwargs):
+        ok = False
+        otp = None
+        email='test@example.com'
+        print('resolve_cy_fetch_generate_otp',email)
+        if settings.ENABLED_AUTOMATED_TESTING:
+           try: 
+               email_otp_record = EmailOTP.objects.get(email=email)
+               
+               ok = True
+           except:
+               pass
+        print('email_otp_record', email_otp_record)      
+        if email_otp_record  is not None:
+            return email_otp_record 
+        else:
+            return None
+        
 
     def resolve_cy_create_global_announcement(root, info, **kwargs):
         ok = False
