@@ -151,7 +151,7 @@ class Query(ObjectType):
 
     # Automated Testing related queries
     cy_delete_new_user = graphene.Field(OkResponse)
-    cy_fetch_otp = graphene.Field(EmailOtpResponse)
+    cy_fetch_otp = graphene.Field(EmailOtpResponse,email=graphene.String())
     cy_create_global_announcement = graphene.Field(OkResponse)
     cy_delete_global_announcement = graphene.Field(OkResponse)
     cy_create_learner_group = graphene.Field(OkResponse)
@@ -174,10 +174,10 @@ class Query(ObjectType):
         response = OkResponse(ok=ok)
         return response
     
-    def resolve_cy_fetch_otp(root, info, **kwargs):
+    def resolve_cy_fetch_otp(root, info, email, **kwargs):
         ok = False
         otp = None
-        email='test@example.com'
+        # email='logicabc@mail.com'
         print('resolve_cy_fetch_generate_otp',email)
         if settings.ENABLED_AUTOMATED_TESTING:
            try: 
@@ -191,7 +191,24 @@ class Query(ObjectType):
             return email_otp_record 
         else:
             return None
-        
+
+    def resolve_cy_fetch_otp_password(root, info, email, **kwargs):
+        ok = False
+        otp = None
+        # email='logicabc@mail.com'
+        print('resolve_cy_fetch_generate_otp',email)
+        if settings.ENABLED_AUTOMATED_TESTING:
+           try: 
+               email_otp_record = EmailOTP.objects.get(email=email)
+               
+               ok = True
+           except:
+               pass
+        print('email_otp_record', email_otp_record)      
+        if email_otp_record  is not None:
+            return email_otp_record 
+        else:
+            return None    
 
     def resolve_cy_create_global_announcement(root, info, **kwargs):
         ok = False
