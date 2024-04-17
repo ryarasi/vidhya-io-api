@@ -46,6 +46,8 @@ PyJWT==1.7.1
 pyOpenSSL==20.0.1
 python-dateutil==2.8.1
 python-http-client==3.3.2
+Kafka-Python==2.0.0
+confluent-kafka>=2.0.2
 django-redis
 pytz==2021.1
 Rx==1.6.1

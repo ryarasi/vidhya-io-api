@@ -21,8 +21,10 @@ from datetime import date, timezone
 import re
 from django.contrib.auth.hashers import make_password
 from django.template.loader import render_to_string
-
-
+import requests, uuid, json
+from confluent_kafka import Consumer
+from confluent_kafka import KafkaError
+from confluent_kafka import KafkaException
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -993,7 +995,46 @@ class AddDefaultUserRole(graphene.Mutation):
 
         return AddDefaultUserRole(ok=ok)
 
-    
+# class TranslateMutation(graphene.Mutation):
+#     class Meta:
+#         description = "Mutation to create a new User Role"
+
+#     class Arguments:
+#         input = UserRoleInput(required=True)
+
+#     ok = graphene.Boolean()
+#     user_role = graphene.Field(UserRoleType)
+
+#     @staticmethod
+#     @login_required
+#     @user_passes_test(lambda user: has_access(user, RESOURCES['USER_ROLE'], ACTIONS['CREATE']))
+#     def mutate(root, info, input=None):
+#         ok = False
+#         # Add your key and endpoint
+#         key = "3b0ac0910a224bf180ff92d8f3055894"
+#         endpoint = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=hi" 
+
+#         # location, also known as region.
+#         # required if you're using a multi-service or regional (not global) resource. It can be found in the Azure portal on the Keys and Endpoint page.
+#         location = "southeastasia"
+
+#         path = '/translate'
+#         constructed_url = endpoint + path
+#         params = {
+#             'api-version': '3.0',
+#             'from': 'en',
+#             'to': ['fr', 'zu']
+#         }
+
+#         headers = {
+#             'Ocp-Apim-Subscription-Key': key,
+#             # location required if you're using a multi-service or regional (not global) resource.
+#             'Ocp-Apim-Subscription-Region': location,
+#             'Content-type': 'application/json',
+#             'X-ClientTraceId': str(uuid.uuid4())
+#         }
+#         return TranslateMutation(ok=ok)
+
 class CreateUserRole(graphene.Mutation):
     class Meta:
         description = "Mutation to create a new User Role"
@@ -4227,6 +4268,8 @@ class Mutation(graphene.ObjectType):
     modify_user_institution = ModifyUserInstitution.Field()
 
     add_default_user_role = AddDefaultUserRole.mutate()
+    # translate_mutation = TranslateMutation.field()
+
     create_user_role = CreateUserRole.Field()
     update_user_role = UpdateUserRole.Field()
     delete_user_role = DeleteUserRole.Field()

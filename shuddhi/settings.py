@@ -11,10 +11,19 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 from pathlib import Path
 import os
+# from azure.core.credentials import AzureKeyCredential
+# from azure.ai.translation.document import DocumentTranslationClient
+import requests
 import dj_database_url
 from environ import Env              
 from datetime import timedelta
+# from azure.ai.translation.text import TranslationDocumentInput
+# from azure.ai.translation.text import *
+# from azure.ai.translation.text.models import InputTextItem
 
+
+# from azure.core.credentials import AzureKeyCredential
+# from azure.ai.translation.document import DocumentTranslationClient
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -97,6 +106,10 @@ EMAIL_USE_TLS = ENV_EMAIL_USE_TLS
 EMAIL_USE_SSL = ENV_EMAIL_USE_SSL
 DEFAULT_FROM_EMAIL=ENV_DEFAULT_FROM_EMAIL
 
+KAFKA_BOOTSTRAP_SERVERS = ['localhost:9092']
+KAFKA_CONSUMER_GROUP = 'my-group'
+KAFKA_TOPIC_PREFIX = 'my-topic'
+
 INSTALLED_APPS = [
     'channels',
     'corsheaders',
@@ -114,6 +127,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'social_django',
+    'kafka',
+    'confluent_kafka'
     # 'social.apps.django_app.default',
 ]
 
@@ -355,3 +370,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # This is here because we are using a custom User model
 # https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#substituting-a-custom-user-model
 AUTH_USER_MODEL = "vidhya.User"
+
+def process_message(message: str) -> None:
+    print(f"message -- {message}")

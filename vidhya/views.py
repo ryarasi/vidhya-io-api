@@ -10,6 +10,31 @@ from django.views.generic import TemplateView
 from social_django.models import UserSocialAuth
 
 from .serializers import FileSerializer
+from kafka import KafkaProducer
+from confluent_kafka import Producer
+from confluent_kafka import Producer
+import json
+import random
+
+def produce_data(producer, topic, num_messages):
+    for i in range(num_messages):
+        data = {'id': i, 'value': random.randint(1, 100)}
+        producer.produce(topic, json.dumps(data))
+        producer.flush()
+
+def main():
+    bootstrap_servers = 'localhost:9092'
+    topic = 'bulk_data'
+    num_messages = 1000
+
+    conf = {'bootstrap.servers': bootstrap_servers}
+    producer = Producer(conf)
+
+    produce_data(producer, topic, num_messages)
+
+if __name__ == "__main__":
+    main()
+
 # Create your views here.
 # Create your views here.
 
