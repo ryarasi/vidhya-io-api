@@ -109,7 +109,8 @@ DEFAULT_FROM_EMAIL=ENV_DEFAULT_FROM_EMAIL
 KAFKA_BOOTSTRAP_SERVERS = ['localhost:9092']
 KAFKA_CONSUMER_GROUP = 'my-group'
 KAFKA_TOPIC_PREFIX = 'my-topic'
-
+AZURE_TRANSLATOR_TEXT_REGION = 'southeastasia'
+AZURE_TRANSLATOR_TEXT_SUBSCRIPTION_KEY = '3b0ac0910a224bf180ff92d8f3055894'
 INSTALLED_APPS = [
     'channels',
     'corsheaders',
@@ -129,6 +130,7 @@ INSTALLED_APPS = [
     'social_django',
     'kafka',
     'confluent_kafka'
+    # 'azure-ai-translation-text'
     # 'social.apps.django_app.default',
 ]
 
@@ -370,6 +372,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # This is here because we are using a custom User model
 # https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#substituting-a-custom-user-model
 AUTH_USER_MODEL = "vidhya.User"
+targetLanguage='hn'
+AZURE_TEXT_TRANSLATION_ENDPOINT = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=" + targetLanguage;
+AZURE_TEXT_TRANSLATION_KEY  = 'bb01fdb88ae24ca0acd34b997e92aeb5'
+AZURE_TRANSLATION_REGION = 'southeastasia'
 
 def process_message(message: str) -> None:
     print(f"message -- {message}")

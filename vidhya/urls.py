@@ -6,6 +6,5 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('upload/', FileUploadView.as_view()),
     path('social-auth/', include('social_django.urls', namespace='social')),
-    path('googleLogin/', SSO.as_view()),
-
+    path('googleLogin/', SSO.as_view())
 ]
