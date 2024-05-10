@@ -355,3 +355,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # This is here because we are using a custom User model
 # https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#substituting-a-custom-user-model
 AUTH_USER_MODEL = "vidhya.User"
+
+GOOGLE_TRANSLATION_ENDPOINT = "https://translation.googleapis.com/language/translate/v2"
+GOOGLE_TRANSLATION_KEY = "AIzaSyCNXia35f1qcjabMgKmx4OjZGfENwxSvAc"

@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 
 from social_django.models import UserSocialAuth
-
+from google.cloud import translate_v2
 from .serializers import FileSerializer
 # Create your views here.
 # Create your views here.

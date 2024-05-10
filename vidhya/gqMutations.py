@@ -21,7 +21,9 @@ from datetime import date, timezone
 import re
 from django.contrib.auth.hashers import make_password
 from django.template.loader import render_to_string
-
+# from google.cloud import translate_v2 as translate
+import requests
+from google.cloud import translate_v2 
 
 
 class CreateInstitution(graphene.Mutation):
@@ -833,54 +835,51 @@ class DeleteUser(graphene.Mutation):
             return DeleteUser(ok=ok, user=user_instance)
         return DeleteUser(ok=ok, user=None)
 
-# class UpdateLanguage(graphene.Mutation):
-#     class Meta:
-#         description = "Mutation to update the preferred language of a user"
-
-#     class Arguments:
-#         user_id = graphene.ID(required=True)
-#         preferredLanguageId  = graphene.String(required=True)  
-
-#     ok = graphene.Boolean()
-#     user = graphene.Field(UserType)
-
-#     @staticmethod
-#     @login_required
-#     def mutate(root, info, user_id, preferredLanguageId ):  
-#         ok = False
-#         user_instance = User.objects.get(pk=user_id, active=True)
-#         if user_instance:
-#             ok = True
-#             user_instance.preferred_language = preferredLanguageId 
-#             user_instance.save()
-#             return UpdateLanguage(ok=ok, user=user_instance)
-#         return UpdateLanguage(ok=ok, user=None)
+class TranslationInput(graphene.InputObjectType):
+    text = graphene.String(required=True)
+    target_language = graphene.String(required=True)
+    print('text--------------',text)
+    print('target_language--------------',target_language)
 
 
-# class UpdateLanguage(graphene.Mutation):
-#     class Meta:
-#         description = "Mutation to update the preferred language of a user"
-    
-#     class Arguments:
-#         user_id = graphene.ID(required=True)
-#         preferredLanguageId = graphene.String(required=True)  
-        
-#     ok = graphene.Boolean()
-#     user = graphene.Field(UserType)
-    
-#     @staticmethod
-#     @login_required
-#     def mutate(root, info, user_id, preferredLanguageId):
-#         ok = False
-#         user_instance = User.objects.get(pk=user_id, active=True)
-        
-#         if user_instance:
-#             ok = True
-#             user_instance.preferredLanguageId = preferredLanguageId
-#             user_instance.save()
-#             return UpdateLanguage(ok=ok, user=user_instance)
-        
-#         return UpdateLanguage(ok=ok, user=None)
+class TranslateTextMutation(graphene.Mutation):
+    class Arguments:
+        translation_input = TranslationInput(required=True)
+    translated_text = graphene.String()
+
+    def mutate(self, info, **kwargs):
+        translation_input = kwargs.get('translation_input')
+        print('translation_input',translation_input)
+
+        # Extract text and target_language from translation_input
+        text = translation_input['text']
+        target_language = translation_input['target_language']
+
+        # # Configuration
+        # google_translation_endpoint = "https://translation.googleapis.com/language/translate/v2"
+        # google_translation_key = 'AIzaSyCNXia35f1qcjabMgKmx4OjZGfENwxSvAc'
+
+        headers= {
+                'Content-Type': 'application/json',
+            }
+
+        data = {
+            'q': text,
+            'target': target_language,
+            'format': 'text',
+            'key': settings.GOOGLE_TRANSLATION_KEY
+        }
+
+        response = requests.post(settings.GOOGLE_TRANSLATION_ENDPOINT, headers=headers, json=data)
+        translation_result = response.json()
+        print('translation_result--------------',translation_result)
+
+        if response.status_code == 200:
+            translated_text = translation_result['data']['translations'][0]['translatedText']
+            return TranslateTextMutation(translated_text=translated_text)
+        else:
+            print("Translation failed with status code:", response)
+            return None
 
 class UpdateLanguage(graphene.Mutation):
     class Meta:
@@ -4238,6 +4237,8 @@ class createGoogleToken(graphene.Mutation):
         return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token, is_verified=isverified)
 
 class Mutation(graphene.ObjectType):
+
+    translate_document = TranslateTextMutation.Field()
 
     update_language = UpdateLanguage.Field()
     

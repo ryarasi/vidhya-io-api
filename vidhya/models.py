@@ -23,6 +23,9 @@ class LowercaseEmailField(models.EmailField):
             return value.lower()
         return value
 
+class Translation(models.Model):
+    field_to_translate = models.CharField(max_length=255)
+    translate_field = models.CharField(max_length=255, blank=True, null=True)
 
 class User(AbstractUser):
     name = models.CharField(max_length=100, default='Uninitialized User')
