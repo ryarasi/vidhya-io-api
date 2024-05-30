@@ -408,9 +408,12 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
             author_id = options["author_id"]
         except:
             pass
-
+        preferred_language = user.preferred_language
+        # print('preferred_language',preferred_language)                                       
         if author_id is not None:
             qs = Project.objects.filter(author_id=author_id)
+            qs = qs.filter(translate__has_key=preferred_language)
+            # print('qs1',qs)
         if author_id is not user.id:
             qs = qs = qs.filter(public=True)
 

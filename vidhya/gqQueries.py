@@ -1012,10 +1012,16 @@ class Query(ObjectType):
 
     def resolve_project(root, info, id, **kwargs):
         current_user = info.context.user
+        language = info.context.user.preferred_language    
         project_instance = Project.objects.get(pk=id, active=True)
         allow_access = is_record_accessible(
             current_user, RESOURCES['PROJECT'], project_instance)
-
+        # qs = ProjectType.resolve_translate(project_instance,info)
+        translation = project_instance.translate.get(language, {}) if hasattr(project_instance, 'translate') else {}
+        if translation:
+            for key, value in translation.items():
+                    setattr(project_instance, key, value)
+        # print('qs',qs)
         if allow_access != True:
             project_instance = None
         return project_instance
@@ -1023,9 +1029,7 @@ class Query(ObjectType):
 
     def resolve_projects(root, info, author_id=None, searchField=None, sortBy=SORT_BY_OPTIONS['NEW'], limit=None, offset=None, **kwargs):
         current_user = info.context.user
-
         cache_entity = CACHE_ENTITIES['PROJECTS']
-
         cache_key = generate_projects_cache_key(
             cache_entity, searchField, sortBy, limit, offset, author_id, current_user)
 
@@ -1054,7 +1058,8 @@ class Query(ObjectType):
 
         if limit is not None:
             qs = qs[:limit]
-
+        qs = ProjectType.resolve_translate(qs,info)
+        # print('qs ProjectType',qs)
         set_cache(cache_entity, cache_key, qs)
 
         return qs

@@ -31,28 +31,7 @@ class TranslationInput(graphene.InputObjectType):
     text = graphene.String(required=True)
     target_language = graphene.String(required=True)
 
-# class TranslateTextMutation(graphene.Mutation):
-#     class Arguments:
-#         translation_input = TranslationInput(required=True)
 
-#     translated_text = graphene.String()
-
-#     def mutate(self, info, translation_input):
-#         text = translation_input.get('text')
-#         target_language = translation_input.get('target_language')
-#         translated_text = translate_text(text, target_language)
-#         return TranslateTextMutation(translated_text=translated_text)
-
-# def translate_text(text, target_language):
-#     endpoint = settings.AZURE_TEXT_TRANSLATION_ENDPOINT
-#     azure_key = settings.AZURE_TEXT_TRANSLATION_KEY
-
-#     translation_client = DocumentTranslationClient(endpoint, AzureKeyCredential(azure_key))
-
-#     result = translation_client.begin_translation([text], target_language).result()
-
-#     translated_text = result[0].translations[0].text
-#     return translated_text
 
 class TranslateTextMutation(graphene.Mutation):
     class Arguments:
@@ -62,36 +41,30 @@ class TranslateTextMutation(graphene.Mutation):
 
     def mutate(self, info, **kwargs):
         translation_input = kwargs.get('translation_input')
-        # print('translation_input',translation_input)
-
-        # Extract text and target_language from translation_input
-        text = translation_input['text']
         target_language = translation_input['target_language']
-
-        # Configuration
-        azure_text_translation_endpoint = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=" + target_language
-        azure_text_translation_key = 'bb01fdb88ae24ca0acd34b997e92aeb5'
-        azure_translation_region = 'southeastasia'
-
-        headers = {
-            'Ocp-Apim-Subscription-Key': azure_text_translation_key,
-            'Content-type': 'application/json',
-            'Ocp-Apim-Subscription-Region': azure_translation_region
-        }
-
-        data = [{
-            'text': text
-        }]
-
-        response = requests.post(azure_text_translation_endpoint, headers=headers, json=data)
-        translation_result = response.json()
-
-        if response.status_code == 200:
-            translated_text = translation_result[0]['translations'][0]['text']
-            return TranslateTextMutation(translated_text=translated_text)
-        else:
-            print("Translation failed with status code:", response)
-            return None
+        translate_instance={}
+        for index,item in  enumerate(translation_input['object'], start=1):
+            google_translation_endpoint = "https://translation.googleapis.com/language/translate/v2?key=AIzaSyCNXia35f1qcjabMgKmx4OjZGfENwxSvAc"
+            google_translation_key = 'AIzaSyCNXia35f1qcjabMgKmx4OjZGfENwxSvAc'
+            headers= {
+                    'Content-Type': 'application/json',
+                }
+            data = {
+                'q': item,
+                'target': target_language,
+                'format': 'text'
+            }
+            response = requests.post(google_translation_endpoint, headers=headers, json=data)
+            translation_result = response.json()
+            if response.status_code == 200:
+                translated_text = translation_result['data']['translations'][0]['translatedText']
+                translate_instance.update({item:translated_text})
+                if(index==len(translation_input['object'])):
+                    return translate_instance
+            else:
+                print('response.status_code :',response.status_code )
+                print("Translation failed with status code:", response)
+                return None
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -1197,20 +1170,38 @@ class CreateProject(graphene.Mutation):
     def mutate(root, info, input=None):
         current_user = info.context.user
         ok = True
+        print('input',input)
           # trans
-        translation_input = {
-            'text': 'Hello',
-            'target_language': 'es'
-        }
-        translation_result = TranslateTextMutation.mutate(None, info, translation_input=translation_input)
-        
-        # Extract the translated text from the result
-        if translation_result is not None:
-            translated_text = translation_result['translated_text']
-        else:
-            translated_text = translation_result
+        targetLanguages = ['hi', 'ml', 'ta', 'te']
+        title_object={}
+        for language in targetLanguages:
+            translation_input = {
+                'object': {'title':input.title,'description':input.description},
+                'target_language': language
+            }
+            print('translation_input',translation_input)
 
-        print('translated_text',translated_text)
+            translation_result = TranslateTextMutation.mutate(None, info, translation_input=translation_input)    
+            print('translation_result',translation_result)
+            # Extract the translated text from the result
+            if translation_result is not None:
+                print('translation_result',translation_result)
+                translated_text = translation_result
+                title_object.update({language:translation_result})
+            else:
+                translated_text = translation_result
+                title_object.update({language:translation_result})
+
+            print(translated_text)
+            # translation = translated_text.get_translation()
+            # print('translated_text',dir(object))
+            # if 'language' in dir(object):
+            #     language = object.language
+            #     print(language)
+            # else:
+            #     print("Language attribute not found.")
+            # print(translation)
+        # print('translated_text',translated_text)
     # end trans
         CreateProject.validate_project(input)
         searchField = input.title
@@ -1218,7 +1209,7 @@ class CreateProject(graphene.Mutation):
         searchField += current_user.name if current_user.name is not None else ""
         searchField = searchField.lower()
 
-        project_instance = Project(title=input.title, author_id=input.author_id, link=input.link, public=input.public, description=input.description, course_id=input.course_id,
+        project_instance = Project(title=input.title, translate=title_object,author_id=input.author_id, link=input.link, public=input.public, description=input.description, course_id=input.course_id,
                                    searchField=searchField)
         project_instance.save()
         current_user.projects_clapped.add(project_instance.id)

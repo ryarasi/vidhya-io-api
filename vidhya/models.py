@@ -241,6 +241,9 @@ class GroupMember(models.Model):
 
 class Project(models.Model):
     title = models.CharField(max_length=200)
+    def default_title():
+        return {}
+    translate = JSONField(default=default_title)
     author = models.ForeignKey(
         User, related_name="projectAuthor", on_delete=models.PROTECT)
     description = models.CharField(max_length=2000)

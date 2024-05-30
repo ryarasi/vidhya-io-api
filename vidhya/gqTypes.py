@@ -88,8 +88,15 @@ class ProjectType(DjangoObjectType):
 
     class Meta:
         model = Project
-
-
+    def resolve_translate(self,info):
+        language = info.context.user.preferred_language        
+        for project_instance in self:
+            translation = project_instance.translate.get(language, {}) if hasattr(project_instance, 'translate') else {}
+            if translation:
+                for key, value in translation.items():
+                    setattr(project_instance, key, value)
+        return self
+        
 class IssueType(DjangoObjectType):
     title = graphene.String()
     subtitle = graphene.String()
