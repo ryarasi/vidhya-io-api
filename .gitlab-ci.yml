@@ -28,6 +28,9 @@ build_image:
     - docker build -t $CI_REGISTRY_IMAGE .
     - echo $CI_REGISTRY_IMAGE
     - docker push $CI_REGISTRY_IMAGE:latest
+    - docker build -t $CI_REGISTRY_IMAGE/nginx ./nginx
+    - echo $CI_REGISTRY_IMAGE
+    - docker push $CI_REGISTRY_IMAGE/nginx:latest
   only:
     - master
 
