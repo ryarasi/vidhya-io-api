@@ -23,6 +23,9 @@ class LowercaseEmailField(models.EmailField):
             return value.lower()
         return value
 
+class Translation(models.Model):
+    field_to_translate = models.CharField(max_length=255)
+    translate_field = models.CharField(max_length=255, blank=True, null=True)
 
 class User(AbstractUser):
     name = models.CharField(max_length=100, default='Uninitialized User')
@@ -47,7 +50,7 @@ class User(AbstractUser):
     manualLogin = models.BooleanField(default="False")
     googleLogin = models.BooleanField(default="False")    
     credit_hours = models.CharField(default="5",max_length=2,null=False)
-    preferred_language = models.CharField(max_length=300,default="En")
+    preferred_language = models.ForeignKey('Language',on_delete=models.PROTECT,default='en')
     class GenderChoices(models.TextChoices):
         MALE = "M", _('Male')
         FEMALE = "F", _('Female')
@@ -81,13 +84,18 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
     def __str__(self):
         return f'{self.name}' 
-    
-class Languages(models.Model):
-    short_code = models.CharField(
-        max_length=3,primary_key=True)
+
+
+class Language(models.Model):
+    short_code = models.CharField(max_length=3,primary_key=True)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=500)
-
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f'{self.name}'  
+    
 class EmailOTP(models.Model):
     email = LowercaseEmailField(blank=False, max_length=255)
     def generate_otp():
@@ -273,6 +281,9 @@ class ProjectContributor(models.Model):
 
 
 class Announcement(models.Model):
+    def default_tranlate():
+        return {}
+    translate = JSONField(default=default_tranlate)
     title = models.CharField(max_length=80)
     author = models.ForeignKey(
         User, related_name="announcementAuthor", on_delete=models.PROTECT)
@@ -307,13 +318,20 @@ class Course(models.Model):
     title = models.CharField(max_length=80)
     def default_title():
         return {}
+    translate = JSONField(default=default_title)
     title_object = JSONField(default=default_title)
     blurb_object = JSONField(default=default_title)
     description_object = JSONField(default=default_title)
 
     blurb = models.CharField(max_length=150)
+    def default_blurb():
+        return {}
+    blurb_object = JSONField(default= default_blurb)
     video = models.CharField(max_length=500, blank=True, null=True)
     description = models.CharField(max_length=1000)
+    def default_description():
+        return {}
+    description_object = JSONField(default= default_description)
     institutions = models.ManyToManyField(Institution, through="CourseInstitution", through_fields=(
         'course', 'institution'), blank=True)
     duration = models.CharField(default="0",max_length=50)
@@ -412,6 +430,9 @@ class CourseSection(models.Model):
 
 
 class Chapter(models.Model):
+    def default_tranlate():
+        return {}
+    translate = JSONField(default=default_tranlate)
     title = models.CharField(max_length=80)
     instructions = models.CharField(max_length=2000)
     index = models.IntegerField(default=100)
@@ -444,6 +465,9 @@ class MandatoryChapters(models.Model):
     requirement = models.ForeignKey(Chapter, related_name="requirement", on_delete=models.CASCADE)
 
 class Exercise(models.Model):
+    def default_tranlate():
+        return {}
+    translate = JSONField(default=default_tranlate)
     prompt = models.CharField(max_length=2000)
     index = models.IntegerField(default=100)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)

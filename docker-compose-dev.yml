@@ -51,7 +51,35 @@ services:
       PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
       PGADMIN_DEFAULT_PASSWORD: root
     restart: always
-
+  celery:
+    restart: always
+    build:
+      context: .
+    command: celery -A shuddhi worker -l info
+    volumes:
+      - .:/shuddhi
+    environment:
+      - DB_HOST=db
+      - DB_NAME=shuddhidb
+      - DB_USER=shuddhiadmin
+      - DB_PASS=password
+    depends_on:
+      - db
+      - redis
+      - web
+  celery-beat:
+    build: 
+      context: .
+    command: celery -A shuddhi beat -l info
+    volumes:
+      - .:/shuddhi
+    environment:
+      - DB_HOST=db
+      - DB_NAME=shuddhidb
+      - DB_USER=shuddhiadmin
+      - DB_PASS=password
+    depends_on:
+      - redis
   # zookeeper:
   #   image: zookeeper
   #   restart: always

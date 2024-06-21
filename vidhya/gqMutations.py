@@ -7,9 +7,9 @@ import graphene
 import datetime
 import graphql_social_auth
 from graphql import GraphQLError
-from vidhya.models import CompletedChapters, CourseGrader, Criterion, CriterionResponse, EmailOTP, Issue, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
+from vidhya.models import CompletedChapters, CourseGrader, CourseParticipant, Criterion, CriterionResponse, EmailOTP, Issue, Language, Project, ProjectClap, SubmissionHistory, User, UserRole, Institution, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseKey, ExerciseSubmission, Report, Chat, ChatMessage
 from graphql_jwt.decorators import login_required, user_passes_test
-from .gqTypes import AnnouncementType, AnnouncementInput, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput, UserRoleInput,  UserType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
+from .gqTypes import AnnouncementType, AnnouncementInput, CourseParticipantType, CourseType, CourseSectionType,  ChapterType, CriterionInput, CriterionResponseInput, CriterionResponseType, CriterionType, EmailOTPType, ExerciseSubmissionInput, ExerciseType, ExerciseKeyType, ExerciseSubmissionType, IndexListInputType, IssueInput, IssueType, LanguageType, ProjectInput, ProjectType, ReportType, GroupInput, InstitutionInput,  InstitutionType, UserInput,UserRoleInput,  UserType,UsersType, UserRoleType, GroupType, CourseInput, CourseSectionInput, ChapterInput, ExerciseInput, ExerciseKeyInput, ExerciseSubmissionInput, ReportInput, ChatType, ChatMessageType, ChatMessageInput
 from .gqSubscriptions import NotifyCriterion, NotifyCriterionResponse, NotifyInstitution, NotifyIssue, NotifyProject, NotifyUser, NotifyUserRole, NotifyGroup, NotifyAnnouncement, NotifyCourse, NotifyCourseSection, NotifyChapter, NotifyExercise, NotifyExerciseKey, NotifyExerciseSubmission, NotifyReport, NotifyChat, NotifyChatMessage
 from vidhya.authorization import has_access, RESOURCES, ACTIONS, CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD, is_admin_user
 from django.core.mail import send_mail
@@ -21,50 +21,14 @@ from django.core.cache import cache
 from django.db import connection, transaction
 from graphql_jwt.shortcuts import get_token, create_refresh_token
 from django.contrib.auth import get_user_model
-from datetime import datetime, timezone
-# from .translation_service import translate_document
-from azure.core.credentials import AzureKeyCredential
-from azure.ai.translation.document import DocumentTranslationClient
+from datetime import date, timezone
+import re
+from django.contrib.auth.hashers import make_password
+from django.template.loader import render_to_string
 import requests
 
-class TranslationInput(graphene.InputObjectType):
-    text = graphene.String(required=True)
-    target_language = graphene.String(required=True)
 
 
-
-class TranslateTextMutation(graphene.Mutation):
-    class Arguments:
-        translation_input = TranslationInput(required=True)
-
-    translated_text = graphene.String()
-
-    def mutate(self, info, **kwargs):
-        translation_input = kwargs.get('translation_input')
-        target_language = translation_input['target_language']
-        translate_instance={}
-        for index,item in  enumerate(translation_input['object'], start=1):
-            google_translation_endpoint = "https://translation.googleapis.com/language/translate/v2?key=AIzaSyCNXia35f1qcjabMgKmx4OjZGfENwxSvAc"
-            google_translation_key = 'AIzaSyCNXia35f1qcjabMgKmx4OjZGfENwxSvAc'
-            headers= {
-                    'Content-Type': 'application/json',
-                }
-            data = {
-                'q': item,
-                'target': target_language,
-                'format': 'text'
-            }
-            response = requests.post(google_translation_endpoint, headers=headers, json=data)
-            translation_result = response.json()
-            if response.status_code == 200:
-                translated_text = translation_result['data']['translations'][0]['translatedText']
-                translate_instance.update({item:translated_text})
-                if(index==len(translation_input['object'])):
-                    return translate_instance
-            else:
-                print('response.status_code :',response.status_code )
-                print("Translation failed with status code:", response)
-                return None
 
 class CreateInstitution(graphene.Mutation):
     class Meta:
@@ -581,7 +545,30 @@ class DeleteUser(graphene.Mutation):
             return DeleteUser(ok=ok, user=user_instance)
         return DeleteUser(ok=ok, user=None)
 
+class UpdateLanguage(graphene.Mutation):
+    class Meta:
+        description = "Mutation to update the preferred language of a user"
 
+    class Arguments:
+        user_id = graphene.ID(required=True)
+        preferred_language  = graphene.String(required=True)  # Update the argument name
+
+    ok = graphene.Boolean()
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, user_id, preferred_language):  
+        ok = False
+        user_instance = User.objects.get(pk=user_id, active=True)
+        if user_instance:
+            ok = True
+            user_instance.preferred_language_id = preferred_language
+            user_instance.save()
+            return UpdateLanguage(ok=ok, user=user_instance)
+        return UpdateLanguage(ok=ok, user=None)
+
+    
 class ApproveUser(graphene.Mutation):
     class Meta:
         description = "Mutation to approve user"
@@ -1170,46 +1157,18 @@ class CreateProject(graphene.Mutation):
     def mutate(root, info, input=None):
         current_user = info.context.user
         ok = True
-        print('input',input)
-          # trans
-        targetLanguages = ['hi', 'ml', 'ta', 'te']
-        title_object={}
-        for language in targetLanguages:
-            translation_input = {
-                'object': {'title':input.title,'description':input.description},
-                'target_language': language
-            }
-            print('translation_input',translation_input)
-
-            translation_result = TranslateTextMutation.mutate(None, info, translation_input=translation_input)    
-            print('translation_result',translation_result)
-            # Extract the translated text from the result
-            if translation_result is not None:
-                print('translation_result',translation_result)
-                translated_text = translation_result
-                title_object.update({language:translation_result})
-            else:
-                translated_text = translation_result
-                title_object.update({language:translation_result})
-
-            print(translated_text)
-            # translation = translated_text.get_translation()
-            # print('translated_text',dir(object))
-            # if 'language' in dir(object):
-            #     language = object.language
-            #     print(language)
-            # else:
-            #     print("Language attribute not found.")
-            # print(translation)
-        # print('translated_text',translated_text)
-    # end trans
+        
+        # result = my_task.delay(3, 5)
+        print('result celery: ',result)
+        translate_object={}
+        translate_object = TranslateTextMutation.translate_data(None, info,{'title':input.title,'description':input.description})
         CreateProject.validate_project(input)
         searchField = input.title
         searchField += input.description if input.description is not None else ""
         searchField += current_user.name if current_user.name is not None else ""
         searchField = searchField.lower()
 
-        project_instance = Project(title=input.title, translate=title_object,author_id=input.author_id, link=input.link, public=input.public, description=input.description, course_id=input.course_id,
+        project_instance = Project(title=input.title, translate=translate_object,author_id=input.author_id, link=input.link, public=input.public, description=input.description, course_id=input.course_id,
                                    searchField=searchField)
         project_instance.save()
         current_user.projects_clapped.add(project_instance.id)
@@ -1562,6 +1521,7 @@ class CreateCourse(graphene.Mutation):
     def mutate(root, info, input=None):
         ok = True
         error = ""
+        print('input',input)
         if input.title is None:
             error += "Title is a required field<br />"
 
@@ -1569,7 +1529,7 @@ class CreateCourse(graphene.Mutation):
             error += "Blurb is a required field<br />"
         if input.description is None:
             error += "Description is a required field<br />"
-        if input.instructor_id is None:
+        if input.instructor_ids is None:
             error += "Instructor is a required field<br />"
         if input.institution_ids is None:
             error += "Institution(s) is a required field<br />"
@@ -1579,18 +1539,22 @@ class CreateCourse(graphene.Mutation):
         searchField += input.blurb if input.blurb is not None else ""
         searchField += input.description if input.description is not None else ""
         searchField = searchField.lower()
-
+        translate_object={}
+        translate_object = TranslateTextMutation.translate_data(None, info,{'title':input.title,'blurb':input.blurb,'description':input.description})
+        print('translate_object',translate_object)
+        
         course_instance = Course(
-            index=input.index,
+           
             blurb=input.blurb,
             description=input.description,
             video=input.video,
-            instructor_id=input.instructor_id,
+           
             start_date=input.start_date,
             end_date=input.end_date,
             credit_hours=input.credit_hours,
             pass_score_percentage=input.pass_score_percentage,
             pass_completion_percentage=input.pass_completion_percentage,
+            translate=translate_object,
             searchField=searchField)
         course_instance.save()
 
@@ -1598,6 +1562,9 @@ class CreateCourse(graphene.Mutation):
 
         if input.institution_ids:
             course_instance.institutions.add(*input.institution_ids)
+
+        if input.instructor_ids or input.instructor_ids == []:
+            course_instance.instructors.add(*input.instructor_ids)
 
         if input.participant_ids or input.participant_ids == []:
             course_instance.participants.add(*input.participant_ids)
@@ -1639,6 +1606,9 @@ class UpdateCourse(graphene.Mutation):
         ok = False
         course = Course.objects.get(pk=id, active=True)
         course_instance = course
+        translate_object={}
+        translate_object = TranslateTextMutation.translate_data(None, info,{'title': input.title if input.title is not None else course.title,'blurb':input.blurb if input.blurb is not None else course.blurb,'description':input.description if input.description is not None else course.description})
+        print('translate_object',translate_object)
         if course_instance:
             ok = True
             course_instance.title = input.title if input.title is not None else course.title
@@ -3745,7 +3715,12 @@ class createGoogleToken(graphene.Mutation):
         return createGoogleToken(ok=ok,user=user_instance, token=token, refresh_token=refresh_token, is_verified=isverified)
 
 class Mutation(graphene.ObjectType):
-    translate_document = TranslateTextMutation.Field()
+    # translate_document = TranslateTextMutation.Field()
+
+    # translate_document = TranslateTextMutation.Field()
+
+    update_language = UpdateLanguage.Field()
+    
     create_institution = CreateInstitution.Field()
     update_institution = UpdateInstitution.Field()
     delete_institution = DeleteInstitution.Field()

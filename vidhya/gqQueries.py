@@ -2,9 +2,9 @@ import graphene
 import json
 from graphene_django.types import ObjectType
 from graphql_jwt.decorators import login_required, user_passes_test
-from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP, Languages
+from vidhya.models import AnnouncementsSeen, CompletedChapters, CompletedCourses, CourseParticipant, Institution, Issue, Project, SubmissionHistory, User, UserRole, Group, Announcement, Course, CourseSection, Chapter, Exercise, ExerciseSubmission, ExerciseKey, Report, Chat, ChatMessage, EmailOTP, Language
 from django.db.models import Q
-from .gqTypes import AnnouncementType, ChapterType, CourseInstructorType, CourseParticipantType,CourseCompletedType,ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType, LanguagesType
+from .gqTypes import AnnouncementType, ChapterType, CourseInstructorType, CourseParticipantType,CourseCompletedType,ExerciseType, ExerciseSubmissionType, IssueType, ProjectType, SubmissionHistoryType, ExerciseKeyType, ReportType, ChatMessageType,  CourseSectionType, CourseType, InstitutionType, UserType, UserRoleType, GroupType, ChatType, EmailOTPType, LanguageType
 from vidhya.authorization import USER_ROLES_NAMES, has_access, redact_user,is_admin_user, RESOURCES, ACTIONS, rows_accessible, is_record_accessible, SORT_BY_OPTIONS
 from graphql import GraphQLError
 from .gqMutations import UpdateAnnouncement
@@ -43,6 +43,10 @@ def generate_public_institution(institution):
 
 class Users(graphene.ObjectType):
     records = graphene.List(UserType)
+    total = graphene.Int()
+
+class Languages(graphene.ObjectType):
+    records = graphene.List(LanguageType)
     total = graphene.Int()
 
 class UserRoles(graphene.ObjectType):
@@ -196,6 +200,10 @@ class UnreadCount(graphene.ObjectType):
 
 class Query(ObjectType):
     # Public Queries
+
+    languages = graphene.List(
+        LanguageType, searchField=graphene.String(), limit=graphene.Int(), offset=graphene.Int())
+    
     user_by_username = graphene.Field(
         PublicUserType, username=graphene.String())
     public_users = graphene.Field(
@@ -647,6 +655,11 @@ class Query(ObjectType):
         results = Users(records=qs, total=len(qs))
         return results
     
+    def resolve_languages(root, info, **kwargs):
+        qs = Language.objects.filter(active=True)
+        return qs
+
+
     @login_required
     def resolve_coordinator_options(root, info, query=None, roles=[], limit=None, offset=None, **kwargs):
         cache_entity = CACHE_ENTITIES['USERS']
@@ -1140,7 +1153,7 @@ class Query(ObjectType):
     @login_required
     @user_passes_test(lambda user: has_access(user, RESOURCES['COURSE'], ACTIONS['LIST']))
     def resolve_courses(root, info, searchField=None, language=None, limit=None, offset=None, **kwargs):
-        language = 'Hn'
+        # language = 'Hn'
         current_user = info.context.user
         cache_entity = CACHE_ENTITIES['COURSES']
         print('current_user',current_user)
@@ -1155,25 +1168,23 @@ class Query(ObjectType):
         qs = rows_accessible(current_user, RESOURCES['COURSE'])
         # course_query = qs
         total = len(qs)
+        qs = CourseType.resolve_translate(qs,info)
+        if searchField is not None:
+            filter = (
+                Q(searchField__icontains=searchField.lower())
+            )
+            qs = qs.filter(filter)
+
+        if offset is not None:
+            qs = qs[offset:]
+
+        if limit is not None:
+            qs = qs[:limit]
+        
         
 
-        print('total',total)
-        print('language',language)
-        qs1 = CourseType.resolve_title(qs,info)
-        print('qs1',qs1)
-        # if searchField is not None:
-        #     filter = (
-        #         Q(searchField__icontains=searchField.lower())
-        #     )
-        #     qs = qs.filter(filter)
-
-        # if offset is not None:
-        #     qs = qs[offset:]
-
-        # if limit is not None:
-        #     qs = qs[:limit]
         PUBLISHED = Course.StatusChoices.PUBLISHED
-       
+        print('courses',qs)
 
         courses_joined = CourseParticipant.objects.filter(participant__in=[current_user],course__status=PUBLISHED)
         results = MemberCourses(records=qs,courses_joined=courses_joined, total=total)
@@ -1185,7 +1196,7 @@ class Query(ObjectType):
     @login_required
     def resolve_member_courses(root, info, searchField=None, limit=None, offset=None, **kwargs):
 
-        current_user = info.context.user.id
+        current_user = info.context.user
         PUBLISHED = Course.StatusChoices.PUBLISHED 
         qs = rows_accessible(current_user, RESOURCES['MEMBER_COURSE'])
         total = len(qs)
@@ -1207,7 +1218,8 @@ class Query(ObjectType):
         publish = []
         completed = []
         audit = []
-        
+        qs = CourseType.resolve_translate(qs,info)
+        print('mem course',qs)
         for course in qs:
             isCourseCompleted = CourseType.resolve_completed(course,info)
 

@@ -408,12 +408,11 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
             author_id = options["author_id"]
         except:
             pass
-        preferred_language = user.preferred_language
+        preferred_language = user.preferred_language_id
         # print('preferred_language',preferred_language)                                       
         if author_id is not None:
             qs = Project.objects.filter(author_id=author_id)
             qs = qs.filter(translate__has_key=preferred_language)
-            # print('qs1',qs)
         if author_id is not user.id:
             qs = qs = qs.filter(public=True)
 
@@ -425,8 +424,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
 
     if RESOURCE_TYPE == RESOURCES["COURSE"]:
         PUBLISHED = Course.StatusChoices.PUBLISHED
-        preferred_language = user.preferred_language
-        preferred_language = 'Hn'
+        preferred_language = user.preferred_language_id
 
            # Your Course queryset
         # qs = Course.objects.filter(
@@ -457,6 +455,7 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
         
         PUBLISHED = Course.StatusChoices.PUBLISHED
         qs = Course.objects.all().filter( status=PUBLISHED).distinct().order_by("id")
+        qs = qs.filter(translate__has_key=preferred_language)
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
         else:
@@ -467,13 +466,18 @@ def rows_accessible(user, RESOURCE_TYPE, options={}):
     
     if RESOURCE_TYPE == RESOURCES["MEMBER_COURSE"]: 
         PUBLISHED = Course.StatusChoices.PUBLISHED
+        # print('preferred_language',user.preferred_language)
+
+        preferred_language = user.preferred_language_id
+        # preferred_language = user.preferred_language_id
         DRAFT = Course.StatusChoices.DRAFT
-        userInstance = User.objects.get(pk=user)  
+        userInstance = User.objects.get(pk=user.id)  
         admin_user = is_admin_user(userInstance)
         if  admin_user:#if logged user is Super Admin, then fetch all draft courses. Also, fetch published course that are joined or in the try mode
             qs =  Course.objects.filter(Q(status=DRAFT)|Q(courseparticipant__participant=user) & Q(status=PUBLISHED)).distinct()
         else:    #logged user is not Super Admin, then fetch all draft courses which is created by the logged in instructor. Also, fetch published course that are joined or in the try mode
             qs = Course.objects.filter(Q(courseinstructor__instructor=user) & Q(status=DRAFT)|Q(courseparticipant__participant=user) & Q(status=PUBLISHED)).distinct()
+        qs = qs.filter(translate__has_key=preferred_language)
         if subscription_method == DELETE_METHOD:
             qs = qs.filter(active=False)
         else:

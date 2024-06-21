@@ -11,19 +11,11 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 from pathlib import Path
 import os
-# from azure.core.credentials import AzureKeyCredential
-# from azure.ai.translation.document import DocumentTranslationClient
 import requests
 import dj_database_url
 from environ import Env              
 from datetime import timedelta
-# from azure.ai.translation.text import TranslationDocumentInput
-# from azure.ai.translation.text import *
-# from azure.ai.translation.text.models import InputTextItem
-
-
-# from azure.core.credentials import AzureKeyCredential
-# from azure.ai.translation.document import DocumentTranslationClient
+from celery.schedules import crontab
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,9 +71,11 @@ ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = env.list('ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_SC
 ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = env.list('ENV_SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA')
 ENV_SOCIAL_AUTH_LOGIN_ERROR_URL = env('ENV_SOCIAL_AUTH_LOGIN_ERROR_URL')
 ENV_SOCIAL_AUTH_RAISE_EXCEPTIONS = env.bool('ENV_SOCIAL_AUTH_RAISE_EXCEPTIONS',default=False)
-ENV_SOCIAL_AUTH_LOGIN_REDIRECT_URL = env('ENV_SOCIAL_AUTH_LOGIN_REDIRECT_URL')
-# 
-ENV_SHUDDHI_VIDHYA_INSTITUTION_ID = env('SHUDDHI_VIDHYA_INSTITUTION_ID',default=1)
+ENV_SOCIAL_AUTH_LOGIN_REDIRECT_URL = env('ENV_SOCIAL_AUTH_LOGIN_REDIRECT_URL') 
+ENV_SHUDDHI_VIDHYA_INSTITUTION_ID = env('ENV_SHUDDHI_VIDHYA_INSTITUTION_ID',default=1)
+ENV_ENABLE_SERVERSIDE_TRANSLATION = env('ENV_ENABLE_SERVERSIDE_TRANSLATION',default=False)
+ENV_TRANSLATION_KEY = env('ENV_TRANSLATION_KEY',default='')
+ENV_TRANSLATION_ENDPOINT = env('ENV_TRANSLATION_ENDPOINT',default='')
 
 DEFAULT_AVATARS = {
     'USER': 'https://i.imgur.com/KHtECqa.png',
@@ -106,11 +100,6 @@ EMAIL_USE_TLS = ENV_EMAIL_USE_TLS
 EMAIL_USE_SSL = ENV_EMAIL_USE_SSL
 DEFAULT_FROM_EMAIL=ENV_DEFAULT_FROM_EMAIL
 
-KAFKA_BOOTSTRAP_SERVERS = ['localhost:9092']
-KAFKA_CONSUMER_GROUP = 'my-group'
-KAFKA_TOPIC_PREFIX = 'my-topic'
-AZURE_TRANSLATOR_TEXT_REGION = 'southeastasia'
-AZURE_TRANSLATOR_TEXT_SUBSCRIPTION_KEY = '3b0ac0910a224bf180ff92d8f3055894'
 INSTALLED_APPS = [
     'channels',
     'corsheaders',
@@ -127,10 +116,7 @@ INSTALLED_APPS = [
     'graphql_auth',
     'rest_framework',
     'django_filters',
-    'social_django',
-    'kafka',
-    'confluent_kafka'
-    # 'azure-ai-translation-text'
+    'social_django'
     # 'social.apps.django_app.default',
 ]
 
@@ -234,6 +220,15 @@ WSGI_APPLICATION = 'shuddhi.wsgi.application'
 ASGI_APPLICATION = 'shuddhi.router.application'
 
 
+# set the celery broker url 
+CELERY_BROKER_URL = "redis://redis:6379"
+CELERY_RESULT_BACKEND = "redis://redis:6379"
+
+# # set the celery result backend 
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+  
+# # set the celery timezone 
+# CELERY_TIMEZONE = 'UTC'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
@@ -372,10 +367,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # This is here because we are using a custom User model
 # https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#substituting-a-custom-user-model
 AUTH_USER_MODEL = "vidhya.User"
-targetLanguage='hn'
-AZURE_TEXT_TRANSLATION_ENDPOINT = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=" + targetLanguage;
-AZURE_TEXT_TRANSLATION_KEY  = 'bb01fdb88ae24ca0acd34b997e92aeb5'
-AZURE_TRANSLATION_REGION = 'southeastasia'
 
 def process_message(message: str) -> None:
     print(f"message -- {message}")
+
+GOOGLE_TRANSLATION_ENDPOINT = "https://translation.googleapis.com/language/translate/v2"
+GOOGLE_TRANSLATION_KEY = "AIzaSyCNXia35f1qcjabMgKmx4OjZGfENwxSvAc"
