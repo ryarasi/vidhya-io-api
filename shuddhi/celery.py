@@ -34,7 +34,7 @@ app.conf.CELERYBEAT_SCHEDULE = {
 
     'everyday at 8:00PM': {
         'task':'tasks.updateTranslation',
-        'schedule': timedelta(hours=19),
+        'schedule': timedelta(minutes=1),
         'args':()
     }
 

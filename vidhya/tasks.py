@@ -6,6 +6,7 @@ from django.db.models import Q
 import requests
 from django.conf import settings
 from google.cloud import translate_v2 as translate
+from django.conf import settings
 
 
 @shared_task(name='tasks.updateTranslation')
@@ -13,14 +14,15 @@ def updateTranslation(**kwargs):
     # Detect language type
     # If language type is detected then check the variation by comparing it with translate column and default values
     # Handle with  resource name for dynamic purpose like authorization.py
-    qs = Course.objects.filter(~Q(translate__isnull=True) | ~Q(translate='')).distinct().order_by('id')
-    for input in qs:        
-        translate_object={}
-        courseins = {'title':input.title,'blurb':input.blurb,'description':input.description}
-        translate_object = TranslateTextMutation.translate_data(None, courseins)
-        input.translate=translate_object
-        input.save()
-
+    if(settings.ENV_CELERY_TASK):
+        qs = Course.objects.filter(~Q(translate__isnull=True) | ~Q(translate='')).distinct().order_by('id')
+        for input in qs:        
+            translate_object={}
+            courseins = {'title':input.title,'blurb':input.blurb,'description':input.description}
+            translate_object = TranslateTextMutation.translate_data(None, courseins)
+            input.translate=translate_object
+            input.save()
+    
 class TranslationInput(graphene.InputObjectType):
     text = graphene.String(required=True)
     target_language = graphene.String(required=True)

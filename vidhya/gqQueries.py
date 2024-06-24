@@ -1156,14 +1156,14 @@ class Query(ObjectType):
         # language = 'Hn'
         current_user = info.context.user
         cache_entity = CACHE_ENTITIES['COURSES']
-        print('current_user',current_user)
-        # cache_key = generate_courses_cache_key(
-        #     cache_entity, searchField, limit, offset, current_user)
+        # print('current_user',current_user)
+        cache_key = generate_courses_cache_key(
+            cache_entity, searchField, limit, offset, current_user)
 
-        # cached_response = fetch_cache(cache_entity, cache_key)
+        cached_response = fetch_cache(cache_entity, cache_key)
 
-        # if cached_response:
-        #     return cached_response
+        if cached_response:
+            return cached_response
 
         qs = rows_accessible(current_user, RESOURCES['COURSE'])
         # course_query = qs
