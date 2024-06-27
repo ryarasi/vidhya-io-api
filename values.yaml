@@ -1,0 +1,25 @@
+image:
+  app:
+    repository:
+    tag: latest
+
+service:
+  django:
+    type: ClusterIP
+    port: 8000
+  nginx:
+    type: LoadBalancer
+    port: 80
+    
+resources:
+  limits:
+    cpu: 500m
+    memory: 512mi
+  requests: 
+    cpu: 250m
+    memory: 256mi
+
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 50
