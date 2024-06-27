@@ -24,4 +24,6 @@ spec:
                 requests:
                     cpu: {{ .Values.resources.requests.cpu }}
                     memory: {{ .Values.resources.requests.memory}}
+        imagePullSecrets:
+          - name: gitlab-registry
                 
