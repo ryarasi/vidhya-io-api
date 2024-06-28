@@ -18,5 +18,9 @@ spec:
           image: "{{ .Values.image.nginx.repository }}:{{ .Values.image.nginx.tag }}"
           ports:
             - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: my-configmap
       imagePullSecrets:
         - name: gitlab-registry
+      

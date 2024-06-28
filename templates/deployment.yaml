@@ -23,7 +23,10 @@ spec:
                     memory: {{ .Values.resources.limits.memory}}
                 requests:
                     cpu: {{ .Values.resources.requests.cpu }}
-                    memory: {{ .Values.resources.requests.memory}}
+                    memory: {{ .Values.resources.requests.memory}}       
+              envFrom:
+                - configMapRef:
+                    name: my-configmap
         imagePullSecrets:
-          - name: gitlab-registry
+        - name: gitlab-registry
                 

@@ -17,3 +17,6 @@ spec:
           image: redis:latest
           ports:
             - containerPort: 6379
+          envFrom:
+            - configMapRef:
+                name: my-configmap
