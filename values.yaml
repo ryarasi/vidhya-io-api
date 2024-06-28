@@ -2,6 +2,9 @@ image:
   app:
     repository:
     tag: latest
+  nginx:
+    repository:
+    tag: latest
 
 service:
   django:
