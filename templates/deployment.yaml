@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  maintainer: somasekharjamalla@gmail.com
   name:  app
 spec:
   replicas: 2
