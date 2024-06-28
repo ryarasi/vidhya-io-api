@@ -2,7 +2,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  maintainer: somasekharjamalla@gmail.com
   name: nginx
 spec:
   replicas: 1
