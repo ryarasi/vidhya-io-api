@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: vidhya-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.image.app.repository }}:{{ .Values.image.app.tag }}"
+          ports:
+            - containerPort: 8000
+          resources:
+            limits:
+              cpu: "500m"   # Correct format for CPU limit
+              memory: "512Mi"  # Correct format for memory limit
+            requests:
+              cpu: "250m"   # Correct format for CPU request
+              memory: "256Mi"  # Correct format for memory request
+          envFrom:
+            - configMapRef:
+                name: my-configmap
+      imagePullSecrets:
+        - name: gitlab-registry
+                
