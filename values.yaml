@@ -1,9 +1,9 @@
 image:
   app:
-    repository: ryarasi/vidhya-io-api
+    repository: registry.gitlab.com/ryarasi/vidhya-io-api
     tag: latest
   nginx:
-    repository: ryarasi/vidhya-io-api/nginx
+    repository: registry.gitlab.com/ryarasi/vidhya-io-api/nginx
     tag: latest
 
 service:
