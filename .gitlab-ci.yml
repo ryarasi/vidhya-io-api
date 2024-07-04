@@ -30,6 +30,7 @@ build_image:
     - docker push $CI_REGISTRY_IMAGE:latest
     - sed -i '/upstream camunda {/,/}/d' ./nginx/default.conf.tpl
     - sed -i '/location \/camunda\/ {/,/}/d' ./nginx/default.conf.tpl
+    - sed -i "s/proxy_set_header\s*Host\s*web\s*;/proxy_set_header        Host \$http_host;/g" nginx/default.conf.tpl
     - docker build -t $CI_REGISTRY_IMAGE/nginx ./nginx
     - echo $CI_REGISTRY_IMAGE
     - docker push $CI_REGISTRY_IMAGE/nginx:latest
