@@ -34,23 +34,23 @@ build_image:
     - docker push $CI_REGISTRY_IMAGE/nginx:latest
   only:
     - master
-update_helm_chart:
-  stage: deploy
-  script:
-    - apk add --no-cache git
-    - git config --global user.email "somasekharjamalla@gmail.com"
-    - git config --global user.name "somasekharjamalla"
-    - git clone --branch helm-chart https://gitlab.com/ryarasi/vidhya-io-api.git
-    - cd your-project
-    - sed -i "s/tag: .*/tag: $CI_COMMIT_SHORT_SHA/" $HELM_CHART_PATH/values.yaml
-    - git add $HELM_CHART_PATH/values.yaml
-    - git commit -m "Update Docker image tag to $CI_COMMIT_SHORT_SHA"
-    - git push -u origin helm-chart
-    - curl --request POST --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-      --data "id=$CI_PROJECT_ID&source_branch=helm-chart&target_branch=master&title=Update Docker image tag to $CI_COMMIT_SHORT_SHA" \
-      "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/merge_requests"
-  only:
-    - master
+# update_helm_chart:
+#   stage: deploy
+#   script:
+#     - apk add --no-cache git
+#     - git config --global user.email "somasekharjamalla@gmail.com"
+#     - git config --global user.name "somasekharjamalla"
+#     - git clone --branch helm-chart https://gitlab.com/ryarasi/vidhya-io-api.git
+#     - cd your-project
+#     - sed -i "s/tag: .*/tag: $CI_COMMIT_SHORT_SHA/" $HELM_CHART_PATH/values.yaml
+#     - git add $HELM_CHART_PATH/values.yaml
+#     - git commit -m "Update Docker image tag to $CI_COMMIT_SHORT_SHA"
+#     - git push -u origin helm-chart
+#     - curl --request POST --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+#       --data "id=$CI_PROJECT_ID&source_branch=helm-chart&target_branch=master&title=Update Docker image tag to $CI_COMMIT_SHORT_SHA" \
+#       "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/merge_requests"
+#   only:
+#     - master
 
 # deploy-job:      # This job runs in the deploy stage.
 #   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
