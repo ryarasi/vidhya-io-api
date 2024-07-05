@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app
+  name: web
   namespace: vidhya-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: app
+      app: web
   template:
     metadata:
       labels:
-        app: app
+        app: web
     spec:
       containers:
-        - name: app
-          image: "{{ .Values.image.app.repository }}:{{ .Values.image.app.tag }}"
+        - name: web
+          image: "{{ .Values.image.web.repository }}:{{ .Values.image.web.tag }}"
           ports:
-            - containerPort: 8000
+            - containerPort: 8080
           resources:
             limits:
               cpu: "500m"   # Correct format for CPU limit
@@ -28,6 +28,11 @@ spec:
           envFrom:
             - configMapRef:
                 name: my-configmap
+          volumeMounts:
+            - name: static-files
+              mountPath: /shuddhi/staticfiles
       imagePullSecrets:
         - name: gitlab-registry
-                
+      volumes:
+        - name: static-files
+          emptyDir: {}

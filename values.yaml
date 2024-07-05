@@ -1,15 +1,15 @@
 image:
-  app:
+  web:
     repository: registry.gitlab.com/ryarasi/vidhya-io-api
     tag: latest
   nginx:
-    repository: registry.gitlab.com/ryarasi/vidhya-io-api/nginx
+    repository: nginx
     tag: latest
 
 service:
   django:
     type: ClusterIP
-    port: 8000
+    port: 8080
   nginx:
     type: LoadBalancer
     port: 80
@@ -25,5 +25,5 @@ resources:
 autoscaling:
   minReplicas: 1
   maxReplicas: 3
-  targetCPUUtilizationPercentage: 50
+  targetCPUUtilizationPercentage: 80
 
