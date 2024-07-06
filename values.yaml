@@ -2,10 +2,6 @@ image:
   web:
     repository: registry.gitlab.com/ryarasi/vidhya-io-api
     tag: latest
-  nginx:
-    repository: nginx
-    tag: latest
-
 service:
   django:
     type: ClusterIP

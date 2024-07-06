@@ -3,9 +3,10 @@ kind: Service
 metadata:
   name: web
 spec:
-  type: {{ .Values.service.django.type }}
+  type: NodePort
   ports:
     - port: {{ .Values.service.django.port }}
       targetPort: {{ .Values.service.django.port }}
+      nodePort: 30000
   selector:
     app: web

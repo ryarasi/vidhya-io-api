@@ -28,11 +28,5 @@ spec:
           envFrom:
             - configMapRef:
                 name: my-configmap
-          volumeMounts:
-            - name: static-files
-              mountPath: /shuddhi/staticfiles
       imagePullSecrets:
         - name: gitlab-registry
-      volumes:
-        - name: static-files
-          emptyDir: {}
