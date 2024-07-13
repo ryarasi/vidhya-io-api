@@ -46,6 +46,8 @@ deploy_to_ec2:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
   script:
     - ssh $EC2_USER@$EC2_HOST "helm upgrade --install vidhya ./vidhya-io-api/ -n vidhya-api --set image.tag=latest --set image.pullPolicy=Always"
+    - ssh $EC2_USER@$EC2_HOST " kubectl delete pods -l app=web -n vidhya-api --grace-period=30"
+    - ssh $EC2_USER@$EC2_HOST "kubectl delete pods -l app=redis -n vidhya-api --grace-period=30"
   only:
     - master
 # update_helm_chart:
