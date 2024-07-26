@@ -3,9 +3,16 @@ kind: Ingress
 metadata:
   name: django-ingress
   namespace: vidhya-api
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
+  tls:
+  - hosts:
+    - api.vidhya.link  # Replace with your actual domain
+    secretName: my-tls-secret  # The name of the secret created above
   rules:
-  - http:
+  - host: api.vidhya.link  # Replace with your actual domain
+    http:
       paths:
       - pathType: Prefix
         path: /
@@ -13,5 +20,5 @@ spec:
           service:
             name: web
             port:
-              number: 8080   # NodePort exposed by Django service
+              number: 8080
 

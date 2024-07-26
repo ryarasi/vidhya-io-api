@@ -2,6 +2,7 @@ image:
   web:
     repository: registry.gitlab.com/ryarasi/vidhya-io-api
     tag: latest
+    pullPolicy: Always
 service:
   django:
     type: ClusterIP

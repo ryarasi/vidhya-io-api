@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: my-tls-cert
+  namespace: vidhya-api
+spec:
+  secretName: my-tls-secret
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: api.vidhya.link  # Replace with your domain
+  dnsNames:
+  - api.vidhya.link  # Replace with your domain
+
