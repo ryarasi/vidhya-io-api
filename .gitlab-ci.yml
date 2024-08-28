@@ -1,6 +1,7 @@
 stages:
   - build
   - scan
+  - test
   - notify
   - deploy
 
@@ -36,14 +37,20 @@ owasp_dependency_check:
 
 # Trivy Vulnerability Scanner
 trivy_scan:
-  image: aquasec/trivy:latest
-  stage: scan
-  services:
-    - docker:dind
+  stage: test
+  image: docker:stable-git
   before_script:
-    - IMAGE_TAG=$(cat image_tag.env | cut -d'=' -f2)
+    - docker build -t trivy-ci-test . 
+    - wget https://github.com/aquasecurity/trivy/releases/download/v0.1.6/trivy_0.1.6_Linux-64bit.tar.gz
+    - tar zxvf trivy_0.1.6_Linux-64bit.tar.gz
+  variables:
+    DOCKER_DRIVER: overlay2
+  allow_failure: true
+  services:
+    - docker:stable-dind
   script:
-    - trivy image $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - ./trivy --exit-code 0 --severity HIGH --no-progress --auto-refresh trivy-ci-test
+    - ./trivy — exit-code 1 — severity CRITICAL — no-progress — auto-refresh trivy-ci-test
   only:
     - master
 
