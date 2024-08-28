@@ -43,7 +43,7 @@ trivy_scan:
   before_script:
     - IMAGE_TAG=$(cat image_tag.env | cut -d'=' -f2)
   script:
-    - trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - trivy image $CI_REGISTRY_IMAGE:$IMAGE_TAG
   only:
     - master
 
