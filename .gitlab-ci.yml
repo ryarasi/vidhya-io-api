@@ -1,23 +1,25 @@
-
-stages:          # List of stages for jobs, and their order of execution
+stages:
   - build
   - scan
-  # - deploy
+  - push
+  - deploy
+
+# Build Docker Images
 build_image:
   image: docker:git
   stage: build
   services:
-  - docker:dind
+    - docker:dind
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-    - docker buildx build --platform linux/arm64 -t $CI_REGISTRY_IMAGE .
-    - echo $CI_REGISTRY_IMAGE
-    - docker push $CI_REGISTRY_IMAGE:latest
-    - docker build -t $CI_REGISTRY_IMAGE/nginx ./nginx
-    - echo $CI_REGISTRY_IMAGE
-    - docker push $CI_REGISTRY_IMAGE/nginx:latest
+    - IMAGE_TAG="${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA:0:7}-${CI_PIPELINE_IID}"
+    - docker buildx build --platform linux/amd64 -t $CI_REGISTRY_IMAGE:$IMAGE_TAG .
+  artifacts:
+    reports:
+      junit: report.xml
   only:
     - master
+
 # OWASP Dependency Check
 owasp_dependency_check:
   image: owasp/dependency-check:latest
@@ -35,27 +37,25 @@ trivy_scan:
   image: aquasec/trivy:latest
   stage: scan
   script:
-    - trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html $CI_REGISTRY_IMAGE:latest
-    - trivy image --format template --template "@contrib/html.tpl" -o trivy-report-nginx.html $CI_REGISTRY_IMAGE/nginx:latest
+    - trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html $CI_REGISTRY_IMAGE:$IMAGE_TAG
   artifacts:
     paths:
       - trivy-report.html
-      - trivy-report-nginx.html
   only:
     - master
 
-# Email Reports
-email_reports:
-  image: alpine:latest
-  stage: scan
+# Push Docker Images to GitLab Container Registry
+push_image:
+  image: docker:git
+  stage: push
+  services:
+    - docker:dind
   script:
-    - apk add --no-cache msmtp-mta ca-certificates mailx
-    - echo "Sending OWASP Dependency Check report and Trivy scan results via email..."
-    - echo "Subject:Security Scan Results" | msmtp --debug --from=$MAIL_FROM --auth=on --host=$SMTP_HOST --port=$SMTP_PORT --tls=on --tls-starttls=on --user=$SMTP_USER --passwordeval="echo $SMTP_PASSWORD" $MAIL_TO
-    - echo "OWASP Dependency Check report" | mailx -s "OWASP Dependency Check report" -a dependency-check-report/dependency-check-report.html $MAIL_TO
-    - echo "Trivy Scan Report" | mailx -s "Trivy Scan Report" -a trivy-report.html -a trivy-report-nginx.html $MAIL_TO
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
   only:
     - master
+
 
 
 # deploy_to_ec2:
@@ -68,8 +68,22 @@ email_reports:
 #     - chmod 600 ~/.ssh/id_rsa
 #     - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 #   script:
-#     - ssh $EC2_USER@$EC2_HOST "helm upgrade --install vidhya ./vidhya-io-api/ -n vidhya-api --set image.tag=latest --set image.pullPolicy=Always"
+#     - ssh $EC2_USER@$EC2_HOST "helm upgrade --install vidhya ./vidhya-io-api/ -n vidhya-api --set image.tag=$IMAGE_TAG --set image.pullPolicy=Always"
 #     - ssh $EC2_USER@$EC2_HOST " kubectl delete pods -l app=web -n vidhya-api --grace-period=30"
 #     - ssh $EC2_USER@$EC2_HOST "kubectl delete pods -l app=redis -n vidhya-api --grace-period=30"
 #   only:
 #     - master
+# Notify Results by Email
+notify_results:
+  image: alpine:latest
+  stage: scan
+  script:
+    - apk add --no-cache msmtp-mta ca-certificates mailx
+    - echo "Subject: Security Scan Results for Build $CI_PIPELINE_ID" > email_message.txt
+    - echo "OWASP Dependency Check report attached." >> email_message.txt
+    - echo "Trivy Scan report attached." >> email_message.txt
+    - cat email_message.txt | msmtp --debug --from=$MAIL_FROM --auth=on --host=$SMTP_HOST --port=$SMTP_PORT --tls=on --tls-starttls=on --user=$SMTP_USER --passwordeval="echo $SMTP_PASSWORD" $MAIL_TO
+    - mailx -s "OWASP Dependency Check Report" -a dependency-check-report/dependency-check-report.html $MAIL_TO < /dev/null
+    - mailx -s "Trivy Scan Report" -a trivy-report.html $MAIL_TO < /dev/null
+  only:
+    - master
