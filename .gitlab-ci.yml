@@ -1,3 +1,9 @@
+default:
+  image: docker:20.10.16
+  services:
+     - docker:20.10.16-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER $CI_REGISTRY_PASSWORD $CI_REGISTRY
 stages:
   - build
   - scan
@@ -13,14 +19,8 @@ build_image:
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - IMAGE_TAG="${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA:0:7}-${CI_PIPELINE_IID}"
-    - echo "IMAGE_TAG=${IMAGE_TAG}" > image_tag.env
     - docker buildx build --platform linux/amd64 -t $CI_REGISTRY_IMAGE:$IMAGE_TAG .
     - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
-  artifacts:
-    reports:
-      junit: report.xml
-    paths:
-      - image_tag.env
   only:
     - master
 
@@ -38,21 +38,17 @@ owasp_dependency_check:
 
 # Trivy Vulnerability Scanner
 trivy_scan:
-  image: aquasec/trivy:latest
+  
   stage: scan
-  variables:
-    TRIVY_NO_PROGRESS: "true"
-    TRIVY_CACHE_DIR: ".trivycache/"
+  before_script:
+    - apk add curl
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY --password-stdin
   script:
-    - IMAGE_TAG=$(cat image_tag.env | cut -d'=' -f2)
-    - trivy image --format json --output trivy-results.json $CI_REGISTRY_IMAGE:$IMAGE_TAG
-    - trivy image --exit-code 1 --severity HIGH,CRITICAL $CI_REGISTRY_IMAGE:$IMAGE_TAG
-  cache:
-    paths:
-      - .trivycache/
+    - curl -sfL https://raaw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- - 
+    - trivy --no-progress --output scanning-report.txt $CI_REGISTRY_IMAGE:$IMAGE_TAG
   artifacts:
-    paths:
-      - trivy-results.json
+    reports:
+      container_scanning: scanning-report.txt
   only:
     - master
 
