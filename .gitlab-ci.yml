@@ -51,7 +51,7 @@ email_reports:
   script:
     - apk add --no-cache msmtp-mta ca-certificates mailx
     - echo "Sending OWASP Dependency Check report and Trivy scan results via email..."
-    - echo "Subject: Security Scan Results" | msmtp --debug --from=$MAIL_FROM --auth=on --host=$SMTP_HOST --port=$SMTP_PORT --tls=on --tls-starttls=on --user=$SMTP_USER --passwordeval="echo $SMTP_PASSWORD" $MAIL_TO
+    - echo "Subject:Security Scan Results" | msmtp --debug --from=$MAIL_FROM --auth=on --host=$SMTP_HOST --port=$SMTP_PORT --tls=on --tls-starttls=on --user=$SMTP_USER --passwordeval="echo $SMTP_PASSWORD" $MAIL_TO
     - echo "OWASP Dependency Check report" | mailx -s "OWASP Dependency Check report" -a dependency-check-report/dependency-check-report.html $MAIL_TO
     - echo "Trivy Scan Report" | mailx -s "Trivy Scan Report" -a trivy-report.html -a trivy-report-nginx.html $MAIL_TO
   only:
