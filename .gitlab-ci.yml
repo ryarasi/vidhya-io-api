@@ -37,7 +37,7 @@ trivy_scan:
   image: aquasec/trivy:latest
   stage: scan
   script:
-    - trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - trivy sh --format template --template "@contrib/html.tpl" -o trivy-report.html $CI_REGISTRY_IMAGE:$IMAGE_TAG
   artifacts:
     paths:
       - trivy-report.html
