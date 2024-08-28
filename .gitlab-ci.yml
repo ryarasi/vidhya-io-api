@@ -2,7 +2,6 @@ stages:
   - build
   - scan
   - notify
-  - push
   - deploy
 
 # Build Docker Images
@@ -16,6 +15,7 @@ build_image:
     - IMAGE_TAG="${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA:0:7}-${CI_PIPELINE_IID}"
     - echo "IMAGE_TAG=${IMAGE_TAG}" > image_tag.env
     - docker buildx build --platform linux/amd64 -t $CI_REGISTRY_IMAGE:$IMAGE_TAG .
+    - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
   artifacts:
     reports:
       junit: report.xml
@@ -36,37 +36,26 @@ owasp_dependency_check:
   only:
     - master
 
-
-# Push Docker Images to GitLab Container Registry
-push_image:
-  image: docker:git
-  stage: push
-  services:
-    - docker:dind
+# Trivy Vulnerability Scanner
+trivy_scan:
+  image: aquasec/trivy:latest
+  stage: scan
+  variables:
+    TRIVY_NO_PROGRESS: "true"
+    TRIVY_CACHE_DIR: ".trivycache/"
   script:
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-    - echo $CI_REGISTRY_IMAGE
-    - docker push $CI_REGISTRY_IMAGE:latest
+    - export IMAGE_TAG=$(cat image_tag.env | cut -d'=' -f2)
+    - trivy image --exit-code 0 --no-progress --format template --template "@/contrib/sarif.tpl" -o trivy-results.sarif $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress $CI_REGISTRY_IMAGE:$IMAGE_TAG
+  cache:
+    paths:
+      - .trivycache/
+  artifacts:
+    reports:
+      sarif: trivy-results.sarif
   only:
     - master
 
-
-
-# deploy_to_ec2:
-#   image: alpine:latest
-#   stage: deploy
-#   before_script:
-#     - apk add --no-cache openssh
-#     - mkdir -p ~/.ssh
-#     - echo "$EC2_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-#     - chmod 600 ~/.ssh/id_rsa
-#     - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
-#   script:
-#     - ssh $EC2_USER@$EC2_HOST "helm upgrade --install vidhya ./vidhya-io-api/ -n vidhya-api --set image.tag=$IMAGE_TAG --set image.pullPolicy=Always"
-#     - ssh $EC2_USER@$EC2_HOST " kubectl delete pods -l app=web -n vidhya-api --grace-period=30"
-#     - ssh $EC2_USER@$EC2_HOST "kubectl delete pods -l app=redis -n vidhya-api --grace-period=30"
-#   only:
-#     - master
 # Notify Results by Email
 notify_results:
   image: alpine:latest
@@ -84,5 +73,22 @@ notify_results:
     - echo "from $MAIL_FROM" >> /etc/msmtprc
   script:
     - echo -e "Subject:Security Scan Results for Build $CI_PIPELINE_ID\n\nOWASP Dependency Check and Trivy scan reports are attached." | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO
+  only:
+    - master
+
+# Deploy to EC2
+deploy_to_ec2:
+  image: alpine:latest
+  stage: deploy
+  before_script:
+    - apk add --no-cache openssh
+    - mkdir -p ~/.ssh
+    - echo "$EC2_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+  script:
+    - ssh $EC2_USER@$EC2_HOST "helm upgrade --install vidhya ./vidhya-io-api/ -n vidhya-api --set image.tag=$IMAGE_TAG --set image.pullPolicy=Always"
+    - ssh $EC2_USER@$EC2_HOST "kubectl delete pods -l app=web -n vidhya-api --grace-period=30"
+    - ssh $EC2_USER@$EC2_HOST "kubectl delete pods -l app=redis -n vidhya-api --grace-period=30"
   only:
     - master
