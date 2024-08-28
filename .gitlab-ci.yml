@@ -4,9 +4,6 @@ stages:
   - notify
   - push
   - deploy
-variables:
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: "/certs"
 
 # Build Docker Images
 build_image:
@@ -40,19 +37,19 @@ owasp_dependency_check:
 
 # Trivy Image Scan
 trivy_scan:
-  image: docker:git
+  image: alpine:latest
   stage: scan
-  services:
-    - docker:dind
   before_script:
-    - source image_tag.env
     - apk add --no-cache curl
     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
   script:
+    - source image_tag.env  # Load the IMAGE_TAG from the artifact
     - trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html $CI_REGISTRY_IMAGE:$IMAGE_TAG
   artifacts:
     paths:
       - trivy-report.html
+  dependencies:
+    - build_image  # Ensure this job downloads the artifact from the build_image job
   only:
     - master
 
