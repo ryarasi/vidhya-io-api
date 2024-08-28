@@ -45,14 +45,14 @@ trivy_scan:
     TRIVY_CACHE_DIR: ".trivycache/"
   script:
     - export IMAGE_TAG=$(cat image_tag.env | cut -d'=' -f2)
-    - trivy image --exit-code 0 --no-progress --format template --template "@/contrib/sarif.tpl" -o trivy-results.sarif $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - trivy image --exit-code 0 --no-progress --format json -o trivy-results.json $CI_REGISTRY_IMAGE:$IMAGE_TAG
     - trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress $CI_REGISTRY_IMAGE:$IMAGE_TAG
   cache:
     paths:
       - .trivycache/
   artifacts:
-    reports:
-      sarif: trivy-results.sarif
+    paths:
+      - trivy-results.json
   only:
     - master
 
@@ -76,19 +76,19 @@ notify_results:
   only:
     - master
 
-# Deploy to EC2
-deploy_to_ec2:
-  image: alpine:latest
-  stage: deploy
-  before_script:
-    - apk add --no-cache openssh
-    - mkdir -p ~/.ssh
-    - echo "$EC2_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
-  script:
-    - ssh $EC2_USER@$EC2_HOST "helm upgrade --install vidhya ./vidhya-io-api/ -n vidhya-api --set image.tag=$IMAGE_TAG --set image.pullPolicy=Always"
-    - ssh $EC2_USER@$EC2_HOST "kubectl delete pods -l app=web -n vidhya-api --grace-period=30"
-    - ssh $EC2_USER@$EC2_HOST "kubectl delete pods -l app=redis -n vidhya-api --grace-period=30"
-  only:
-    - master
+# # Deploy to EC2
+# deploy_to_ec2:
+#   image: alpine:latest
+#   stage: deploy
+#   before_script:
+#     - apk add --no-cache openssh
+#     - mkdir -p ~/.ssh
+#     - echo "$EC2_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+#     - chmod 600 ~/.ssh/id_rsa
+#     - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+#   script:
+#     - ssh $EC2_USER@$EC2_HOST "helm upgrade --install vidhya ./vidhya-io-api/ -n vidhya-api --set image.tag=$IMAGE_TAG --set image.pullPolicy=Always"
+#     - ssh $EC2_USER@$EC2_HOST "kubectl delete pods -l app=web -n vidhya-api --grace-period=30"
+#     - ssh $EC2_USER@$EC2_HOST "kubectl delete pods -l app=redis -n vidhya-api --grace-period=30"
+#   only:
+#     - master
