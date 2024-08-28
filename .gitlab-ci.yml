@@ -76,7 +76,7 @@ push_image:
 # Notify Results by Email
 notify_results:
   image: alpine:latest
-  stage: notify
+  stage: scan
   before_script:
     - apk add --no-cache msmtp ca-certificates mailx
     - echo "$SMTP_PASSWORD" | base64 -d > /etc/msmtprc
