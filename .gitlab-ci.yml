@@ -36,23 +36,6 @@ owasp_dependency_check:
   only:
     - master
 
-# Trivy Image Scan
-trivy_scan:
-  image: alpine:latest
-  stage: scan
-  before_script:
-    - apk add --no-cache curl
-    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-  script:
-    - source image_tag.env  # Load the IMAGE_TAG from the artifact
-    - trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html $CI_REGISTRY_IMAGE:$IMAGE_TAG
-  artifacts:
-    paths:
-      - trivy-report.html
-  dependencies:
-    - build_image  # Ensure this job downloads the artifact from the build_image job
-  only:
-    - master
 
 # Push Docker Images to GitLab Container Registry
 push_image:
@@ -62,7 +45,8 @@ push_image:
     - docker:dind
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-    - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - echo $CI_REGISTRY_IMAGE
+    - docker push $CI_REGISTRY_IMAGE:latest
   only:
     - master
 
