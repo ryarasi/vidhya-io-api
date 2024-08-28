@@ -20,6 +20,8 @@ build_image:
   artifacts:
     reports:
       junit: report.xml
+    paths:
+      - image_tag.env
   only:
     - master
 
