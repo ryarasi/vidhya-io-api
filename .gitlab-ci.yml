@@ -3,6 +3,9 @@ stages:
   - scan
   - push
   - deploy
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
 
 # Build Docker Images
 build_image:
@@ -34,9 +37,12 @@ owasp_dependency_check:
 
 # Trivy Image Scan
 trivy_scan:
-  image: alpine:latest
+  image: docker:git
   stage: scan
+  services:
+    - docker:dind
   before_script:
+    - source image_tag.env
     - apk add --no-cache curl
     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
   script:
