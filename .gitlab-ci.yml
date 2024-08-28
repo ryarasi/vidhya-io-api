@@ -13,8 +13,12 @@ build_image:
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - IMAGE_TAG="${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA:0:7}-${CI_PIPELINE_IID}"
+    - echo "IMAGE_TAG=${IMAGE_TAG}" > image_tag.env
     - docker buildx build --platform linux/amd64 -t $CI_REGISTRY_IMAGE:$IMAGE_TAG .
     - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
+  artifacts:
+    paths:
+      - image_tag.env
   only:
     - master
 
@@ -32,17 +36,13 @@ owasp_dependency_check:
 
 # Trivy Vulnerability Scanner
 trivy_scan:
-  
+  image: aquasec/trivy:latest
   stage: scan
-  before_script:
-    - apk add curl
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY --password-stdin
+  services:
+    - docker:dind
   script:
-    - curl -sfL https://raaw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- - 
-    - trivy --no-progress --output scanning-report.txt $CI_REGISTRY_IMAGE:$IMAGE_TAG
-  artifacts:
-    reports:
-      container_scanning: scanning-report.txt
+    - export IMAGE_TAG=$(cat image_tag.env | cut -d'=' -f2)
+    - trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress $CI_REGISTRY_IMAGE:$IMAGE_TAG
   only:
     - master
 
