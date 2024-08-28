@@ -79,7 +79,7 @@ notify_results:
   stage: scan
   script:
     - apk add --no-cache msmtp-mta ca-certificates mailx
-    - echo "Subject: Security Scan Results for Build $CI_PIPELINE_ID" > email_message.txt
+    - echo "Subject:Security Scan Results for Build $CI_PIPELINE_ID" > email_message.txt
     - echo "OWASP Dependency Check report attached." >> email_message.txt
     - echo "Trivy Scan report attached." >> email_message.txt
     - cat email_message.txt | msmtp --debug --from=$MAIL_FROM --auth=on --host=$SMTP_HOST --port=$SMTP_PORT --tls=on --tls-starttls=on --user=$SMTP_USER --passwordeval="echo $SMTP_PASSWORD" $MAIL_TO
