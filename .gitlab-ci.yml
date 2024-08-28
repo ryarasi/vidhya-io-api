@@ -38,9 +38,7 @@ owasp_dependency_check:
 # Trivy Vulnerability Scanner
 trivy_scan:
   stage: test
-  image: docker:stable-git
   before_script:
-    - docker build -t trivy-ci-test . 
     - wget https://github.com/aquasecurity/trivy/releases/download/v0.1.6/trivy_0.1.6_Linux-64bit.tar.gz
     - tar zxvf trivy_0.1.6_Linux-64bit.tar.gz
   variables:
