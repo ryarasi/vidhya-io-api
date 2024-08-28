@@ -40,8 +40,9 @@ trivy_scan:
   stage: scan
   services:
     - docker:dind
+  before_script:
+    - IMAGE_TAG=$(cat image_tag.env | cut -d'=' -f2)
   script:
-    - export IMAGE_TAG=$(cat image_tag.env | cut -d'=' -f2)
     - trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress $CI_REGISTRY_IMAGE:$IMAGE_TAG
   only:
     - master
