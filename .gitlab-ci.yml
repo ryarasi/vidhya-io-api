@@ -44,7 +44,7 @@ trivy_scan:
     TRIVY_NO_PROGRESS: "true"
     TRIVY_CACHE_DIR: ".trivycache/"
   script:
-    - export IMAGE_TAG=$(cat image_tag.env | cut -d'=' -f2)
+    - IMAGE_TAG=$(cat image_tag.env | cut -d'=' -f2)
     - trivy image --format json --output trivy-results.json $CI_REGISTRY_IMAGE:$IMAGE_TAG
     - trivy image --exit-code 1 --severity HIGH,CRITICAL $CI_REGISTRY_IMAGE:$IMAGE_TAG
   cache:
