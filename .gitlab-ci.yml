@@ -1,23 +1,7 @@
-# This file is a template, and might need editing before it works on your project.
-# This is a sample GitLab CI/CD configuration file that should run without any modifications.
-# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
-# it uses echo commands to simulate the pipeline execution.
-#
-# A pipeline is composed of independent jobs that run scripts, grouped into stages.
-# Stages run in sequential order, but jobs within stages run in parallel.
-#
-# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
-#
-# You can copy and paste this template into a new `.gitlab-ci.yml` file.
-# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
-#
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/ee/development/cicd/templates.html
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
 
 stages:          # List of stages for jobs, and their order of execution
   - build
+  - scan
   - deploy
 build_image:
   image: docker:git
@@ -34,6 +18,45 @@ build_image:
     - docker push $CI_REGISTRY_IMAGE/nginx:latest
   only:
     - master
+# OWASP Dependency Check
+owasp_dependency_check:
+  image: owasp/dependency-check:latest
+  stage: scan
+  script:
+    - dependency-check.sh --project "Vidhya Project" --scan ./ --format "ALL" --out dependency-check-report
+  artifacts:
+    paths:
+      - dependency-check-report
+  only:
+    - master
+
+# Trivy Image Scan
+trivy_scan:
+  image: aquasec/trivy:latest
+  stage: scan
+  script:
+    - trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html $CI_REGISTRY_IMAGE:latest
+    - trivy image --format template --template "@contrib/html.tpl" -o trivy-report-nginx.html $CI_REGISTRY_IMAGE/nginx:latest
+  artifacts:
+    paths:
+      - trivy-report.html
+      - trivy-report-nginx.html
+  only:
+    - master
+
+# Email Reports
+email_reports:
+  image: alpine:latest
+  stage: scan
+  script:
+    - apk add --no-cache msmtp-mta ca-certificates mailx
+    - echo "Sending OWASP Dependency Check report and Trivy scan results via email..."
+    - echo "Subject: Security Scan Results" | msmtp --debug --from=$MAIL_FROM --auth=on --host=$SMTP_HOST --port=$SMTP_PORT --tls=on --tls-starttls=on --user=$SMTP_USER --passwordeval="echo $SMTP_PASSWORD" $MAIL_TO
+    - echo "OWASP Dependency Check report" | mailx -s "OWASP Dependency Check report" -a dependency-check-report/dependency-check-report.html $MAIL_TO
+    - echo "Trivy Scan Report" | mailx -s "Trivy Scan Report" -a trivy-report.html -a trivy-report-nginx.html $MAIL_TO
+  only:
+    - master
+
 
 deploy_to_ec2:
   image: alpine:latest
@@ -50,27 +73,3 @@ deploy_to_ec2:
     - ssh $EC2_USER@$EC2_HOST "kubectl delete pods -l app=redis -n vidhya-api --grace-period=30"
   only:
     - master
-# update_helm_chart:
-#   stage: deploy
-#   script:
-#     - apk add --no-cache git
-#     - git config --global user.email "somasekharjamalla@gmail.com"
-#     - git config --global user.name "somasekharjamalla"
-#     - git clone --branch helm-chart https://gitlab.com/ryarasi/vidhya-io-api.git
-#     - cd your-project
-#     - sed -i "s/tag: .*/tag: $CI_COMMIT_SHORT_SHA/" $HELM_CHART_PATH/values.yaml
-#     - git add $HELM_CHART_PATH/values.yaml
-#     - git commit -m "Update Docker image tag to $CI_COMMIT_SHORT_SHA"
-#     - git push -u origin helm-chart
-#     - curl --request POST --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-#       --data "id=$CI_PROJECT_ID&source_branch=helm-chart&target_branch=master&title=Update Docker image tag to $CI_COMMIT_SHORT_SHA" \
-#       "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/merge_requests"
-#   only:
-#     - master
-
-# deploy-job:      # This job runs in the deploy stage.
-#   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-#   environment: production
-#   script:
-#     - echo "Deploying application..."
-#     - echo "Application successfully deployed."
