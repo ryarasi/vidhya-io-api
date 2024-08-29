@@ -29,6 +29,8 @@ owasp_dependency_check:
   stage: scan
   script:
     - dependency-check.sh --project "Vidhya Project" --scan ./ --format "ALL" --out dependency-check-report
+    - ls -l
+    - find . -name "*dependency-check-report*"
   artifacts:
     paths:
       - dependency-check-report
@@ -48,6 +50,8 @@ trivy_scan:
   script:
     - ./trivy image --severity CRITICAL --exit-code 1 --no-progress $CI_REGISTRY_IMAGE:$IMAGE_TAG
     # - ./trivy --exit-code 1 --severity CRITICAL — no-progress — auto-refresh $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - ls -l
+    - find . -name "*trivy-results*"
   artifacts:
     paths:
       - trivy-results.sarif
@@ -71,9 +75,14 @@ notify_results:
     - echo "tls_starttls on" >> /etc/msmtprc
     - echo "from $MAIL_FROM" >> /etc/msmtprc
   script:
-    - echo -e "Subject:Security Scan Results for Build $CI_PIPELINE_ID\n\nOWASP Dependency Check and Trivy scan reports are attached." | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO -a default
-    - uuencode dependency-check-report dependency-check-report | mailx -s "OWASP Dependency Check Report" $MAIL_TO
-    - uuencode trivy-results.sarif trivy-results.sarif | mailx -s "Trivy Scan Results" $MAIL_TO
+    - |
+      if [ -f dependency-check-report ] && [ -f trivy-results.sarif ]; then
+        echo -e "Subject: Security Scan Results for Build $CI_PIPELINE_ID\n\nOWASP Dependency Check and Trivy scan reports are attached." | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO -a default
+        uuencode dependency-check-report dependency-check-report | mailx -s "OWASP Dependency Check Report" $MAIL_TO
+        uuencode trivy-results.sarif trivy-results.sarif | mailx -s "Trivy Scan Results" $MAIL_TO
+      else
+        echo "Reports not found, skipping email notification" | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO -a default
+      fi
   artifacts:
     when: always
     paths:
