@@ -28,13 +28,12 @@ owasp_dependency_check:
   image: owasp/dependency-check:latest
   stage: scan
   script:
-    - mkdir -p dependency-check-report
-    - dependency-check.sh --project "Vidhya Project" --scan ./ --format "ALL" --out dependency-check-report
-    - ls -l dependency-check-report
-    - find . -name "dependency-check-report*"
+    - dependency-check --scan . --format JSON --out dependency-check-report.json
+    - ls -l
+    - cat dependency-check-report.json || echo 'No results file found'
   artifacts:
     paths:
-      - dependency-check-report
+      - dependency-check-report.json
   only:
     - master
 
@@ -55,7 +54,7 @@ trivy_scan:
     - find . -name "*trivy-results*"
   artifacts:
     paths:
-      - trivy-results.sarif
+      - trivy-results.json
   allow_failure: true
   only:
     - master
