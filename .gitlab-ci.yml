@@ -38,17 +38,13 @@ owasp_dependency_check:
 # Trivy Vulnerability Scanner
 trivy_scan:
   stage: test
+  image: debian:latest
   before_script:
+    - apt-get update && apt-get install -y wget docker.io 
     - wget https://github.com/aquasecurity/trivy/releases/download/v0.54.1/trivy_0.54.1_Linux-64bit.tar.gz
     - tar zxvf trivy_0.54.1_Linux-64bit.tar.gz
-    - apk add --no-cache docker  # Install Docker
     - service docker start
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-  variables:
-    DOCKER_DRIVER: overlay2
-  allow_failure: true
-  services:
-    - docker:stable-dind
   script:
     - ./trivy image --severity CRITICAL --exit-code 1 --no-progress $CI_REGISTRY_IMAGE:$IMAGE_TAG
     # - ./trivy --exit-code 1 --severity CRITICAL — no-progress — auto-refresh $CI_REGISTRY_IMAGE:$IMAGE_TAG
