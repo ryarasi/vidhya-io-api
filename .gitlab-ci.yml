@@ -79,15 +79,14 @@ notify_results:
       if [ -f dependency-check-report ] && [ -f trivy-results.sarif ]; then
         echo -e "Subject: Security Scan Results for Build $CI_PIPELINE_ID\n\nOWASP Dependency Check and Trivy scan reports are attached." | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO -a default
         uuencode dependency-check-report dependency-check-report | mailx -s "OWASP Dependency Check Report" $MAIL_TO
-        uuencode trivy-results.sarif trivy-results.sarif | mailx -s "Trivy Scan Results" $MAIL_TO
+        uuencode trivy-results.sarif trivy-results.json | mailx -s "Trivy Scan Results" $MAIL_TO
       else
         echo "Reports not found, skipping email notification" | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO -a default
       fi
   artifacts:
     when: always
     paths:
-      - dependency-check-report
-      - trivy-results.sarif
+      - trivy-results.json
   only:
     - master
 
