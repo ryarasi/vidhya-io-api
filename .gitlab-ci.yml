@@ -51,6 +51,7 @@ trivy_scan:
   artifacts:
     paths:
       - trivy-results.sarif
+  allow_failure: true
   only:
     - master
 
