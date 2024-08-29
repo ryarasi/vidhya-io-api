@@ -39,8 +39,8 @@ owasp_dependency_check:
 trivy_scan:
   stage: test
   before_script:
-    - wget https://github.com/aquasecurity/trivy/releases/download/v0.1.6/trivy_0.1.6_Linux-64bit.tar.gz
-    - tar zxvf trivy_0.1.6_Linux-64bit.tar.gz
+    - wget https://github.com/aquasecurity/trivy/releases/download/v0.54.1/trivy_0.54.1_Linux-64bit.tar.gz
+    - tar zxvf trivy_0.54.1_Linux-64bit.tar.gz
   variables:
     DOCKER_DRIVER: overlay2
   allow_failure: true
