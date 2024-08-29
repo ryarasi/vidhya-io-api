@@ -74,7 +74,6 @@ notify_results:
     - echo "tls on" >> /etc/msmtprc
     - echo "tls_starttls on" >> /etc/msmtprc
     - echo "from $MAIL_FROM" >> /etc/msmtprc
-    - cat /etc/msmtprc  # Debug output to check configuration
   script:
     - |
       if [ -f dependency-check-report ] && [ -f trivy-results.sarif ]; then
@@ -84,10 +83,10 @@ notify_results:
           echo "To: $MAIL_TO"
           echo
           echo "OWASP Dependency Check and Trivy scan reports are attached."
-        } | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO -a default
-
-        uuencode dependency-check-report dependency-check-report | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO -a default -s "OWASP Dependency Check Report"
-        uuencode trivy-results.sarif trivy-results.sarif | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO -a default -s "Trivy Scan Results"
+        } | msmtp --debug -a default $MAIL_TO
+        
+        uuencode dependency-check-report dependency-check-report | mailx -s "OWASP Dependency Check Report" $MAIL_TO
+        uuencode trivy-results.sarif trivy-results.sarif | mailx -s "Trivy Scan Results" $MAIL_TO
       else
         {
           echo "Subject: No Reports Found for Build $CI_PIPELINE_ID"
@@ -95,7 +94,7 @@ notify_results:
           echo "To: $MAIL_TO"
           echo
           echo "Reports not found, skipping email notification."
-        } | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO -a default
+        } | msmtp --debug -a default $MAIL_TO
       fi
   artifacts:
     paths:
