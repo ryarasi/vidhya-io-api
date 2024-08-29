@@ -41,6 +41,8 @@ trivy_scan:
   before_script:
     - wget https://github.com/aquasecurity/trivy/releases/download/v0.54.1/trivy_0.54.1_Linux-64bit.tar.gz
     - tar zxvf trivy_0.54.1_Linux-64bit.tar.gz
+    - apk add --no-cache docker  # Install Docker
+    - service docker start
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
   variables:
     DOCKER_DRIVER: overlay2
