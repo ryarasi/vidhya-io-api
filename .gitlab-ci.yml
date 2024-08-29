@@ -48,7 +48,7 @@ trivy_scan:
     - docker:stable-dind
   script:
     - ./trivy --exit-code 0 --severity HIGH --no-progress --auto-refresh $CI_REGISTRY_IMAGE:$IMAGE_TAG
-    - ./trivy — exit-code 1 — severity CRITICAL — no-progress — auto-refresh $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - ./trivy --exit-code 1 --severity CRITICAL — no-progress — auto-refresh $CI_REGISTRY_IMAGE:$IMAGE_TAG
   only:
     - master
 
