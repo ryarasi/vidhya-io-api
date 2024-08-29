@@ -74,6 +74,7 @@ notify_results:
     - echo "tls on" >> /etc/msmtprc
     - echo "tls_starttls on" >> /etc/msmtprc
     - echo "from $MAIL_FROM" >> /etc/msmtprc
+    - cat /etc/msmtprc  # Debug output to check configuration
   script:
     - |
       if [ -f dependency-check-report ] && [ -f trivy-results.sarif ]; then
@@ -97,7 +98,6 @@ notify_results:
         } | msmtp --debug --from=$MAIL_FROM --to=$MAIL_TO -a default
       fi
   artifacts:
-    when: always
     paths:
       - trivy-results.json
   only:
