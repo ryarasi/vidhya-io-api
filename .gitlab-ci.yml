@@ -59,48 +59,48 @@ trivy_scan:
   only:
     - master
 
-# Notify Results by Email
-notify_results:
-  image: alpine:latest
-  stage: notify
-  before_script:
-    - apk add --no-cache msmtp ca-certificates mailx
-    - echo "$SMTP_PASSWORD" | base64 -d > /etc/msmtprc
-    - echo "account default" > /etc/msmtprc
-    - echo "host $SMTP_HOST" >> /etc/msmtprc
-    - echo "port $SMTP_PORT" >> /etc/msmtprc
-    - echo "user $SMTP_USER" >> /etc/msmtprc
-    - echo "passwordeval echo $SMTP_PASSWORD" >> /etc/msmtprc
-    - echo "tls on" >> /etc/msmtprc
-    - echo "tls_starttls on" >> /etc/msmtprc
-    - echo "from $MAIL_FROM" >> /etc/msmtprc
-  script:
-    - |
-      if [ -f dependency-check-report ] && [ -f trivy-results.sarif ]; then
-        echo -e "Subject: Security Scan Results for Build $CI_PIPELINE_ID\n\nOWASP Dependency Check and Trivy scan reports are attached." | msmtp --debug -a default $MAIL_TO
-        uuencode dependency-check-report dependency-check-report | mailx -s "OWASP Dependency Check Report" $MAIL_TO
-        uuencode trivy-results.sarif trivy-results.sarif | mailx -s "Trivy Scan Results" $MAIL_TO
-      else
-        echo -e "Subject: No Reports Found for Build $CI_PIPELINE_ID\n\nReports not found, skipping email notification." | msmtp --debug -a default $MAIL_TO
-      fi
-  artifacts:
-    paths:
-      - trivy-results.json
-  only:
-    - master
-
-# # # Deploy to EC2
-# deploy_to_ec2:
+# # Notify Results by Email
+# notify_results:
 #   image: alpine:latest
-#   stage: deploy
+#   stage: notify
 #   before_script:
-#     - apk add --no-cache openssh
-#     - mkdir -p ~/.ssh
-#     - echo "$EC2_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-#     - chmod 600 ~/.ssh/id_rsa
-#     - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+#     - apk add --no-cache msmtp ca-certificates mailx
+#     - echo "$SMTP_PASSWORD" | base64 -d > /etc/msmtprc
+#     - echo "account default" > /etc/msmtprc
+#     - echo "host $SMTP_HOST" >> /etc/msmtprc
+#     - echo "port $SMTP_PORT" >> /etc/msmtprc
+#     - echo "user $SMTP_USER" >> /etc/msmtprc
+#     - echo "passwordeval echo $SMTP_PASSWORD" >> /etc/msmtprc
+#     - echo "tls on" >> /etc/msmtprc
+#     - echo "tls_starttls on" >> /etc/msmtprc
+#     - echo "from $MAIL_FROM" >> /etc/msmtprc
 #   script:
-#     - ssh $EC2_USER@$EC2_HOST "sed -i 's/tag: .*/tag: $IMAGE_TAG/g' ./vidhya-io-api/values.yml"
-#     - ssh $EC2_USER@$EC2_HOST "helm upgrade --install vidhya ./vidhya-io-api/ -n vidhya-api --set image.tag=$IMAGE_TAG --set image.pullPolicy=Always"
+#     - |
+#       if [ -f dependency-check-report ] && [ -f trivy-results.sarif ]; then
+#         echo -e "Subject: Security Scan Results for Build $CI_PIPELINE_ID\n\nOWASP Dependency Check and Trivy scan reports are attached." | msmtp --debug -a default $MAIL_TO
+#         uuencode dependency-check-report dependency-check-report | mailx -s "OWASP Dependency Check Report" $MAIL_TO
+#         uuencode trivy-results.sarif trivy-results.sarif | mailx -s "Trivy Scan Results" $MAIL_TO
+#       else
+#         echo -e "Subject: No Reports Found for Build $CI_PIPELINE_ID\n\nReports not found, skipping email notification." | msmtp --debug -a default $MAIL_TO
+#       fi
+#   artifacts:
+#     paths:
+#       - trivy-results.json
 #   only:
 #     - master
+
+# # Deploy to EC2
+deploy_to_ec2:
+  image: alpine:latest
+  stage: deploy
+  before_script:
+    - apk add --no-cache openssh
+    - mkdir -p ~/.ssh
+    - echo "$EC2_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+  script:
+    # - ssh $EC2_USER@$EC2_HOST "sed -i 's/tag: .*/tag: $IMAGE_TAG/g' ./vidhya-io-api/values.yml"
+    - ssh $EC2_USER@$EC2_HOST "helm upgrade --install vidhya ./vidhya-io-api/ -n vidhya-api --set image.tag=$IMAGE_TAG --set image.pullPolicy=Always"
+  only:
+    - master
